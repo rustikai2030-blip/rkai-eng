@@ -1,4 +1,7 @@
 import './styles/evolution.css';
+import { auth, googleProvider, db } from './firebase.js';
+import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -43,6 +46,29 @@ document.addEventListener('DOMContentLoaded', () => {
   
   let secondsElapsed = 0;        
   let timerInterval = null;
+  let currentUser = null;
+
+  async function saveSessionToFirestore() {
+    if (!currentUser) return;
+    try {
+      await addDoc(collection(db, "sessions"), {
+        uid: currentUser.uid,
+        email: currentUser.email || "anonymous",
+        correctAnswers: totalCorrectAnswers,
+        incorrectAnswers: totalIncorrectAnswers,
+        durationSeconds: secondsElapsed,
+        timestamp: serverTimestamp()
+      });
+      console.log("Статистика успешно сохранена в базу данных!");
+    } catch (error) {
+      console.error("Ошибка при сохранении данных в Firestore:", error);
+    }
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    renderScreen();
+  });
 
   function pickNewTask() {
     let modeIndex = sessionIndex % 10;
@@ -72,6 +98,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
+  function renderScreen() {
+    if (!currentUser) {
+      app.innerHTML = `
+        <div style="text-align: center; max-width: 400px; margin: 50px auto; padding: 20px;">
+          <h1 style="font-size: 28px; margin-bottom: 10px;">eng.rkai.app</h1>
+          <p style="margin-bottom: 30px; font-size: 16px;">Уровень 0: Старт тренажера</p>
+          <button id="google-login-btn" style="background: #fff; color: #000; border: 2px solid #000; padding: 15px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;">Войти через Google</button>
+        </div>
+      `;
+
+      document.getElementById('google-login-btn').addEventListener('click', async () => {
+        try {
+          await signInWithPopup(auth, googleProvider);
+        } catch (error) {
+          console.error("Ошибка авторизации:", error);
+          alert("Ошибка входа: " + error.message);
+        }
+      });
+    } else {
+      renderTrainer();
+    }
+  }
+
   function renderTrainer() {
     if (!currentTask) {
       pickNewTask();
@@ -80,18 +129,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const showStats = totalCorrectAnswers >= 2;
 
     app.innerHTML = `
-      <!-- Верхняя панель: компактные кнопки и часы по центру -->
-      <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 10px;">
         <button id="words-btn" style="width: 100px; padding: 8px 10px; font-size: 14px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Слова</button>
         <div id="timer-display" style="font-size: 16px; font-weight: bold; min-width: 60px; text-align: center; visibility: ${showStats ? 'visible' : 'hidden'};">⏱ ${formatTime(secondsElapsed)}</div>
         <button id="rules-btn" style="width: 100px; padding: 8px 10px; font-size: 14px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Правила</button>
+      </div>
+
+      <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
+        👤 ${currentUser.displayName || currentUser.email} 
+        <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
       </div>
     `;
 
     if (!isEnglishToRussian) {
       app.innerHTML += `
         <div style="margin: 20px 0;">
-          <!-- Задание с цифрами близко к тексту -->
           <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px;">
             <div style="font-size: 24px; font-weight: bold; color: green; visibility: ${showStats ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
             <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.ru}</p>
@@ -115,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       app.innerHTML += `
         <div style="margin: 20px 0;">
-          <!-- Задание с цифрами близко к тексту -->
           <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 20px;">
             <div style="font-size: 24px; font-weight: bold; color: green; visibility: ${showStats ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
             <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.en}</p>
@@ -136,6 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupModals();
     startTimer();
+
+    document.getElementById('logout-btn').onclick = async () => {
+      await saveSessionToFirestore();
+      signOut(auth);
+    };
   }
 
   function setupKeyboard() {
@@ -197,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const okBtn = document.getElementById('ok-btn');
     if (okBtn) {
-      okBtn.onclick = () => {
+      okBtn.onclick = async () => {
         if (currentInput.trim().toLowerCase() === currentTask.en.toLowerCase()) {
           if (totalCorrectAnswers >= 2) {
             lastFeedback = "Правильно";
@@ -208,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
           currentInput = "";
           isUpperCase = true;
           pickNewTask();
+          await saveSessionIdempotent();
           renderTrainer();
         } else {
           if (totalCorrectAnswers >= 2) {
@@ -226,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function setupOptions() {
     const optionButtons = document.querySelectorAll('.option-btn');
     optionButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         if (btn.textContent.trim() === currentTask.correct) {
           if (totalCorrectAnswers >= 2) {
             lastFeedback = "Правильно";
@@ -235,6 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
           totalCorrectAnswers++;
           sessionIndex++;
           pickNewTask();
+          await saveSessionIdempotent();
           renderTrainer();
         } else {
           if (totalCorrectAnswers >= 2) {
@@ -246,6 +304,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
+  }
+
+  let lastSavedCount = 0;
+  async function saveSessionIdempotent() {
+    if (totalCorrectAnswers - lastSavedCount >= 5) {
+      lastSavedCount = totalCorrectAnswers;
+      await saveSessionToFirestore();
+    }
   }
 
   function setupModals() {
@@ -305,20 +371,5 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.style.display = 'none';
       };
     }
-  }
-
-  app.innerHTML = `
-    <div style="text-align: center;">
-      <h1>eng.rkai.app</h1>
-      <p>Уровень 0: Старт тренажера</p>
-      <button id="start-btn" style="background: #fff; color: #000; border: 2px solid #000; padding: 20px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%;">Войти через Google</button>
-    </div>
-  `;
-
-  const startBtn = document.getElementById('start-btn');
-  if (startBtn) {
-    startBtn.addEventListener('click', () => {
-      renderTrainer();
-    });
   }
 });
