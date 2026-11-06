@@ -3,6 +3,29 @@ body[data-level="0"] {
   color: #000000;
   font-family: monospace, sans-serif;
   --border-radius: 0px;
+  --key-height: 52px;
+  --key-font-size: 18px;
+  --key-gap: 6px;
+}
+
+body[data-level="1"] {
+  background-color: #f9f9f9;
+  color: #000000;
+  font-family: sans-serif;
+  --border-radius: 4px;
+  --key-height: 46px;
+  --key-font-size: 16px;
+  --key-gap: 5px;
+}
+
+body[data-level="2"] {
+  background-color: #f0f4f8;
+  color: #000000;
+  font-family: sans-serif;
+  --border-radius: 6px;
+  --key-height: 40px;
+  --key-font-size: 15px;
+  --key-gap: 4px;
 }
 
 body {
@@ -21,13 +44,32 @@ body {
   text-align: center;
 }
 
-button {
+/* Динамические стили клавиатурных кнопок на основе переменных уровня */
+.kb-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--key-gap, 6px);
+  margin-bottom: var(--key-gap, 6px);
+}
+
+.kb-btn {
+  flex: 1;
+  height: var(--key-height, 52px);
+  font-size: var(--key-font-size, 18px);
+  font-weight: bold;
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+  border-radius: var(--border-radius, 0px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.kb-btn:active {
   background: #000;
   color: #fff;
-  border: 2px solid #000;
-  padding: 20px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  width: 100%;
 }
