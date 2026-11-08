@@ -4,25 +4,30 @@ export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }
   const qwertyRow2 = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
   const qwertyRow3 = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
 
-  // Определяем набор доступных букв в зависимости от уровня
-  // Уровень 0 (Старт): только буквы для местоимений и слова work, will (w, e, r, t, y, u, i, o, l, s, d, h, k)
+  // Определяем набор доступных символов в зависимости от уровня
   let allowedChars = ['w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k'];
 
-  // Уровень 1 и выше: добавляются буквы для отрицаний (n, a, m и апостроф ')
-  if (level >= 1) {
+  if (level === 1) {
+    // Уровень 2: добавляем символы для отрицаний (n, a, m и апостроф ')
     allowedChars = ['w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k', 'n', 'a', 'm', "'"];
+  } else if (level >= 2) {
+    // Уровень 3: добавляем символы для вопросов (включая заглавные D, W и вопросительный знак ?)
+    allowedChars = [
+      'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k', 
+      'n', 'a', 'm', "'", '?', 'D', 'W', 'o', 'e', 's', 'i', 'd', 'l'
+    ];
   }
 
-  // Если нужны будут следующие уровни, здесь можно расширять allowedChars
-
-  // Формируем ряды клавиатуры, оставляя только те клавиши, которые разрешены на текущем уровне,
-  // при этом сохраняя их взаимное QWERTY-расположение
-  const row1 = qwertyRow1.filter(char => allowedChars.includes(char));
-  const row2 = qwertyRow2.filter(char => allowedChars.includes(char));
+  const row1 = qwertyRow1.filter(char => allowedChars.includes(char) || allowedChars.includes(char.toUpperCase()));
+  const row2 = qwertyRow2.filter(char => allowedChars.includes(char) || allowedChars.includes(char.toUpperCase()));
   const row3 = ['shift', ...qwertyRow3.filter(char => allowedChars.includes(char))];
   
+  // Добавляем спецсимволы на третий ряд клавиатуры по уровням
   if (level >= 1 && allowedChars.includes("'")) {
     row3.push("'");
+  }
+  if (level >= 2 && allowedChars.includes('?')) {
+    row3.push('?');
   }
 
   const kbContainer = document.getElementById('keyboard');
@@ -35,7 +40,7 @@ export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }
   function renderRows() {
     kbContainer.innerHTML = '';
     rowsData.forEach(rowKeys => {
-      if (rowKeys.length === 0 || (rowKeys.length === 1 && rowKeys[0] === 'shift')) return; // Пропускаем пустые ряды
+      if (rowKeys.length === 0 || (rowKeys.length === 1 && rowKeys[0] === 'shift')) return;
 
       const rowDiv = document.createElement('div');
       rowDiv.className = 'kb-row';
@@ -50,9 +55,9 @@ export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }
             isUpperCase = !isUpperCase;
             renderRows();
           };
-        } else if (key === "'") {
-          btn.textContent = "'";
-          btn.addEventListener('click', () => onInput("'"));
+        } else if (key === "'" || key === '?') {
+          btn.textContent = key;
+          btn.addEventListener('click', () => onInput(key));
         } else {
           btn.textContent = isUpperCase ? key.toUpperCase() : key;
           btn.addEventListener('click', () => {

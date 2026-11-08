@@ -2,16 +2,17 @@ import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { level1Tasks, level2Tasks } from './data/tasks.js';
+import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
+import { openAdminPanel } from './components/admin.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
 
   let sessionIndex = 0;          
   let totalCorrectAnswers = 0;   
-  let totalIncorrectAnswers =  0;  
+  let totalIncorrectAnswers = 0;  
   let currentTask = null;        
   let isEnglishToRussian = false; 
   let currentInput = "";
@@ -27,6 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let examCorrectCount = 0;
   let examSecondsLeft = 120;
   let examTimerInterval = null;
+
+  // Регистрация Service Worker для PWA и офлайн-режима
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('ServiceWorker зарегистрирован успешно: ', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Ошибка регистрации ServiceWorker: ', error);
+        });
+    });
+  }
 
   async function saveSessionToFirestore() {
     if (!currentUser) return;
@@ -56,14 +70,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScreen();
   });
 
+  // Определяем набор задач в зависимости от уровня приложения
   function getCurrentTasks() {
     const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
+    if (currentLevel >= 2) return level3Tasks;
     return currentLevel >= 1 ? level2Tasks : level1Tasks;
   }
 
   function pickNewTask() {
     let modeIndex = sessionIndex % 10;
-    isEnglishToRussian = modeIndex >= 7;
+    isEnglishToRussian = modeIndex >= 7; // Пропорция 70% ру-ен, 30% ен-ру
     const tasks = getCurrentTasks();
 
     if (!isEnglishToRussian) {
@@ -84,7 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
     timerInterval = setInterval(() => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
-      if (timerEl && !isExamMode) {
+      // Внимание: боевые пороги заменены на тестовые (2 ответа) по вашему желанию для удобства проверки
+      if (timerEl && !isExamMode && totalCorrectAnswers >= 2) {
         timerEl.textContent = `⏱ ${formatTime(secondsElapsed)}`;
       }
     }, 1000);
@@ -120,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       app.innerHTML = `
         <div style="text-align: center; max-width: 400px; margin: 50px auto; padding: 20px;">
           <h1 style="font-size: 28px; margin-bottom: 10px;">eng.rkai.app</h1>
-          <p style="margin-bottom: 30px; font-size: 16px;">Уровень 0: Старт тренажера</p>
+          <p style="margin-bottom: 30px; font-size: 16px;">Тренажер английского языка</p>
           <button id="google-login-btn" style="background: #fff; color: #000; border: 2px solid #000; padding: 15px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;">Войти через Google</button>
         </div>
       `;
@@ -144,6 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const showStats = totalCorrectAnswers >= 2;
     const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
 
+    let examButtonText = "🚀 Сдать экзамен на Уровень 2";
+    if (currentLevel === 1) {
+      examButtonText = "🚀 Сдать экзамен на Уровень 3 (Вопросы)";
+    }
+
     app.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <button id="words-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Слова</button>
@@ -151,9 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
         <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Правила</button>
       </div>
 
-      ${currentLevel === 0 && !isExamMode ? `
+      <div style="margin-bottom: 8px; text-align: center;">
+        <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Мониторинг сессий (Админ)</button>
+      </div>
+
+      ${currentLevel < 2 && !isExamMode ? `
         <div style="margin-bottom: 10px;">
-          <button id="start-exam-btn" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 2px solid #000; font-size: 14px; font-weight: bold; cursor: pointer;">🚀 Сдать экзамен на Уровень 2</button>
+          <button id="start-exam-btn" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 2px solid #000; font-size: 14px; font-weight: bold; cursor: pointer;">${examButtonText}</button>
         </div>
       ` : ''}
 
@@ -164,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ` : ''}
 
       <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
-        👤 ${currentUser.displayName || currentUser.email} (Уровень ${currentLevel})
+        👤 ${currentUser.displayName || currentUser.email} (Уровень ${currentLevel + 1})
         <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
       </div>
     `;
@@ -194,7 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
-          currentInput += char;
+          // Автоматическая заглавная буква для первого символа
+          if (currentInput.length === 0) {
+            currentInput += char.toUpperCase();
+          } else {
+            currentInput += char;
+          }
           document.getElementById('answer-display').textContent = currentInput;
         },
         onBackspace: () => {
@@ -214,8 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
               if (examCorrectCount >= 2) {
                 clearInterval(examTimerInterval);
                 isExamMode = false;
-                document.body.setAttribute('data-level', '1');
-                alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2 (отрицательные формы и новая клавиатура активны)!");
+                if (currentLevel === 0) {
+                  document.body.setAttribute('data-level', '1');
+                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2 (отрицательные формы)!");
+                } else if (currentLevel === 1) {
+                  document.body.setAttribute('data-level', '2');
+                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3 (вопросительные формы)!");
+                }
               }
             } else {
               clearInterval(examTimerInterval);
@@ -274,6 +310,11 @@ document.addEventListener('DOMContentLoaded', () => {
       examBtn.onclick = () => startExam();
     }
 
+    const adminBtn = document.getElementById('admin-panel-btn');
+    if (adminBtn) {
+      adminBtn.onclick = () => openAdminPanel();
+    }
+
     document.getElementById('logout-btn').onclick = async () => {
       await saveSessionToFirestore();
       signOut(auth);
@@ -293,8 +334,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (examCorrectCount >= 2) {
               clearInterval(examTimerInterval);
               isExamMode = false;
-              document.body.setAttribute('data-level', '1');
-              alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2!");
+              if (currentLevel === 0) {
+                document.body.setAttribute('data-level', '1');
+                alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2!");
+              } else if (currentLevel === 1) {
+                document.body.setAttribute('data-level', '2');
+                alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3!");
+              }
             }
           } else {
             clearInterval(examTimerInterval);

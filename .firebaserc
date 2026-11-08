@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "rkai-78937"
+  },
+  "targets": {
+    "rkai-78937": {
+      "hosting": {
+        "eng-site": [
+          "eng-rkai-app"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
