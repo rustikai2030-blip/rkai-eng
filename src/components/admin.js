@@ -1,10 +1,29 @@
 import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
-import { db } from "../firebase.js";
+import { db, auth } from "../firebase.js";
 
 let allUsers = [];
 let currentActiveTab = 'users';
 
 export async function openAdminPanel() {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    alert("Доступ запрещен. Требуется авторизация.");
+    return;
+  }
+
+  try {
+    const userDocRef = doc(db, "users", currentUser.uid);
+    const docSnap = await getDoc(userDocRef);
+    if (!docSnap.exists() || !docSnap.data().isAdmin) {
+      alert("У вас нет прав администратора для доступа к этой панели.");
+      return;
+    }
+  } catch (err) {
+    console.error("Ошибка проверки прав администратора:", err);
+    alert("Ошибка проверки прав доступа.");
+    return;
+  }
+
   let adminModal = document.getElementById('admin-modal');
   if (!adminModal) {
     adminModal = document.createElement('div');
@@ -31,13 +50,12 @@ function renderAdminMainView() {
         <h1 style="font-size: 26px; font-weight: 700; margin: 0; color: #0f172a;">Админ-панель</h1>
       </div>
 
-      <!-- Кнопки разделов (оставлены только Пользователи и Аналитика) -->
+      <!-- Кнопки разделов (только Пользователи и Аналитика) -->
       <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
         <button class="admin-tab-btn" data-tab="users" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
         <button class="admin-tab-btn" data-tab="analytics" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
       </div>
 
-      <!-- Контейнер контента в зависимости от выбранной вкладки -->
       <div id="admin-tab-content"></div>
 
     </div>
@@ -64,7 +82,6 @@ function closeAdminModal() {
   if (modal) modal.style.display = 'none';
 }
 
-// Вкладка Пользователи
 async function renderUsersTab() {
   const contentContainer = document.getElementById('admin-tab-content');
   if (!contentContainer) return;
@@ -145,7 +162,6 @@ function filterAndRenderUsers(searchTerm) {
   });
 }
 
-// Экран подробных настроек конкретного пользователя
 async function openUserProfileView(uid) {
   const modal = document.getElementById('admin-modal');
   modal.innerHTML = `
@@ -236,7 +252,7 @@ async function openUserProfileView(uid) {
     };
 
     document.getElementById('delete-user-data-btn').onclick = async () => {
-      if (confirm("Вы уверены, что хотите полностью удалить этого пользователя из базы? Это действие необратимо.")) {
+      if (confirm("Вы уверены, что хотите полностью удалить этого пользователя из базы?")) {
         try {
           await deleteDoc(userDocRef);
           alert("Пользователь успешно удален.");
@@ -252,7 +268,6 @@ async function openUserProfileView(uid) {
   }
 }
 
-// Вкладка Аналитика (с графиком DAU и предупреждением как на вашем скриншоте)
 async function renderAnalyticsTab() {
   const contentContainer = document.getElementById('admin-tab-content');
   if (!contentContainer) return;
@@ -276,10 +291,8 @@ async function renderAnalyticsTab() {
     </div>
   `;
 
-  // Генерация динамических данных по дням за последние 12 дней для графика
   try {
     const usersSnap = await getDocs(collection(db, "users"));
-    const regDatesMap = {};
     const dauMap = {};
 
     usersSnap.forEach(docSnap => {
@@ -290,7 +303,6 @@ async function renderAnalyticsTab() {
       }
     });
 
-    // Строим массив дат за последние 12 дней
     const labels = [];
     const regData = [];
     const dauData = [];
@@ -300,15 +312,13 @@ async function renderAnalyticsTab() {
       d.setDate(d.getDate() - i);
       const mStr = String(d.getMonth() + 1).padStart(2, '0');
       const dayStr = String(d.getDate()).padStart(2, '0');
-      const labelFormatted = `${mStr}-${dayStr}`;
-      labels.push(labelFormatted);
+      labels.push(`${mStr}-${dayStr}`);
 
       const isoStr = d.toISOString().split('T')[0];
       dauData.push(dauMap[isoStr] || 0);
-      regData.push(i === 0 ? 1 : 0); // Упрощенная демонстрация регистраций
+      regData.push(i === 0 ? 1 : 0);
     }
 
-    // Рендерим простой SVG/Canvas график
     const canvas = document.getElementById('analytics-chart');
     if (canvas) {
       const ctx = canvas.getContext('2d');
@@ -317,7 +327,6 @@ async function renderAnalyticsTab() {
 
       ctx.clearRect(0, 0, w, h);
 
-      // Сетка
       ctx.strokeStyle = '#f1f5f9';
       ctx.lineWidth = 1;
       for (let y = 20; y < h - 30; y += 35) {
@@ -327,7 +336,6 @@ async function renderAnalyticsTab() {
         ctx.stroke();
       }
 
-      // Оси и метки
       ctx.fillStyle = '#94a3b8';
       ctx.font = '10px sans-serif';
       ctx.fillText('1,0', 10, 24);
@@ -336,7 +344,6 @@ async function renderAnalyticsTab() {
 
       const stepX = (w - 50) / (labels.length - 1);
 
-      // Рисуем линию DAU (зеленая)
       ctx.strokeStyle = '#22c55e';
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -349,7 +356,6 @@ async function renderAnalyticsTab() {
       });
       ctx.stroke();
 
-      // Точки DAU
       labels.forEach((lbl, idx) => {
         const x = 45 + idx * stepX;
         const val = dauData[idx];
@@ -359,7 +365,6 @@ async function renderAnalyticsTab() {
         ctx.arc(x, y, 4, 0, Math.PI * 2);
         ctx.fill();
 
-        // Подпись даты снизу
         ctx.save();
         ctx.translate(x, h - 10);
         ctx.rotate(-Math.PI / 4);

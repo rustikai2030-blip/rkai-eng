@@ -1,7 +1,7 @@
 import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
@@ -22,7 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let secondsElapsed = 0;       
   let timerInterval = null;
   let currentUser = null;
+  let isAdminUser = false;
   let lastSavedCount = 0;
+  let userUnsubscribe = null; // Отписка от слушателя Firestore
 
   let isExamMode = false;
   let examCorrectCount = 0;
@@ -42,20 +44,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Сохранение/обновление профиля пользователя в коллекции users
-  async function syncUserProfile(user) {
+  // Создание/инициализация профиля нового пользователя с дефолтным `isAdmin: false`
+  async function initUserProfile(user) {
     if (!user) return;
     try {
       const userRef = doc(db, "users", user.uid);
-      await setDoc(userRef, {
-        uid: user.uid,
-        email: user.email || "anonymous",
-        displayName: user.displayName || "",
-        photoURL: user.photoURL || "",
-        lastLogin: serverTimestamp()
-      }, { merge: true });
+      const docSnap = await getDoc(userRef);
+
+      if (!docSnap.exists()) {
+        // У новых пользователей по умолчанию НЕТ доступа к админ-панели (isAdmin: false)
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email || "anonymous",
+          displayName: user.displayName || "",
+          photoURL: user.photoURL || "",
+          isAdmin: false,
+          lastLogin: serverTimestamp()
+        });
+      } else {
+        await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+      }
     } catch (error) {
-      console.error("Ошибка обновления профиля пользователя:", error);
+      console.error("Ошибка инициализации профиля пользователя:", error);
     }
   }
 
@@ -71,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         timestamp: serverTimestamp()
       });
 
-      // Обновляем общий счетчик в документе пользователя
       const userRef = doc(db, "users", currentUser.uid);
       await setDoc(userRef, {
         totalCorrect: totalCorrectAnswers,
@@ -91,14 +100,34 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   onAuthStateChanged(auth, async (user) => {
+    // Очищаем предыдущую подписку, если пользователь сменился
+    if (userUnsubscribe) {
+      userUnsubscribe();
+      userUnsubscribe = null;
+    }
+
     currentUser = user;
     if (user) {
-      await syncUserProfile(user);
+      await initUserProfile(user);
+
+      // Слушаем изменения в реальном времени для текущего пользователя (мгновенное скрытие/появление кнопки админа)
+      const userRef = doc(db, "users", user.uid);
+      userUnsubscribe = onSnapshot(userRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const newAdminStatus = !!data.isAdmin;
+          if (isAdminUser !== newAdminStatus) {
+            isAdminUser = newAdminStatus;
+            renderTrainer(); // Перерисовываем интерфейс при изменении прав
+          }
+        }
+      });
+    } else {
+      isAdminUser = false;
     }
     renderScreen();
   });
 
-  // Определяем набор задач в зависимости от уровня приложения
   function getCurrentTasks() {
     const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
     if (currentLevel >= 2) return level3Tasks;
@@ -107,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function pickNewTask() {
     let modeIndex = sessionIndex % 10;
-    isEnglishToRussian = modeIndex >= 7; // Пропорция 70% ру-ен, 30% ен-ру
+    isEnglishToRussian = modeIndex >= 7; 
     const tasks = getCurrentTasks();
 
     if (!isEnglishToRussian) {
@@ -200,9 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Правила</button>
       </div>
 
-      <div style="margin-bottom: 8px; text-align: center;">
-        <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Мониторинг сессий (Админ)</button>
-      </div>
+      ${isAdminUser ? `
+        <div style="margin-bottom: 8px; text-align: center;">
+          <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Мониторинг сессий (Админ)</button>
+        </div>
+      ` : ''}
 
       ${currentLevel < 2 && !isExamMode ? `
         <div style="margin-bottom: 10px;">
@@ -217,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ` : ''}
 
       <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
-        👤 ${currentUser.displayName || currentUser.email} (Уровень ${currentLevel + 1})
+        👤 ${currentUser.displayName || currentUser.email} (${isAdminUser ? 'Админ' : 'Уровень ' + (currentLevel + 1)})
         <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
       </div>
     `;
@@ -273,10 +304,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 isExamMode = false;
                 if (currentLevel === 0) {
                   document.body.setAttribute('data-level', '1');
-                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2 (отрицательные формы)!");
+                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2!");
                 } else if (currentLevel === 1) {
                   document.body.setAttribute('data-level', '2');
-                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3 (вопросительные формы)!");
+                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3!");
                 }
               }
             } else {
@@ -342,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('logout-btn').onclick = async () => {
+      if (userUnsubscribe) userUnsubscribe();
       await saveSessionToFirestore();
       signOut(auth);
     };
