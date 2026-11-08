@@ -1,7 +1,7 @@
 import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
@@ -42,6 +42,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Сохранение/обновление профиля пользователя в коллекции users
+  async function syncUserProfile(user) {
+    if (!user) return;
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, {
+        uid: user.uid,
+        email: user.email || "anonymous",
+        displayName: user.displayName || "",
+        photoURL: user.photoURL || "",
+        lastLogin: serverTimestamp()
+      }, { merge: true });
+    } catch (error) {
+      console.error("Ошибка обновления профиля пользователя:", error);
+    }
+  }
+
   async function saveSessionToFirestore() {
     if (!currentUser) return;
     try {
@@ -53,6 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
         durationSeconds: secondsElapsed,
         timestamp: serverTimestamp()
       });
+
+      // Обновляем общий счетчик в документе пользователя
+      const userRef = doc(db, "users", currentUser.uid);
+      await setDoc(userRef, {
+        totalCorrect: totalCorrectAnswers,
+        totalIncorrect: totalIncorrectAnswers,
+        lastActive: serverTimestamp()
+      }, { merge: true });
     } catch (error) {
       console.error("Ошибка при сохранении данных в Firestore:", error);
     }
@@ -65,8 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     currentUser = user;
+    if (user) {
+      await syncUserProfile(user);
+    }
     renderScreen();
   });
 
@@ -100,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     timerInterval = setInterval(() => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
-      // Внимание: боевые пороги заменены на тестовые (2 ответа) по вашему желанию для удобства проверки
       if (timerEl && !isExamMode && totalCorrectAnswers >= 2) {
         timerEl.textContent = `⏱ ${formatTime(secondsElapsed)}`;
       }
@@ -220,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
-          // Автоматическая заглавная буква для первого символа
           if (currentInput.length === 0) {
             currentInput += char.toUpperCase();
           } else {

@@ -2723,7 +2723,110 @@
 }
 
 
+=== FILE: ./public/manifest.json ===
+{
+  "name": "eng.rkai.app — Тренажер английского языка",
+  "short_name": "Eng Trainer",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+```[cite: 1]
+
+---
+
+### Шаг 2. Подключаем манифест в `index.html`
+
+Откройте ваш файл `index.html` и добавьте строку подключения манифеста в секцию `<head>`[cite: 1]:
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eng.rkai.app — Тренажер английского языка</title>
+    <!-- Подключение PWA манифеста -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#000000" />
+  </head>
+  <body data-level="0">
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+```[cite: 1]
+
+---
+
+### Шаг 3. Добавляем Service Worker для офлайн-режима
+
+Чтобы приложение кэшировало файлы и открывалось без интернета[cite: 1], создадим файл **`public/sw.js`**:
+
+```javascript
+const CACHE_NAME = 'eng-rkai-cache-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/src/main.js',
+  '/src/styles/evolution.css'
+];
+
+// Установка сервис-воркера и кэширование файлов
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(urlsToCache);
+    })
+  );
+});
+
+// Перехват запросов и выдача данных из кэша при отсутствии сети
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
+  );
+});
+```[cite: 1]
+
+И зарегистрируем этот Service Worker в нашем главном файле **`src/main.js`** (например, в самом начале или внутри `DOMContentLoaded`):
+
+```javascript
+// Регистрация Service Worker для PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('ServiceWorker зарегистрирован успешно: ', registration.scope);
+      })
+      .catch((error) => {
+        console.log('Ошибка регистрации ServiceWorker: ', error);
+      });
+  });
+}
+```[cite: 1]
+
+---
+
+
+
 === FILE: ./src/data/tasks.js ===
+// Базовый словарь для модального окна "Слова"
 export const dictionaryWords = [
   { en: "I", ru: "Я" },
   { en: "You", ru: "Ты" },
@@ -2736,24 +2839,33 @@ export const dictionaryWords = [
   { en: "Worked", ru: "Работал (прошед. время)" },
   { en: "Will work", ru: "Буду работать (будущ. время)" },
   { en: "Don't / Doesn't work", ru: "Не работаю(ет) (отрицание — Ур. 2)" },
-  { en: "Didn't work", ru: "Не работал (прошед. отрицание — Ур. 2)" }
+  { en: "Didn't work", ru: "Не работал (прошед. отрицание — Ур. 2)" },
+  { en: "Do / Does... work?", ru: "Работаешь/работает ли? (вопрос — Ур. 3)" },
+  { en: "Did... work?", ru: "Работал ли? (прошед. вопрос — Ур. 3)" }
 ];
 
+// Полный свод правил для модального окна "Правила" (Уровни 1, 2 и 3)
 export const grammarRules = `
   <h2>Правила (Simple)</h2>
   
   <h3>1. Утвердительная форма (Уровень 1)</h3>
-  <p><b>Будущее:</b> I / You / We / They / He / She / It will work.</p>
-  <p><b>Настоящее:</b> I / You / We / They work | He / She / It works</p>
-  <p><b>Прошедшее:</b> I / You / We / They / He / She / It worked</p>
+  <p><b>Будущее:</b> I / You / We / They / He / She / It <b>will work</b>.</p>
+  <p><b>Настоящее:</b> I / You / We / They <b>work</b> | He / She / It <b>works</b></p>
+  <p><b>Прошедшее:</b> I / You / We / They / He / She / It <b>worked</b></p>
 
   <h3>2. Отрицательная форма (Уровень 2)</h3>
   <p><b>Настоящее:</b> I / You / We / They <b>don't work</b> — Я / Ты / Мы / Они не работаем</p>
   <p><b>Настоящее (He/She/It):</b> He / She / It <b>doesn't work</b> — Он / Она / Оно не работает</p>
   <p><b>Прошедшее:</b> I / You / We / They / He / She / It <b>didn't work</b> — Я / Ты / Мы / Он / Оно не работал(а/или)</p>
+
+  <h3>3. Вопросительная форма (Уровень 3)</h3>
+  <p><b>Настоящее:</b> <b>Do</b> I / you / we / they <b>work?</b> — Я / ты / мы / они работаем?</p>
+  <p><b>Настоящее (He/She/It):</b> <b>Does</b> he / she / it <b>work?</b> — Он / она / оно работает?</p>
+  <p><b>Прошедшее:</b> <b>Did</b> I / you / we / they / he / she / it <b>work?</b> — Я / ты / он работал(а)?</p>
+  <p><b>Будущее:</b> <b>Will</b> I / you / we / they / he / she / it <b>work?</b> — Я / ты / он будет работать?</p>
 `;
 
-// Задачи только для Уровня 1 (без отрицаний)
+// Задачи для Уровня 1 (только утверждения)
 export const level1Tasks = {
   ruEn: [
     { ru: "Я работаю", en: "I work" },
@@ -2785,7 +2897,7 @@ export const level1Tasks = {
   ]
 };
 
-// Задачи для Уровня 2 (включают утверждения + отрицания)
+// Задачи для Уровня 2 (утверждения + отрицания)
 export const level2Tasks = {
   ruEn: [
     ...level1Tasks.ruEn,
@@ -2804,6 +2916,31 @@ export const level2Tasks = {
     { en: "I don't work", options: ["Я не работаю", "Ты не работаешь", "Я работал", "Мы не работаем"], correct: "Я не работаю" },
     { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работаю"], correct: "Он не работает" },
     { en: "I didn't work", options: ["Я не работал", "Я не работаю", "Он не работал", "Я работал"], correct: "Я не работал" }
+  ]
+};
+
+// Задачи для Уровня 3 (утверждения + отрицания + вопросы)
+export const level3Tasks = {
+  ruEn: [
+    ...level2Tasks.ruEn,
+    { ru: "Я работаю?", en: "Do I work?" },
+    { ru: "Ты работаешь?", en: "Do you work?" },
+    { ru: "Мы работаем?", en: "Do we work?" },
+    { ru: "Они работают?", en: "Do they work?" },
+    { ru: "Он работает?", en: "Does he work?" },
+    { ru: "Она работает?", en: "Does she work?" },
+    { ru: "Оно работает?", en: "Does it work?" },
+    { ru: "Я работал?", en: "Did I work?" },
+    { ru: "Ты работал?", en: "Did you work?" },
+    { ru: "Он работал?", en: "Did he work?" },
+    { ru: "Я буду работать?", en: "Will I work?" }
+  ],
+  enRu: [
+    ...level2Tasks.enRu,
+    { en: "Do I work?", options: ["Я работаю?", "Ты работаешь?", "Я работал?", "Мы работаем?"], correct: "Я работаю?" },
+    { en: "Does he work?", options: ["Он работает?", "Она работает?", "Он работает", "Он не работает?"], correct: "Он работает?" },
+    { en: "Did you work?", options: ["Ты работал?", "Ты работаешь?", "Вы работаете?", "Я работал?"], correct: "Ты работал?" },
+    { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?" }
   ]
 };
 
@@ -3204,6 +3341,89 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export const db = getFirestore(app);
 
+=== FILE: ./src/components/admin.js ===
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { db } from "../firebase.js";
+
+export async function openAdminPanel() {
+  // Создаем или находим модальное окно для админки
+  let adminModal = document.getElementById('admin-modal');
+  if (!adminModal) {
+    adminModal = document.createElement('div');
+    adminModal.id = 'admin-modal';
+    adminModal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: #fff; padding: 20px; box-sizing: border-box; overflow-y: auto; text-align: left; z-index: 2000; font-family: sans-serif;';
+    adminModal.innerHTML = `
+      <div style="max-width: 800px; margin: 30px auto; background: #1e1e24; padding: 20px; border-radius: 8px; border: 1px solid #333;">
+        <button id="close-admin" style="float: right; padding: 6px 12px; background: #ff4d4d; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">✕ Закрыть</button>
+        <h2 style="margin-top: 0; color: #c084fc;">🛠 Админ-панель: Мониторинг сессий</h2>
+        <p style="color: #9ca3af; font-size: 14px; margin-bottom: 20px;">Логирование активности пользователей из базы данных Firestore.</p>
+        <div id="admin-sessions-list" style="overflow-x: auto;">
+          <p>Загрузка данных сессий...</p>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(adminModal);
+
+    document.getElementById('close-admin').onclick = () => {
+      adminModal.style.display = 'none';
+    };
+  }
+
+  adminModal.style.display = 'block';
+  const container = document.getElementById('admin-sessions-list');
+  container.innerHTML = '<p>Загрузка данных сессий...</p>';
+
+  try {
+    // Получаем последние 20 сессий, отсортированные по времени
+    const q = query(collection(db, "sessions"), orderBy("timestamp", "desc"), limit(20));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      container.innerHTML = '<p style="color: #f3f4f6;">Пока нет сохраненных сессий в базе данных.</p>';
+      return;
+    }
+
+    let tableHtml = `
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 2px solid #4b5563; color: #9ca3af;">
+            <th style="padding: 10px;">Пользователь</th>
+            <th style="padding: 10px;">Верно</th>
+            <th style="padding: 10px;">Ошибки</th>
+            <th style="padding: 10px;">Время</th>
+            <th style="padding: 10px;">Дата / Время сессии</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const dateStr = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : 'Только что';
+      const durationMins = Math.floor((data.durationSeconds || 0) / 60);
+      const durationSecs = (data.durationSeconds || 0) % 60;
+      const timeFormatted = `${durationMins}м ${durationSecs}с`;
+
+      tableHtml += `
+        <tr style="border-bottom: 1px solid #374151;">
+          <td style="padding: 10px; color: #f3f4f6; word-break: break-all;">${data.email || 'Аноним'}</td>
+          <td style="padding: 10px; color: #4ade80; font-weight: bold;">${data.correctAnswers || 0}</td>
+          <td style="padding: 10px; color: #f87171; font-weight: bold;">${data.incorrectAnswers || 0}</td>
+          <td style="padding: 10px;">${timeFormatted}</td>
+          <td style="padding: 10px; color: #9ca3af; font-size: 12px;">${dateStr}</td>
+        </tr>
+      `;
+    });
+
+    tableHtml += `</tbody></table>`;
+    container.innerHTML = tableHtml;
+
+  } catch (error) {
+    console.error("Ошибка загрузки сессий:", error);
+    container.innerHTML = `<p style="color: #f87171;">Ошибка при загрузке данных: ${error.message}</p>`;
+  }
+}
+
 === FILE: ./src/components/keyboard.js ===
 export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }) {
   // Эталонные ряды стандартной QWERTY-клавиатуры
@@ -3211,25 +3431,30 @@ export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }
   const qwertyRow2 = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
   const qwertyRow3 = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
 
-  // Определяем набор доступных букв в зависимости от уровня
-  // Уровень 0 (Старт): только буквы для местоимений и слова work, will (w, e, r, t, y, u, i, o, l, s, d, h, k)
+  // Определяем набор доступных символов в зависимости от уровня
   let allowedChars = ['w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k'];
 
-  // Уровень 1 и выше: добавляются буквы для отрицаний (n, a, m и апостроф ')
-  if (level >= 1) {
+  if (level === 1) {
+    // Уровень 2: добавляем символы для отрицаний (n, a, m и апостроф ')
     allowedChars = ['w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k', 'n', 'a', 'm', "'"];
+  } else if (level >= 2) {
+    // Уровень 3: добавляем символы для вопросов (включая заглавные D, W и вопросительный знак ?)
+    allowedChars = [
+      'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k', 
+      'n', 'a', 'm', "'", '?', 'D', 'W', 'o', 'e', 's', 'i', 'd', 'l'
+    ];
   }
 
-  // Если нужны будут следующие уровни, здесь можно расширять allowedChars
-
-  // Формируем ряды клавиатуры, оставляя только те клавиши, которые разрешены на текущем уровне,
-  // при этом сохраняя их взаимное QWERTY-расположение
-  const row1 = qwertyRow1.filter(char => allowedChars.includes(char));
-  const row2 = qwertyRow2.filter(char => allowedChars.includes(char));
+  const row1 = qwertyRow1.filter(char => allowedChars.includes(char) || allowedChars.includes(char.toUpperCase()));
+  const row2 = qwertyRow2.filter(char => allowedChars.includes(char) || allowedChars.includes(char.toUpperCase()));
   const row3 = ['shift', ...qwertyRow3.filter(char => allowedChars.includes(char))];
   
+  // Добавляем спецсимволы на третий ряд клавиатуры по уровням
   if (level >= 1 && allowedChars.includes("'")) {
     row3.push("'");
+  }
+  if (level >= 2 && allowedChars.includes('?')) {
+    row3.push('?');
   }
 
   const kbContainer = document.getElementById('keyboard');
@@ -3242,7 +3467,7 @@ export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }
   function renderRows() {
     kbContainer.innerHTML = '';
     rowsData.forEach(rowKeys => {
-      if (rowKeys.length === 0 || (rowKeys.length === 1 && rowKeys[0] === 'shift')) return; // Пропускаем пустые ряды
+      if (rowKeys.length === 0 || (rowKeys.length === 1 && rowKeys[0] === 'shift')) return;
 
       const rowDiv = document.createElement('div');
       rowDiv.className = 'kb-row';
@@ -3257,9 +3482,9 @@ export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }
             isUpperCase = !isUpperCase;
             renderRows();
           };
-        } else if (key === "'") {
-          btn.textContent = "'";
-          btn.addEventListener('click', () => onInput("'"));
+        } else if (key === "'" || key === '?') {
+          btn.textContent = key;
+          btn.addEventListener('click', () => onInput(key));
         } else {
           btn.textContent = isUpperCase ? key.toUpperCase() : key;
           btn.addEventListener('click', () => {
@@ -3336,16 +3561,17 @@ import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { level1Tasks, level2Tasks } from './data/tasks.js';
+import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
+import { openAdminPanel } from './components/admin.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
 
   let sessionIndex = 0;          
   let totalCorrectAnswers = 0;   
-  let totalIncorrectAnswers =  0;  
+  let totalIncorrectAnswers = 0;  
   let currentTask = null;        
   let isEnglishToRussian = false; 
   let currentInput = "";
@@ -3361,6 +3587,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let examCorrectCount = 0;
   let examSecondsLeft = 120;
   let examTimerInterval = null;
+
+  // Регистрация Service Worker для PWA и офлайн-режима
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('ServiceWorker зарегистрирован успешно: ', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Ошибка регистрации ServiceWorker: ', error);
+        });
+    });
+  }
 
   async function saveSessionToFirestore() {
     if (!currentUser) return;
@@ -3390,14 +3629,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScreen();
   });
 
+  // Определяем набор задач в зависимости от уровня приложения
   function getCurrentTasks() {
     const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
+    if (currentLevel >= 2) return level3Tasks;
     return currentLevel >= 1 ? level2Tasks : level1Tasks;
   }
 
   function pickNewTask() {
     let modeIndex = sessionIndex % 10;
-    isEnglishToRussian = modeIndex >= 7;
+    isEnglishToRussian = modeIndex >= 7; // Пропорция 70% ру-ен, 30% ен-ру
     const tasks = getCurrentTasks();
 
     if (!isEnglishToRussian) {
@@ -3418,7 +3659,8 @@ document.addEventListener('DOMContentLoaded', () => {
     timerInterval = setInterval(() => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
-      if (timerEl && !isExamMode) {
+      // Внимание: боевые пороги заменены на тестовые (2 ответа) по вашему желанию для удобства проверки
+      if (timerEl && !isExamMode && totalCorrectAnswers >= 2) {
         timerEl.textContent = `⏱ ${formatTime(secondsElapsed)}`;
       }
     }, 1000);
@@ -3454,7 +3696,7 @@ document.addEventListener('DOMContentLoaded', () => {
       app.innerHTML = `
         <div style="text-align: center; max-width: 400px; margin: 50px auto; padding: 20px;">
           <h1 style="font-size: 28px; margin-bottom: 10px;">eng.rkai.app</h1>
-          <p style="margin-bottom: 30px; font-size: 16px;">Уровень 0: Старт тренажера</p>
+          <p style="margin-bottom: 30px; font-size: 16px;">Тренажер английского языка</p>
           <button id="google-login-btn" style="background: #fff; color: #000; border: 2px solid #000; padding: 15px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;">Войти через Google</button>
         </div>
       `;
@@ -3478,6 +3720,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const showStats = totalCorrectAnswers >= 2;
     const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
 
+    let examButtonText = "🚀 Сдать экзамен на Уровень 2";
+    if (currentLevel === 1) {
+      examButtonText = "🚀 Сдать экзамен на Уровень 3 (Вопросы)";
+    }
+
     app.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <button id="words-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Слова</button>
@@ -3485,9 +3732,13 @@ document.addEventListener('DOMContentLoaded', () => {
         <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Правила</button>
       </div>
 
-      ${currentLevel === 0 && !isExamMode ? `
+      <div style="margin-bottom: 8px; text-align: center;">
+        <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Мониторинг сессий (Админ)</button>
+      </div>
+
+      ${currentLevel < 2 && !isExamMode ? `
         <div style="margin-bottom: 10px;">
-          <button id="start-exam-btn" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 2px solid #000; font-size: 14px; font-weight: bold; cursor: pointer;">🚀 Сдать экзамен на Уровень 2</button>
+          <button id="start-exam-btn" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 2px solid #000; font-size: 14px; font-weight: bold; cursor: pointer;">${examButtonText}</button>
         </div>
       ` : ''}
 
@@ -3498,7 +3749,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ` : ''}
 
       <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
-        👤 ${currentUser.displayName || currentUser.email} (Уровень ${currentLevel})
+        👤 ${currentUser.displayName || currentUser.email} (Уровень ${currentLevel + 1})
         <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
       </div>
     `;
@@ -3528,7 +3779,12 @@ document.addEventListener('DOMContentLoaded', () => {
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
-          currentInput += char;
+          // Автоматическая заглавная буква для первого символа
+          if (currentInput.length === 0) {
+            currentInput += char.toUpperCase();
+          } else {
+            currentInput += char;
+          }
           document.getElementById('answer-display').textContent = currentInput;
         },
         onBackspace: () => {
@@ -3548,8 +3804,13 @@ document.addEventListener('DOMContentLoaded', () => {
               if (examCorrectCount >= 2) {
                 clearInterval(examTimerInterval);
                 isExamMode = false;
-                document.body.setAttribute('data-level', '1');
-                alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2 (отрицательные формы и новая клавиатура активны)!");
+                if (currentLevel === 0) {
+                  document.body.setAttribute('data-level', '1');
+                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2 (отрицательные формы)!");
+                } else if (currentLevel === 1) {
+                  document.body.setAttribute('data-level', '2');
+                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3 (вопросительные формы)!");
+                }
               }
             } else {
               clearInterval(examTimerInterval);
@@ -3608,6 +3869,11 @@ document.addEventListener('DOMContentLoaded', () => {
       examBtn.onclick = () => startExam();
     }
 
+    const adminBtn = document.getElementById('admin-panel-btn');
+    if (adminBtn) {
+      adminBtn.onclick = () => openAdminPanel();
+    }
+
     document.getElementById('logout-btn').onclick = async () => {
       await saveSessionToFirestore();
       signOut(auth);
@@ -3627,8 +3893,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (examCorrectCount >= 2) {
               clearInterval(examTimerInterval);
               isExamMode = false;
-              document.body.setAttribute('data-level', '1');
-              alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2!");
+              if (currentLevel === 0) {
+                document.body.setAttribute('data-level', '1');
+                alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2!");
+              } else if (currentLevel === 1) {
+                document.body.setAttribute('data-level', '2');
+                alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3!");
+              }
             }
           } else {
             clearInterval(examTimerInterval);
@@ -3684,3 +3955,24 @@ export default defineConfig({
     }
   }
 });
+
+=== FILE: ./firebase.json ===
+{
+  "hosting": [
+    {
+      "target": "eng-site",
+      "public": "dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}
