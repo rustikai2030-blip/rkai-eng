@@ -23,28 +23,45 @@ document.addEventListener('DOMContentLoaded', () => {
   let timerInterval = null;
   let currentUser = null;
   let isAdminUser = false;
-  let lastSavedCount = 0;
-  let userUnsubscribe = null; // Отписка от слушателя Firestore
+  let userUnsubscribe = null; 
 
   let isExamMode = false;
   let examCorrectCount = 0;
   let examSecondsLeft = 120;
   let examTimerInterval = null;
 
-  // Регистрация Service Worker для PWA и офлайн-режима
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then((registration) => {
-          console.log('ServiceWorker зарегистрирован успешно: ', registration.scope);
-        })
-        .catch((error) => {
-          console.log('Ошибка регистрации ServiceWorker: ', error);
-        });
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
   }
 
-  // Создание/инициализация профиля нового пользователя с дефолтным `isAdmin: false`
+  // Функция мгновенного сохранения всего прогресса в Firestore
+  async function saveProgressToFirestore() {
+    if (!currentUser) return;
+    try {
+      const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
+      const userRef = doc(db, "users", currentUser.uid);
+
+      await setDoc(userRef, {
+        uid: currentUser.uid,
+        email: currentUser.email || "anonymous",
+        displayName: currentUser.displayName || "",
+        photoURL: currentUser.photoURL || "",
+        totalCorrect: totalCorrectAnswers,
+        totalIncorrect: totalIncorrectAnswers,
+        secondsElapsed: secondsElapsed,
+        userLevel: currentLevel,
+        lastActive: serverTimestamp()
+      }, { merge: true });
+
+      console.log("✅ Уровень и статистика успешно сохранены:", { currentLevel, totalCorrectAnswers, totalIncorrectAnswers });
+    } catch (error) {
+      console.error("❌ Ошибка сохранения данных:", error);
+    }
+  }
+
+  // Загрузка профиля при первом входе
   async function initUserProfile(user) {
     if (!user) return;
     try {
@@ -52,55 +69,38 @@ document.addEventListener('DOMContentLoaded', () => {
       const docSnap = await getDoc(userRef);
 
       if (!docSnap.exists()) {
-        // У новых пользователей по умолчанию НЕТ доступа к админ-панели (isAdmin: false)
         await setDoc(userRef, {
           uid: user.uid,
           email: user.email || "anonymous",
           displayName: user.displayName || "",
           photoURL: user.photoURL || "",
           isAdmin: false,
+          userLevel: 0,
+          totalCorrect: 0,
+          totalIncorrect: 0,
+          secondsElapsed: 0,
           lastLogin: serverTimestamp()
         });
+        document.body.setAttribute('data-level', '0');
+        totalCorrectAnswers = 0;
+        totalIncorrectAnswers = 0;
+        secondsElapsed = 0;
       } else {
+        const data = docSnap.data();
+        totalCorrectAnswers = data.totalCorrect || 0;
+        totalIncorrectAnswers = data.totalIncorrect || 0;
+        secondsElapsed = data.secondsElapsed || 0;
+        const savedLevel = data.userLevel !== undefined ? data.userLevel : 0;
+
+        document.body.setAttribute('data-level', savedLevel.toString());
         await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
       }
     } catch (error) {
-      console.error("Ошибка инициализации профиля пользователя:", error);
-    }
-  }
-
-  async function saveSessionToFirestore() {
-    if (!currentUser) return;
-    try {
-      await addDoc(collection(db, "sessions"), {
-        uid: currentUser.uid,
-        email: currentUser.email || "anonymous",
-        correctAnswers: totalCorrectAnswers,
-        incorrectAnswers: totalIncorrectAnswers,
-        durationSeconds: secondsElapsed,
-        timestamp: serverTimestamp()
-      });
-
-      const userRef = doc(db, "users", currentUser.uid);
-      await setDoc(userRef, {
-        totalCorrect: totalCorrectAnswers,
-        totalIncorrect: totalIncorrectAnswers,
-        lastActive: serverTimestamp()
-      }, { merge: true });
-    } catch (error) {
-      console.error("Ошибка при сохранении данных в Firestore:", error);
-    }
-  }
-
-  async function saveSessionIdempotent() {
-    if (totalCorrectAnswers - lastSavedCount >= 5) {
-      lastSavedCount = totalCorrectAnswers;
-      await saveSessionToFirestore();
+      console.error("Ошибка инициализации профиля:", error);
     }
   }
 
   onAuthStateChanged(auth, async (user) => {
-    // Очищаем предыдущую подписку, если пользователь сменился
     if (userUnsubscribe) {
       userUnsubscribe();
       userUnsubscribe = null;
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (user) {
       await initUserProfile(user);
 
-      // Слушаем изменения в реальном времени для текущего пользователя (мгновенное скрытие/появление кнопки админа)
+      // Слушаем ТОЛЬКО изменение прав администратора (isAdmin), чтобы не перетирать прогресс ответов
       const userRef = doc(db, "users", user.uid);
       userUnsubscribe = onSnapshot(userRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -118,12 +118,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const newAdminStatus = !!data.isAdmin;
           if (isAdminUser !== newAdminStatus) {
             isAdminUser = newAdminStatus;
-            renderTrainer(); // Перерисовываем интерфейс при изменении прав
+            renderTrainer();
           }
         }
       });
     } else {
       isAdminUser = false;
+      document.body.setAttribute('data-level', '0');
     }
     renderScreen();
   });
@@ -334,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
           sessionIndex++;
           currentInput = "";
           pickNewTask();
-          await saveSessionIdempotent();
+          await saveProgressToFirestore(); // Сохранение после каждого ответа
           renderTrainer();
         }
       });
@@ -374,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('logout-btn').onclick = async () => {
       if (userUnsubscribe) userUnsubscribe();
-      await saveSessionToFirestore();
+      await saveProgressToFirestore();
       signOut(auth);
     };
   }
@@ -423,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sessionIndex++;
         pickNewTask();
-        await saveSessionIdempotent();
+        await saveProgressToFirestore(); // Сохранение после клика на вариант
         renderTrainer();
       });
     });

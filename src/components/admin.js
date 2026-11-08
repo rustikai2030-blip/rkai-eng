@@ -41,7 +41,6 @@ function renderAdminMainView() {
   modal.innerHTML = `
     <div style="max-width: 480px; margin: 0 auto; background: #ffffff; min-height: 100%; padding: 10px;">
       
-      <!-- Шапка: только красная кнопка Выйти -->
       <div style="display: flex; justify-content: flex-end; align-items: center; padding: 10px 0 15px 0;">
         <button id="admin-exit-red-btn" style="background: #ef4444; color: #ffffff; border: none; padding: 10px 22px; border-radius: 20px; font-size: 15px; font-weight: 700; cursor: pointer;">Выйти</button>
       </div>
@@ -50,7 +49,6 @@ function renderAdminMainView() {
         <h1 style="font-size: 26px; font-weight: 700; margin: 0; color: #0f172a;">Админ-панель</h1>
       </div>
 
-      <!-- Кнопки разделов (только Пользователи и Аналитика) -->
       <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
         <button class="admin-tab-btn" data-tab="users" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
         <button class="admin-tab-btn" data-tab="analytics" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
@@ -240,10 +238,10 @@ async function openUserProfileView(uid) {
     };
 
     document.getElementById('reset-user-counter-btn').onclick = async () => {
-      if (confirm("Вы действительно хотите обнулить счётчик пройденных заданий пользователя?")) {
+      if (confirm("Вы действительно хотите обнулить счётчик пройденных заданий и сбросить уровень?")) {
         try {
-          await updateDoc(userDocRef, { totalCorrect: 0, totalIncorrect: 0 });
-          alert("Счётчик заданий обнулен!");
+          await updateDoc(userDocRef, { totalCorrect: 0, totalIncorrect: 0, userLevel: 0, secondsElapsed: 0 });
+          alert("Прогресс сброшен!");
           openUserProfileView(uid);
         } catch (err) {
           alert("Ошибка обнуления: " + err.message);
