@@ -3342,85 +3342,383 @@ export const googleProvider = new GoogleAuthProvider();
 export const db = getFirestore(app);
 
 === FILE: ./src/components/admin.js ===
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { db } from "../firebase.js";
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { db, auth } from "../firebase.js";
+
+let allUsers = [];
+let currentActiveTab = 'users';
 
 export async function openAdminPanel() {
-  // Создаем или находим модальное окно для админки
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    alert("Доступ запрещен. Требуется авторизация.");
+    return;
+  }
+
+  try {
+    const userDocRef = doc(db, "users", currentUser.uid);
+    const docSnap = await getDoc(userDocRef);
+    if (!docSnap.exists() || !docSnap.data().isAdmin) {
+      alert("У вас нет прав администратора для доступа к этой панели.");
+      return;
+    }
+  } catch (err) {
+    console.error("Ошибка проверки прав администратора:", err);
+    alert("Ошибка проверки прав доступа.");
+    return;
+  }
+
   let adminModal = document.getElementById('admin-modal');
   if (!adminModal) {
     adminModal = document.createElement('div');
     adminModal.id = 'admin-modal';
-    adminModal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); color: #fff; padding: 20px; box-sizing: border-box; overflow-y: auto; text-align: left; z-index: 2000; font-family: sans-serif;';
-    adminModal.innerHTML = `
-      <div style="max-width: 800px; margin: 30px auto; background: #1e1e24; padding: 20px; border-radius: 8px; border: 1px solid #333;">
-        <button id="close-admin" style="float: right; padding: 6px 12px; background: #ff4d4d; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">✕ Закрыть</button>
-        <h2 style="margin-top: 0; color: #c084fc;">🛠 Админ-панель: Мониторинг сессий</h2>
-        <p style="color: #9ca3af; font-size: 14px; margin-bottom: 20px;">Логирование активности пользователей из базы данных Firestore.</p>
-        <div id="admin-sessions-list" style="overflow-x: auto;">
-          <p>Загрузка данных сессий...</p>
-        </div>
-      </div>
-    `;
+    adminModal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f8fafc; color: #1e293b; padding: 15px; box-sizing: border-box; overflow-y: auto; text-align: left; z-index: 2000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;';
     document.body.appendChild(adminModal);
-
-    document.getElementById('close-admin').onclick = () => {
-      adminModal.style.display = 'none';
-    };
   }
 
   adminModal.style.display = 'block';
-  const container = document.getElementById('admin-sessions-list');
-  container.innerHTML = '<p>Загрузка данных сессий...</p>';
+  renderAdminMainView();
+}
+
+function renderAdminMainView() {
+  const modal = document.getElementById('admin-modal');
+  modal.innerHTML = `
+    <div style="max-width: 480px; margin: 0 auto; background: #ffffff; min-height: 100%; padding: 10px;">
+      
+      <div style="display: flex; justify-content: flex-end; align-items: center; padding: 10px 0 15px 0;">
+        <button id="admin-exit-red-btn" style="background: #ef4444; color: #ffffff; border: none; padding: 10px 22px; border-radius: 20px; font-size: 15px; font-weight: 700; cursor: pointer;">Выйти</button>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h1 style="font-size: 26px; font-weight: 700; margin: 0; color: #0f172a;">Админ-панель</h1>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+        <button class="admin-tab-btn" data-tab="users" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
+        <button class="admin-tab-btn" data-tab="analytics" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
+      </div>
+
+      <div id="admin-tab-content"></div>
+
+    </div>
+  `;
+
+  document.getElementById('admin-exit-red-btn').onclick = closeAdminModal;
+
+  document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      currentActiveTab = e.target.getAttribute('data-tab');
+      renderAdminMainView();
+    };
+  });
+
+  if (currentActiveTab === 'users') {
+    renderUsersTab();
+  } else {
+    renderAnalyticsTab();
+  }
+}
+
+function closeAdminModal() {
+  const modal = document.getElementById('admin-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function renderUsersTab() {
+  const contentContainer = document.getElementById('admin-tab-content');
+  if (!contentContainer) return;
+
+  contentContainer.innerHTML = `
+    <div style="margin-bottom: 20px;">
+      <input type="text" id="admin-user-search" placeholder="Поиск по Email или UID..." style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #0f172a; font-size: 15px; box-sizing: border-box; outline: none;" />
+    </div>
+    <div id="admin-users-container">
+      <p style="text-align: center; color: #64748b;">Загрузка списка пользователей...</p>
+    </div>
+  `;
+
+  document.getElementById('admin-user-search').addEventListener('input', (e) => {
+    filterAndRenderUsers(e.target.value);
+  });
 
   try {
-    // Получаем последние 20 сессий, отсортированные по времени
-    const q = query(collection(db, "sessions"), orderBy("timestamp", "desc"), limit(20));
-    const querySnapshot = await getDocs(q);
+    const usersQuery = query(collection(db, "users"), orderBy("lastLogin", "desc"));
+    const querySnapshot = await getDocs(usersQuery);
 
-    if (querySnapshot.empty) {
-      container.innerHTML = '<p style="color: #f3f4f6;">Пока нет сохраненных сессий в базе данных.</p>';
+    allUsers = [];
+    querySnapshot.forEach((docSnap) => {
+      allUsers.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    filterAndRenderUsers('');
+  } catch (error) {
+    console.error("Ошибка при загрузке пользователей:", error);
+    const container = document.getElementById('admin-users-container');
+    if (container) {
+      container.innerHTML = `<p style="color: #ef4444; text-align: center;">Ошибка загрузки: ${error.message}</p>`;
+    }
+  }
+}
+
+function filterAndRenderUsers(searchTerm) {
+  const container = document.getElementById('admin-users-container');
+  if (!container) return;
+
+  const term = searchTerm.toLowerCase().trim();
+  const filtered = allUsers.filter(u => 
+    (u.email && u.email.toLowerCase().includes(term)) || 
+    (u.uid && u.uid.toLowerCase().includes(term))
+  );
+
+  let html = `<h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 12px;">Список пользователей (${filtered.length})</h3>`;
+
+  if (filtered.length === 0) {
+    html += `<p style="color: #94a3b8; text-align: center; margin-top: 20px;">Пользователи не найдены.</p>`;
+    container.innerHTML = html;
+    return;
+  }
+
+  html += `<div style="display: flex; flex-direction: column; gap: 10px;">`;
+
+  filtered.forEach((user) => {
+    const regDate = user.lastLogin?.toDate ? user.lastLogin.toDate().toLocaleDateString('ru-RU') : 'Недавно';
+    const statusText = user.isAdmin ? 'Администратор' : 'Активен';
+
+    html += `
+      <div class="user-card-item" data-uid="${user.uid}" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; background: #ffffff; cursor: pointer; transition: all 0.2s ease;">
+        <div style="font-weight: 700; font-size: 16px; color: #0f172a; word-break: break-all;">${user.email || 'Без email'}</div>
+        <div style="font-size: 12px; color: #94a3b8; margin: 4px 0;">UID: ${user.uid}</div>
+        <div style="font-size: 13px; color: #64748b;">Зарегистрирован: ${regDate} | ${statusText}</div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  document.querySelectorAll('.user-card-item').forEach(card => {
+    card.addEventListener('click', () => {
+      const uid = card.getAttribute('data-uid');
+      openUserProfileView(uid);
+    });
+  });
+}
+
+async function openUserProfileView(uid) {
+  const modal = document.getElementById('admin-modal');
+  modal.innerHTML = `
+    <div style="max-width: 480px; margin: 0 auto; background: #ffffff; min-height: 100%; padding: 10px;">
+      
+      <div style="display: flex; justify-content: flex-end; align-items: center; padding: 10px 0 15px 0;">
+        <button id="admin-exit-red-btn-2" style="background: #ef4444; color: #ffffff; border: none; padding: 10px 22px; border-radius: 20px; font-size: 15px; font-weight: 700; cursor: pointer;">Выйти</button>
+      </div>
+
+      <div style="margin: 10px 0 20px 0;">
+        <button id="back-to-users-list" style="background: #22c55e; color: #ffffff; border: none; padding: 12px 24px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer;">← Назад к списку</button>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 5px 0; color: #0f172a;">Профиль:</h2>
+        <div style="font-size: 15px; color: #334155; word-break: break-all; font-weight: 600;">${uid}</div>
+      </div>
+
+      <div id="user-details-card" style="background: #f8fafc; border-radius: 16px; border: 1px solid #f1f5f9; padding: 18px; margin-bottom: 20px;">
+        <p style="text-align: center; color: #64748b;">Загрузка профиля...</p>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <h4 style="font-size: 14px; color: #64748b; margin-bottom: 8px;">Данные Firestore (JSON):</h4>
+        <pre id="json-debug-view" style="background: #f1f5f9; padding: 14px; border-radius: 12px; font-size: 12px; color: #334155; overflow-x: auto; white-space: pre-wrap; font-family: monospace;"></pre>
+      </div>
+
+    </div>
+  `;
+
+  document.getElementById('admin-exit-red-btn-2').onclick = closeAdminModal;
+  document.getElementById('back-to-users-list').onclick = () => renderAdminMainView();
+
+  try {
+    const userDocRef = doc(db, "users", uid);
+    const docSnap = await getDoc(userDocRef);
+
+    if (!docSnap.exists()) {
+      document.getElementById('user-details-card').innerHTML = `<p style="color: #ef4444;">Пользователь не найден.</p>`;
       return;
     }
 
-    let tableHtml = `
-      <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
-        <thead>
-          <tr style="border-bottom: 2px solid #4b5563; color: #9ca3af;">
-            <th style="padding: 10px;">Пользователь</th>
-            <th style="padding: 10px;">Верно</th>
-            <th style="padding: 10px;">Ошибки</th>
-            <th style="padding: 10px;">Время</th>
-            <th style="padding: 10px;">Дата / Время сессии</th>
-          </tr>
-        </thead>
-        <tbody>
+    const userData = docSnap.data();
+    const isAdmin = !!userData.isAdmin;
+
+    document.getElementById('user-details-card').innerHTML = `
+      <div style="font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 15px;">
+        Статус: <span style="color: ${isAdmin ? '#16a34a' : '#475569'};">${isAdmin ? 'Администратор' : 'Обычный пользователь'}</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button id="toggle-admin-role-btn" style="background: #22c55e; color: #ffffff; border: none; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%;">
+          ${isAdmin ? 'Снять права админа' : 'Назначить админом'}
+        </button>
+
+        <button id="reset-user-counter-btn" style="background: #f59e0b; color: #ffffff; border: none; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%;">
+          Обнулить счётчик заданий
+        </button>
+
+        <button id="delete-user-data-btn" style="background: #ffffff; color: #ef4444; border: 2px solid #fca5a5; padding: 12px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          🗑 Удалить данные
+        </button>
+      </div>
     `;
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const dateStr = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : 'Только что';
-      const durationMins = Math.floor((data.durationSeconds || 0) / 60);
-      const durationSecs = (data.durationSeconds || 0) % 60;
-      const timeFormatted = `${durationMins}м ${durationSecs}с`;
+    document.getElementById('json-debug-view').textContent = JSON.stringify({ id: uid, ...userData }, null, 2);
 
-      tableHtml += `
-        <tr style="border-bottom: 1px solid #374151;">
-          <td style="padding: 10px; color: #f3f4f6; word-break: break-all;">${data.email || 'Аноним'}</td>
-          <td style="padding: 10px; color: #4ade80; font-weight: bold;">${data.correctAnswers || 0}</td>
-          <td style="padding: 10px; color: #f87171; font-weight: bold;">${data.incorrectAnswers || 0}</td>
-          <td style="padding: 10px;">${timeFormatted}</td>
-          <td style="padding: 10px; color: #9ca3af; font-size: 12px;">${dateStr}</td>
-        </tr>
-      `;
-    });
+    document.getElementById('toggle-admin-role-btn').onclick = async () => {
+      try {
+        await updateDoc(userDocRef, { isAdmin: !isAdmin });
+        alert(isAdmin ? "Права администратора сняты." : "Пользователь назначен администратором!");
+        openUserProfileView(uid);
+      } catch (err) {
+        alert("Ошибка изменения роли: " + err.message);
+      }
+    };
 
-    tableHtml += `</tbody></table>`;
-    container.innerHTML = tableHtml;
+    document.getElementById('reset-user-counter-btn').onclick = async () => {
+      if (confirm("Вы действительно хотите обнулить счётчик пройденных заданий и сбросить уровень?")) {
+        try {
+          await updateDoc(userDocRef, { totalCorrect: 0, totalIncorrect: 0, userLevel: 0, secondsElapsed: 0 });
+          alert("Прогресс сброшен!");
+          openUserProfileView(uid);
+        } catch (err) {
+          alert("Ошибка обнуления: " + err.message);
+        }
+      }
+    };
+
+    document.getElementById('delete-user-data-btn').onclick = async () => {
+      if (confirm("Вы уверены, что хотите полностью удалить этого пользователя из базы?")) {
+        try {
+          await deleteDoc(userDocRef);
+          alert("Пользователь успешно удален.");
+          renderAdminMainView();
+        } catch (err) {
+          alert("Ошибка удаления: " + err.message);
+        }
+      }
+    };
 
   } catch (error) {
-    console.error("Ошибка загрузки сессий:", error);
-    container.innerHTML = `<p style="color: #f87171;">Ошибка при загрузке данных: ${error.message}</p>`;
+    console.error("Ошибка загрузки профиля:", error);
+  }
+}
+
+async function renderAnalyticsTab() {
+  const contentContainer = document.getElementById('admin-tab-content');
+  if (!contentContainer) return;
+
+  contentContainer.innerHTML = `
+    <div style="background: #fef9c3; border: 1px solid #fde047; padding: 14px; border-radius: 12px; font-size: 13px; color: #854d0e; margin-bottom: 20px; line-height: 1.4;">
+      <b>Внимание:</b> Расчет DAU происходит на клиенте и может быть медленным при большом количестве пользователей. Для продакшена рекомендуется использовать Cloud Functions для ежедневной агрегации данных.
+    </div>
+
+    <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 15px; font-size: 12px; font-weight: 600;">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="display: inline-block; width: 16px; height: 10px; border: 2px solid #38bdf8; background: #e0f2fe;"></span> Новые регистрации
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="display: inline-block; width: 16px; height: 10px; border: 2px solid #22c55e; background: #dcfce7;"></span> Активные пользователи (DAU)
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; text-align: center;">
+      <canvas id="analytics-chart" style="width: 100%; height: 220px; max-height: 220px;"></canvas>
+    </div>
+  `;
+
+  try {
+    const usersSnap = await getDocs(collection(db, "users"));
+    const dauMap = {};
+
+    usersSnap.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.lastLogin?.toDate) {
+        const dStr = data.lastLogin.toDate().toISOString().split('T')[0];
+        dauMap[dStr] = (dauMap[dStr] || 0) + 1;
+      }
+    });
+
+    const labels = [];
+    const regData = [];
+    const dauData = [];
+
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const mStr = String(d.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(d.getDate()).padStart(2, '0');
+      labels.push(`${mStr}-${dayStr}`);
+
+      const isoStr = d.toISOString().split('T')[0];
+      dauData.push(dauMap[isoStr] || 0);
+      regData.push(i === 0 ? 1 : 0);
+    }
+
+    const canvas = document.getElementById('analytics-chart');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.parentElement.clientWidth - 30;
+      const h = canvas.height = 200;
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 1;
+      for (let y = 20; y < h - 30; y += 35) {
+        ctx.beginPath();
+        ctx.moveTo(35, y);
+        ctx.lineTo(w - 10, y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px sans-serif';
+      ctx.fillText('1,0', 10, 24);
+      ctx.fillText('0,5', 10, 59);
+      ctx.fillText('0', 17, 94);
+
+      const stepX = (w - 50) / (labels.length - 1);
+
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      labels.forEach((lbl, idx) => {
+        const x = 45 + idx * stepX;
+        const val = dauData[idx];
+        const y = 94 - val * 35;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      labels.forEach((lbl, idx) => {
+        const x = 45 + idx * stepX;
+        const val = dauData[idx];
+        const y = 94 - val * 35;
+        ctx.fillStyle = '#22c55e';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(x, h - 10);
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '9px sans-serif';
+        ctx.fillText(lbl, -10, 0);
+        ctx.restore();
+      });
+    }
+
+  } catch (err) {
+    console.error("Ошибка загрузки аналитики:", err);
   }
 }
 
@@ -3560,7 +3858,7 @@ export function setupModals() {
 import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
@@ -3581,55 +3879,113 @@ document.addEventListener('DOMContentLoaded', () => {
   let secondsElapsed = 0;       
   let timerInterval = null;
   let currentUser = null;
-  let lastSavedCount = 0;
+  let isAdminUser = false;
+  let userUnsubscribe = null; 
 
   let isExamMode = false;
   let examCorrectCount = 0;
   let examSecondsLeft = 120;
   let examTimerInterval = null;
 
-  // Регистрация Service Worker для PWA и офлайн-режима
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then((registration) => {
-          console.log('ServiceWorker зарегистрирован успешно: ', registration.scope);
-        })
-        .catch((error) => {
-          console.log('Ошибка регистрации ServiceWorker: ', error);
-        });
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
   }
 
-  async function saveSessionToFirestore() {
+  // Функция мгновенного сохранения всего прогресса в Firestore
+  async function saveProgressToFirestore() {
     if (!currentUser) return;
     try {
-      await addDoc(collection(db, "sessions"), {
+      const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
+      const userRef = doc(db, "users", currentUser.uid);
+
+      await setDoc(userRef, {
         uid: currentUser.uid,
         email: currentUser.email || "anonymous",
-        correctAnswers: totalCorrectAnswers,
-        incorrectAnswers: totalIncorrectAnswers,
-        durationSeconds: secondsElapsed,
-        timestamp: serverTimestamp()
-      });
+        displayName: currentUser.displayName || "",
+        photoURL: currentUser.photoURL || "",
+        totalCorrect: totalCorrectAnswers,
+        totalIncorrect: totalIncorrectAnswers,
+        secondsElapsed: secondsElapsed,
+        userLevel: currentLevel,
+        lastActive: serverTimestamp()
+      }, { merge: true });
+
+      console.log("✅ Уровень и статистика успешно сохранены:", { currentLevel, totalCorrectAnswers, totalIncorrectAnswers });
     } catch (error) {
-      console.error("Ошибка при сохранении данных в Firestore:", error);
+      console.error("❌ Ошибка сохранения данных:", error);
     }
   }
 
-  async function saveSessionIdempotent() {
-    if (totalCorrectAnswers - lastSavedCount >= 5) {
-      lastSavedCount = totalCorrectAnswers;
-      await saveSessionToFirestore();
+  // Загрузка профиля при первом входе
+  async function initUserProfile(user) {
+    if (!user) return;
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+
+      if (!docSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email || "anonymous",
+          displayName: user.displayName || "",
+          photoURL: user.photoURL || "",
+          isAdmin: false,
+          userLevel: 0,
+          totalCorrect: 0,
+          totalIncorrect: 0,
+          secondsElapsed: 0,
+          lastLogin: serverTimestamp()
+        });
+        document.body.setAttribute('data-level', '0');
+        totalCorrectAnswers = 0;
+        totalIncorrectAnswers = 0;
+        secondsElapsed = 0;
+      } else {
+        const data = docSnap.data();
+        totalCorrectAnswers = data.totalCorrect || 0;
+        totalIncorrectAnswers = data.totalIncorrect || 0;
+        secondsElapsed = data.secondsElapsed || 0;
+        const savedLevel = data.userLevel !== undefined ? data.userLevel : 0;
+
+        document.body.setAttribute('data-level', savedLevel.toString());
+        await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+      }
+    } catch (error) {
+      console.error("Ошибка инициализации профиля:", error);
     }
   }
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
+    if (userUnsubscribe) {
+      userUnsubscribe();
+      userUnsubscribe = null;
+    }
+
     currentUser = user;
+    if (user) {
+      await initUserProfile(user);
+
+      // Слушаем ТОЛЬКО изменение прав администратора (isAdmin), чтобы не перетирать прогресс ответов
+      const userRef = doc(db, "users", user.uid);
+      userUnsubscribe = onSnapshot(userRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const newAdminStatus = !!data.isAdmin;
+          if (isAdminUser !== newAdminStatus) {
+            isAdminUser = newAdminStatus;
+            renderTrainer();
+          }
+        }
+      });
+    } else {
+      isAdminUser = false;
+      document.body.setAttribute('data-level', '0');
+    }
     renderScreen();
   });
 
-  // Определяем набор задач в зависимости от уровня приложения
   function getCurrentTasks() {
     const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
     if (currentLevel >= 2) return level3Tasks;
@@ -3638,7 +3994,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function pickNewTask() {
     let modeIndex = sessionIndex % 10;
-    isEnglishToRussian = modeIndex >= 7; // Пропорция 70% ру-ен, 30% ен-ру
+    isEnglishToRussian = modeIndex >= 7; 
     const tasks = getCurrentTasks();
 
     if (!isEnglishToRussian) {
@@ -3659,7 +4015,6 @@ document.addEventListener('DOMContentLoaded', () => {
     timerInterval = setInterval(() => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
-      // Внимание: боевые пороги заменены на тестовые (2 ответа) по вашему желанию для удобства проверки
       if (timerEl && !isExamMode && totalCorrectAnswers >= 2) {
         timerEl.textContent = `⏱ ${formatTime(secondsElapsed)}`;
       }
@@ -3732,9 +4087,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Правила</button>
       </div>
 
-      <div style="margin-bottom: 8px; text-align: center;">
-        <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Мониторинг сессий (Админ)</button>
-      </div>
+      ${isAdminUser ? `
+        <div style="margin-bottom: 8px; text-align: center;">
+          <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Мониторинг сессий (Админ)</button>
+        </div>
+      ` : ''}
 
       ${currentLevel < 2 && !isExamMode ? `
         <div style="margin-bottom: 10px;">
@@ -3749,7 +4106,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ` : ''}
 
       <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
-        👤 ${currentUser.displayName || currentUser.email} (Уровень ${currentLevel + 1})
+        👤 ${currentUser.displayName || currentUser.email} (${isAdminUser ? 'Админ' : 'Уровень ' + (currentLevel + 1)})
         <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
       </div>
     `;
@@ -3779,7 +4136,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
-          // Автоматическая заглавная буква для первого символа
           if (currentInput.length === 0) {
             currentInput += char.toUpperCase();
           } else {
@@ -3806,10 +4162,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 isExamMode = false;
                 if (currentLevel === 0) {
                   document.body.setAttribute('data-level', '1');
-                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2 (отрицательные формы)!");
+                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2!");
                 } else if (currentLevel === 1) {
                   document.body.setAttribute('data-level', '2');
-                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3 (вопросительные формы)!");
+                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3!");
                 }
               }
             } else {
@@ -3836,7 +4192,7 @@ document.addEventListener('DOMContentLoaded', () => {
           sessionIndex++;
           currentInput = "";
           pickNewTask();
-          await saveSessionIdempotent();
+          await saveProgressToFirestore(); // Сохранение после каждого ответа
           renderTrainer();
         }
       });
@@ -3875,7 +4231,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('logout-btn').onclick = async () => {
-      await saveSessionToFirestore();
+      if (userUnsubscribe) userUnsubscribe();
+      await saveProgressToFirestore();
       signOut(auth);
     };
   }
@@ -3924,7 +4281,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sessionIndex++;
         pickNewTask();
-        await saveSessionIdempotent();
+        await saveProgressToFirestore(); // Сохранение после клика на вариант
         renderTrainer();
       });
     });

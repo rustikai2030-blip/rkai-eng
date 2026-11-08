@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = null;
   let isAdminUser = false;
   let userUnsubscribe = null; 
+  let loginPromptShown = false; // Флаг, чтобы модальное окно с предложением входа показывалось один раз
 
   let isExamMode = false;
   let examCorrectCount = 0;
@@ -36,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Функция мгновенного сохранения всего прогресса в Firestore
+  // Функция сохранения прогресса в Firestore
   async function saveProgressToFirestore() {
     if (!currentUser) return;
     try {
@@ -61,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Загрузка профиля при первом входе
+  // Загрузка профиля при входе
   async function initUserProfile(user) {
     if (!user) return;
     try {
@@ -76,24 +77,20 @@ document.addEventListener('DOMContentLoaded', () => {
           photoURL: user.photoURL || "",
           isAdmin: false,
           userLevel: 0,
-          totalCorrect: 0,
-          totalIncorrect: 0,
-          secondsElapsed: 0,
+          totalCorrect: totalCorrectAnswers,
+          totalIncorrect: totalIncorrectAnswers,
+          secondsElapsed: secondsElapsed,
           lastLogin: serverTimestamp()
         });
-        document.body.setAttribute('data-level', '0');
-        totalCorrectAnswers = 0;
-        totalIncorrectAnswers = 0;
-        secondsElapsed = 0;
       } else {
         const data = docSnap.data();
-        totalCorrectAnswers = data.totalCorrect || 0;
-        totalIncorrectAnswers = data.totalIncorrect || 0;
-        secondsElapsed = data.secondsElapsed || 0;
+        totalCorrectAnswers = Math.max(data.totalCorrect || 0, totalCorrectAnswers);
+        totalIncorrectAnswers = Math.max(data.totalIncorrect || 0, totalIncorrectAnswers);
+        secondsElapsed = Math.max(data.secondsElapsed || 0, secondsElapsed);
         const savedLevel = data.userLevel !== undefined ? data.userLevel : 0;
 
         document.body.setAttribute('data-level', savedLevel.toString());
-        await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+        await setDoc(userRef, { lastLogin: serverTimestamp(), totalCorrect: totalCorrectAnswers, totalIncorrect: totalIncorrectAnswers }, { merge: true });
       }
     } catch (error) {
       console.error("Ошибка инициализации профиля:", error);
@@ -110,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (user) {
       await initUserProfile(user);
 
-      // Слушаем ТОЛЬКО изменение прав администратора (isAdmin), чтобы не перетирать прогресс ответов
       const userRef = doc(db, "users", user.uid);
       userUnsubscribe = onSnapshot(userRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -124,9 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } else {
       isAdminUser = false;
-      document.body.setAttribute('data-level', '0');
     }
-    renderScreen();
+    renderTrainer();
   });
 
   function getCurrentTasks() {
@@ -189,24 +184,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
-  function renderScreen() {
-    if (!currentUser) {
-      app.innerHTML = `
-        <div style="text-align: center; max-width: 400px; margin: 50px auto; padding: 20px;">
-          <h1 style="font-size: 28px; margin-bottom: 10px;">eng.rkai.app</h1>
-          <p style="margin-bottom: 30px; font-size: 16px;">Тренажер английского языка</p>
-          <button id="google-login-btn" style="background: #fff; color: #000; border: 2px solid #000; padding: 15px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;">Войти через Google</button>
+  // Модальное окно с предложением авторизации после двух правильных ответов
+  function showLoginPromptModal() {
+    let promptModal = document.getElementById('login-prompt-modal');
+    if (!promptModal) {
+      promptModal = document.createElement('div');
+      promptModal.id = 'login-prompt-modal';
+      promptModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 20px; box-sizing: border-box;';
+      promptModal.innerHTML = `
+        <div style="background: #fff; color: #000; padding: 30px; border-radius: 8px; max-width: 400px; width: 100%; text-align: center; border: 2px solid #000;">
+          <h2 style="margin-top: 0; font-size: 20px; margin-bottom: 15px;">Сохранение результатов</h2>
+          <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.5;">Для сохранения ваших результатов, вам необходимо авторизоваться через Google.</p>
+          <button id="modal-google-login-btn" style="background: #000; color: #fff; border: 2px solid #000; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px;">Войти через Google</button>
+          <button id="modal-close-prompt-btn" style="background: #fff; color: #666; border: 1px solid #ccc; padding: 8px 15px; font-size: 14px; cursor: pointer; width: 100%;">Продолжить без сохранения</button>
         </div>
       `;
-      document.getElementById('google-login-btn').addEventListener('click', async () => {
+      document.body.appendChild(promptModal);
+
+      document.getElementById('modal-google-login-btn').addEventListener('click', async () => {
         try {
           await signInWithPopup(auth, googleProvider);
+          promptModal.style.display = 'none';
         } catch (error) {
           alert("Ошибка входа: " + error.message);
         }
       });
+
+      document.getElementById('modal-close-prompt-btn').addEventListener('click', () => {
+        promptModal.style.display = 'none';
+      });
     } else {
-      renderTrainer();
+      promptModal.style.display = 'flex';
     }
   }
 
@@ -249,8 +257,13 @@ document.addEventListener('DOMContentLoaded', () => {
       ` : ''}
 
       <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
-        👤 ${currentUser.displayName || currentUser.email} (${isAdminUser ? 'Админ' : 'Уровень ' + (currentLevel + 1)})
-        <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
+        ${currentUser ? `
+          👤 ${currentUser.displayName || currentUser.email} (${isAdminUser ? 'Админ' : 'Уровень ' + (currentLevel + 1)})
+          <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
+        ` : `
+          👤 Гость (неавторизован)
+          <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Войти</button>
+        `}
       </div>
     `;
 
@@ -330,12 +343,18 @@ document.addEventListener('DOMContentLoaded', () => {
               }
               totalIncorrectAnswers++;
             }
+
+            // Если не авторизован и набрал 2 правильных ответа (впервые за сессию) — показываем предложение входа
+            if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
+              loginPromptShown = true;
+              showLoginPromptModal();
+            }
           }
 
           sessionIndex++;
           currentInput = "";
           pickNewTask();
-          await saveProgressToFirestore(); // Сохранение после каждого ответа
+          await saveProgressToFirestore(); 
           renderTrainer();
         }
       });
@@ -373,11 +392,25 @@ document.addEventListener('DOMContentLoaded', () => {
       adminBtn.onclick = () => openAdminPanel();
     }
 
-    document.getElementById('logout-btn').onclick = async () => {
-      if (userUnsubscribe) userUnsubscribe();
-      await saveProgressToFirestore();
-      signOut(auth);
-    };
+    const loginTriggerBtn = document.getElementById('login-trigger-btn');
+    if (loginTriggerBtn) {
+      loginTriggerBtn.onclick = async () => {
+        try {
+          await signInWithPopup(auth, googleProvider);
+        } catch (error) {
+          alert("Ошибка входа: " + error.message);
+        }
+      };
+    }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.onclick = async () => {
+        if (userUnsubscribe) userUnsubscribe();
+        await saveProgressToFirestore();
+        signOut(auth);
+      };
+    }
   }
 
   function setupOptions() {
@@ -420,11 +453,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             totalIncorrectAnswers++;
           }
+
+          // Если не авторизован и набрал 2 правильных ответа — показываем предложение входа
+          if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
+            loginPromptShown = true;
+            showLoginPromptModal();
+          }
         }
 
         sessionIndex++;
         pickNewTask();
-        await saveProgressToFirestore(); // Сохранение после клика на вариант
+        await saveProgressToFirestore(); 
         renderTrainer();
       });
     });
