@@ -2,7 +2,7 @@
 import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
 import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
 import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastFeedback = "";        
   let lastFeedbackColor = "";   
   
-  let secondsElapsed = 0;       
+  let secondsElapsed = 0;       // Таймер текущей сессии (на экране с 0)
+  let lastSyncedSeconds = 0;    // Для подсчета дельты времени для отправки в базу
   let timerInterval = null;
   let currentUser = null;
   let isAdminUser = false;
@@ -41,6 +42,21 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     deferredPrompt = e;
     renderTrainer();
+  });
+
+  // Отправка накопленного времени при закрытии страницы
+  window.addEventListener('beforeunload', () => {
+    if (currentUser) {
+      const deltaSeconds = secondsElapsed - lastSyncedSeconds;
+      if (deltaSeconds > 0) {
+        const userRef = doc(db, "users", currentUser.uid);
+        // Используем sendBeacon или синхронный/асинхронный вызов обновления
+        updateDoc(userRef, {
+          totalTimeSpent: increment(deltaSeconds),
+          lastActive: serverTimestamp()
+        }).catch(() => {});
+      }
+    }
   });
 
   function updateDynamicLevel() {
@@ -63,6 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const currentLevel = updateDynamicLevel();
       const userRef = doc(db, "users", currentUser.uid);
 
+      const deltaSeconds = secondsElapsed - lastSyncedSeconds;
+      lastSyncedSeconds = secondsElapsed; // сбрасываем дельту
+
       await setDoc(userRef, {
         uid: currentUser.uid,
         email: currentUser.email || "anonymous",
@@ -70,8 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         photoURL: currentUser.photoURL || "",
         totalCorrect: totalCorrectAnswers,
         totalIncorrect: totalIncorrectAnswers,
-        secondsElapsed: secondsElapsed,
         userLevel: currentLevel,
+        totalTimeSpent: increment(deltaSeconds > 0 ? deltaSeconds : 0),
         lastActive: serverTimestamp()
       }, { merge: true });
     } catch (error) {
@@ -93,19 +112,25 @@ document.addEventListener('DOMContentLoaded', () => {
           photoURL: user.photoURL || "",
           isAdmin: false,
           userLevel: 0,
-          totalCorrect: totalCorrectAnswers,
-          totalIncorrect: totalIncorrectAnswers,
-          secondsElapsed: secondsElapsed,
+          totalCorrect: 0,
+          totalIncorrect: 0,
+          visitCount: 1, // Первый визит
+          totalTimeSpent: 0,
           lastLogin: serverTimestamp()
         });
       } else {
         const data = docSnap.data();
         totalCorrectAnswers = Math.max(data.totalCorrect || 0, totalCorrectAnswers);
         totalIncorrectAnswers = Math.max(data.totalIncorrect || 0, totalIncorrectAnswers);
-        secondsElapsed = Math.max(data.secondsElapsed || 0, secondsElapsed);
         
         updateDynamicLevel();
-        await setDoc(userRef, { lastLogin: serverTimestamp(), totalCorrect: totalCorrectAnswers, totalIncorrect: totalIncorrectAnswers }, { merge: true });
+        // Увеличиваем счетчик визитов на 1 при входе
+        await setDoc(userRef, { 
+          lastLogin: serverTimestamp(), 
+          visitCount: increment(1),
+          totalCorrect: totalCorrectAnswers, 
+          totalIncorrect: totalIncorrectAnswers 
+        }, { merge: true });
       }
     } catch (error) {
       console.error("Ошибка инициализации профиля:", error);
@@ -169,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
       if (timerEl && totalCorrectAnswers >= 2) {
-        timerEl.textContent = `⏱ ${formatTime(secondsElapsed)}`;
+        timerEl.textContent = `${formatTime(secondsElapsed)}`;
       }
     }, 1000);
   }
@@ -243,9 +268,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentLevel = updateDynamicLevel();
 
     app.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 12px;">
+        <div>
+          👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} (Уровень ${currentLevel + 1})
+        </div>
+        <div>
+          ${currentUser ? `
+            <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit;">Выйти</button>
+          ` : `
+            <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit;">Войти</button>
+          `}
+        </div>
+      </div>
+
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <button id="words-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Слова</button>
-        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats ? 'visible' : 'hidden'};">⏱ ${formatTime(secondsElapsed)}</div>
+        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
         <button id="rules-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Правила</button>
       </div>
 
@@ -260,16 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <button id="admin-panel-btn" style="padding: 6px 12px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 4px); box-shadow: var(--box-shadow, none);">📊 Админ-панель</button>
         </div>
       ` : ''}
-
-      <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
-        ${currentUser ? `
-          👤 ${currentUser.displayName || currentUser.email} (Уровень ${currentLevel + 1})
-          <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px; color: inherit;">Выйти</button>
-        ` : `
-          👤 Гость (Уровень ${currentLevel + 1})
-          <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px; color: inherit;">Войти</button>
-        `}
-      </div>
     `;
 
     if (!isEnglishToRussian) {
