@@ -2,6 +2,7 @@
 import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, setDoc } from "firebase/firestore";
 import { db, auth } from "../firebase.js";
 import { gameConfig } from "../config/gameConfig.js";
+import { getWrongPhrases, saveWrongPhrases, initialWrongPhrases } from "../data/wrongPhrases.js";
 
 let allUsers = [];
 let currentActiveTab = 'users';
@@ -51,10 +52,11 @@ function renderAdminMainView() {
         <h1 style="font-size: 26px; font-weight: 700; margin: 0; color: #0f172a;">Админ-панель</h1>
       </div>
 
-      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-        <button class="admin-tab-btn" data-tab="users" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
-        <button class="admin-tab-btn" data-tab="analytics" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
-        <button class="admin-tab-btn" data-tab="settings" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'settings' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'settings' ? '#ffffff' : '#475569'};">Настройки</button>
+      <div style="display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="admin-tab-btn" data-tab="users" style="flex: 1; min-width: 100px; padding: 10px; border-radius: 16px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
+        <button class="admin-tab-btn" data-tab="phrases" style="flex: 1; min-width: 100px; padding: 10px; border-radius: 16px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'phrases' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'phrases' ? '#ffffff' : '#475569'};">Фразы</button>
+        <button class="admin-tab-btn" data-tab="analytics" style="flex: 1; min-width: 100px; padding: 10px; border-radius: 16px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
+        <button class="admin-tab-btn" data-tab="settings" style="flex: 1; min-width: 100px; padding: 10px; border-radius: 16px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'settings' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'settings' ? '#ffffff' : '#475569'};">Настройки</button>
       </div>
 
       <div id="admin-tab-content"></div>
@@ -73,6 +75,8 @@ function renderAdminMainView() {
 
   if (currentActiveTab === 'users') {
     renderUsersTab();
+  } else if (currentActiveTab === 'phrases') {
+    renderPhrasesTab();
   } else if (currentActiveTab === 'analytics') {
     renderAnalyticsTab();
   } else {
@@ -83,6 +87,99 @@ function renderAdminMainView() {
 function closeAdminModal() {
   const modal = document.getElementById('admin-modal');
   if (modal) modal.style.display = 'none';
+}
+
+function renderPhrasesTab() {
+  const contentContainer = document.getElementById('admin-tab-content');
+  if (!contentContainer) return;
+
+  const phrases = getWrongPhrases();
+
+  let html = `
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0;">Управление фразами</h3>
+        <button id="reset-phrases-default" style="background: #f59e0b; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">Сбросить по умолч.</button>
+      </div>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Здесь вы можете добавлять или удалять фразы для каждого уровня ошибок.</p>
+  `;
+
+  for (let lvl = 1; lvl <= 5; lvl++) {
+    const list = phrases[lvl] || [];
+    html += `
+      <div style="margin-bottom: 20px; background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px;">
+        <h4 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 10px 0;">Уровень ${lvl} (${list.length} выраж.)</h4>
+        
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;" id="phrase-list-lvl-${lvl}">
+    `;
+
+    list.forEach((phrase, index) => {
+      html += `
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="text" data-level="${lvl}" data-index="${index}" class="phrase-input-item" value="${phrase}" style="flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px;" />
+          <button data-level="${lvl}" data-index="${index}" class="delete-phrase-btn" style="background: #ef4444; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;">✕</button>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="new-phrase-lvl-${lvl}" placeholder="Новое выражение..." style="flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid #38bdf8; font-size: 14px;" />
+          <button data-level="${lvl}" class="add-phrase-btn" style="background: #22c55e; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">Добавить</button>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  contentContainer.innerHTML = html;
+
+  // Обработчики кнопок удаления
+  document.querySelectorAll('.delete-phrase-btn').forEach(btn => {
+    btn.onclick = () => {
+      const lvl = btn.getAttribute('data-level');
+      const idx = parseInt(btn.getAttribute('data-index'), 10);
+      phrases[lvl].splice(idx, 1);
+      saveWrongPhrases(phrases);
+      renderPhrasesTab();
+    };
+  });
+
+  // Обработчики кнопок добавления
+  document.querySelectorAll('.add-phrase-btn').forEach(btn => {
+    btn.onclick = () => {
+      const lvl = btn.getAttribute('data-level');
+      const input = document.getElementById(`new-phrase-lvl-${lvl}`);
+      const val = input.value.trim();
+      if (val) {
+        phrases[lvl].push(val);
+        saveWrongPhrases(phrases);
+        renderPhrasesTab();
+      }
+    };
+  });
+
+  // Автосохранение при изменении текста инпутов
+  document.querySelectorAll('.phrase-input-item').forEach(input => {
+    input.onchange = () => {
+      const lvl = input.getAttribute('data-level');
+      const idx = parseInt(input.getAttribute('data-index'), 10);
+      const val = input.value.trim();
+      if (val) {
+        phrases[lvl][idx] = val;
+        saveWrongPhrases(phrases);
+      }
+    };
+  });
+
+  // Сброс к дефолтным
+  document.getElementById('reset-phrases-default').onclick = () => {
+    if (confirm("Сбросить все фразы к стандартным значениям?")) {
+      saveWrongPhrases(initialWrongPhrases);
+      renderPhrasesTab();
+    }
+  };
 }
 
 async function renderSettingsTab() {

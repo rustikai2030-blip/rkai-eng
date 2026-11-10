@@ -4,6 +4,7 @@ import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { collection, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
+import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let sessionIndex = 0;          
   let totalCorrectAnswers = 0;   
   let totalIncorrectAnswers = 0;  
+  let consecutiveErrors = 0;     // Счeтчик подряд идущих ошибок
   let currentTask = null;        
   let isEnglishToRussian = false; 
   let currentInput = "";
@@ -28,11 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let userUnsubscribe = null; 
   let loginPromptShown = false; 
   let deferredPrompt = null; 
-
-  let isExamMode = false;
-  let examCorrectCount = 0;
-  let examSecondsLeft = 120;
-  let examTimerInterval = null;
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -50,6 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const computedLevel = calculateLevel(totalCorrectAnswers);
     document.body.setAttribute('data-level', computedLevel.toString());
     return computedLevel;
+  }
+
+  function getWrongPhrase(errorsCount) {
+    const phrases = getWrongPhrases();
+    const level = Math.min(Math.max(errorsCount, 1), 5);
+    const list = phrases[level] || phrases[1];
+    const randomIndex = Math.floor(Math.random() * list.length);
+    return list[randomIndex];
   }
 
   async function saveProgressToFirestore() {
@@ -163,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     timerInterval = setInterval(() => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
-      if (timerEl && !isExamMode && totalCorrectAnswers >= 2) {
+      if (timerEl && totalCorrectAnswers >= 2) {
         timerEl.textContent = `⏱ ${formatTime(secondsElapsed)}`;
       }
     }, 1000);
@@ -202,6 +207,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function handleAnswerResult(isCorrect) {
+    if (isCorrect) {
+      consecutiveErrors = 0; // Сбрасываем счетчик ошибок при правильном ответе
+      if (totalCorrectAnswers >= 2) {
+        lastFeedback = "Правильно";
+        lastFeedbackColor = "#22c55e";
+      }
+      totalCorrectAnswers++;
+    } else {
+      consecutiveErrors++; // Увеличиваем счетчик подряд идущих ошибок
+      if (totalCorrectAnswers >= 2) {
+        lastFeedback = getWrongPhrase(consecutiveErrors);
+        lastFeedbackColor = "#ef4444";
+      }
+      totalIncorrectAnswers++;
+    }
+
+    if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
+      loginPromptShown = true;
+      showLoginPromptModal();
+    }
+
+    sessionIndex++;
+    currentInput = "";
+    pickNewTask();
+  }
+
   function renderTrainer() {
     if (!currentTask) {
       pickNewTask();
@@ -213,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     app.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <button id="words-btn" style="width: 80px; padding: 6px; font-size: 13px; background: inherit; color: inherit; border: 2px solid currentColor; cursor: pointer;">Слова</button>
-        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats && !isExamMode ? 'visible' : 'hidden'};">⏱ ${formatTime(secondsElapsed)}</div>
+        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats ? 'visible' : 'hidden'};">⏱ ${formatTime(secondsElapsed)}</div>
         <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: inherit; color: inherit; border: 2px solid currentColor; cursor: pointer;">Правила</button>
       </div>
 
@@ -225,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       ${isAdminUser ? `
         <div style="margin-bottom: 8px; text-align: center;">
-          <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Мониторинг сессий (Админ)</button>
+          <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Админ-панель</button>
         </div>
       ` : ''}
 
@@ -250,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px; border-radius: var(--border-radius, 0px);">${currentInput}</div>
-          <div id="feedback-msg" style="height: 24px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor};">${lastFeedback}</div>
+          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
         </div>
 
         <div id="keyboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;"></div>
@@ -282,29 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         onOk: async () => {
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
-          
-          if (isCorrect) {
-            if (totalCorrectAnswers >= 2) {
-              lastFeedback = "Правильно";
-              lastFeedbackColor = "#22c55e";
-            }
-            totalCorrectAnswers++;
-          } else {
-            if (totalCorrectAnswers >= 2) {
-              lastFeedback = "Неправильно";
-              lastFeedbackColor = "#ef4444";
-            }
-            totalIncorrectAnswers++;
-          }
-
-          if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
-            loginPromptShown = true;
-            showLoginPromptModal();
-          }
-
-          sessionIndex++;
-          currentInput = "";
-          pickNewTask();
+          handleAnswerResult(isCorrect);
           await saveProgressToFirestore(); 
           renderTrainer();
         }
@@ -318,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
-          <div id="feedback-msg" style="height: 24px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor};">${lastFeedback}</div>
+          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
           <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
             ${currentTask.options.map(opt => `
               <button class="option-btn" style="padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center; border-radius: var(--border-radius, 0px);">${opt}</button>
@@ -378,28 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
     optionButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
         const isCorrect = btn.textContent.trim() === currentTask.correct;
-
-        if (isCorrect) {
-          if (totalCorrectAnswers >= 2) {
-            lastFeedback = "Правильно";
-            lastFeedbackColor = "#22c55e";
-          }
-          totalCorrectAnswers++;
-        } else {
-          if (totalCorrectAnswers >= 2) {
-            lastFeedback = "Неправильно";
-            lastFeedbackColor = "#ef4444";
-          }
-          totalIncorrectAnswers++;
-        }
-
-        if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
-          loginPromptShown = true;
-          showLoginPromptModal();
-        }
-
-        sessionIndex++;
-        pickNewTask();
+        handleAnswerResult(isCorrect);
         await saveProgressToFirestore();
         renderTrainer();
       });

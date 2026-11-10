@@ -2921,6 +2921,9 @@ export const level3Tasks = {
   ]
 };
 
+=== FILE: ./src/levels/registry.js ===
+
+
 === FILE: ./src/style.css ===
 :root {
   --text: #6b6375;
@@ -3221,35 +3224,7 @@ code {
 
 
 === FILE: ./src/styles/evolution.css ===
-body[data-level="0"] {
-  background-color: #ffffff;
-  color: #000000;
-  font-family: monospace, sans-serif;
-  --border-radius: 0px;
-  --key-height: 52px;
-  --key-font-size: 18px;
-  --key-gap: 6px;
-}
-
-body[data-level="1"] {
-  background-color: #f9f9f9;
-  color: #000000;
-  font-family: sans-serif;
-  --border-radius: 4px;
-  --key-height: 46px;
-  --key-font-size: 16px;
-  --key-gap: 5px;
-}
-
-body[data-level="2"] {
-  background-color: #f0f4f8;
-  color: #000000;
-  font-family: sans-serif;
-  --border-radius: 6px;
-  --key-height: 40px;
-  --key-font-size: 15px;
-  --key-gap: 4px;
-}
+/* src/styles/evolution.css */
 
 body {
   margin: 0;
@@ -3257,6 +3232,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 #app {
@@ -3267,7 +3243,77 @@ body {
   text-align: center;
 }
 
-/* Динамические стили клавиатурных кнопок на основе переменных уровня */
+/* Уровень 0: Строгий минимализм */
+body[data-level="0"] {
+  background-color: #ffffff; color: #000000; font-family: monospace, sans-serif;
+  --border-radius: 0px; --key-height: 52px; --key-font-size: 18px; --key-gap: 6px;
+  --box-shadow: none; --btn-bg: #fff; --btn-border: #000;
+}
+
+/* Уровень 1: Еле заметное скругление */
+body[data-level="1"] {
+  background-color: #fbfbfb; color: #111111; font-family: sans-serif;
+  --border-radius: 2px; --key-height: 50px; --key-font-size: 17px; --key-gap: 6px;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); --btn-bg: #fff; --btn-border: #e2e8f0;
+}
+
+/* Уровень 2: Мягкие грани */
+body[data-level="2"] {
+  background-color: #f8fafc; color: #111111; font-family: sans-serif;
+  --border-radius: 4px; --key-height: 48px; --key-font-size: 16px; --key-gap: 5px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04); --btn-bg: #fff; --btn-border: #cbd5e1;
+}
+
+/* Уровень 3: Легкие тени */
+body[data-level="3"] {
+  background-color: #f1f5f9; color: #0f172a; font-family: sans-serif;
+  --border-radius: 6px; --key-height: 46px; --key-font-size: 16px; --key-gap: 5px;
+  --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); --btn-bg: #f8fafc; --btn-border: #94a3b8;
+}
+
+/* Уровень 4: Полукруглые элементы */
+body[data-level="4"] {
+  background-color: #e2e8f0; color: #0f172a; font-family: sans-serif;
+  --border-radius: 8px; --key-height: 45px; --key-font-size: 15px; --key-gap: 5px;
+  --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.07); --btn-bg: #ffffff; --btn-border: #64748b;
+}
+
+/* Уровень 5: Переход к полумраку */
+body[data-level="5"] {
+  background-color: #cbd5e1; color: #0f172a; font-family: sans-serif;
+  --border-radius: 10px; --key-height: 44px; --key-font-size: 15px; --key-gap: 4px;
+  --box-shadow: 0 8px 16px rgba(0, 0, 0, 0.09); --btn-bg: #f1f5f9; --btn-border: #475569;
+}
+
+/* Уровень 6: Темная тема (Старт) */
+body[data-level="6"] {
+  background-color: #334155; color: #f8fafc; font-family: system-ui, sans-serif;
+  --border-radius: 12px; --key-height: 43px; --key-font-size: 15px; --key-gap: 4px;
+  --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); --btn-bg: #1e293b; --btn-border: #64748b;
+}
+
+/* Уровень 7: Глубокий синий оттенок */
+body[data-level="7"] {
+  background-color: #1e293b; color: #f8fafc; font-family: system-ui, sans-serif;
+  --border-radius: 14px; --key-height: 42px; --key-font-size: 15px; --key-gap: 4px;
+  --box-shadow: 0 12px 24px rgba(56, 189, 248, 0.15); --btn-bg: #0f172a; --btn-border: #38bdf8;
+}
+
+/* Уровень 8: Ночной режим */
+body[data-level="8"] {
+  background-color: #0f172a; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 18px; --key-height: 41px; --key-font-size: 14px; --key-gap: 4px;
+  --box-shadow: 0 16px 30px rgba(56, 189, 248, 0.25); --btn-bg: #1e293b; --btn-border: #38bdf8;
+}
+
+/* Уровень 9: Премиальный фиолетово-неоновый кибер-стиль */
+body[data-level="9"] {
+  background-color: #050811; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 24px; --key-height: 40px; --key-font-size: 14px; --key-gap: 4px;
+  --box-shadow: 0 20px 40px rgba(192, 132, 252, 0.35); --btn-bg: #0f172a; --btn-border: #c084fc;
+}
+
+/* Стили клавиатуры и кнопок */
 .kb-row {
   display: flex;
   justify-content: center;
@@ -3280,20 +3326,21 @@ body {
   height: var(--key-height, 52px);
   font-size: var(--key-font-size, 18px);
   font-weight: bold;
-  background: #fff;
-  color: #000;
-  border: 2px solid #000;
+  background: var(--btn-bg, #fff);
+  color: inherit;
+  border: 2px solid var(--btn-border, #000);
   border-radius: var(--border-radius, 0px);
+  box-shadow: var(--box-shadow, none);
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .kb-btn:active {
-  background: #000;
+  background: #38bdf8;
   color: #fff;
 }
 
@@ -3319,8 +3366,10 @@ export const googleProvider = new GoogleAuthProvider();
 export const db = getFirestore(app);
 
 === FILE: ./src/components/admin.js ===
-import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+// src/components/admin.js
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, setDoc } from "firebase/firestore";
 import { db, auth } from "../firebase.js";
+import { gameConfig } from "../config/gameConfig.js";
 
 let allUsers = [];
 let currentActiveTab = 'users';
@@ -3370,9 +3419,10 @@ function renderAdminMainView() {
         <h1 style="font-size: 26px; font-weight: 700; margin: 0; color: #0f172a;">Админ-панель</h1>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-        <button class="admin-tab-btn" data-tab="users" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
-        <button class="admin-tab-btn" data-tab="analytics" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
+      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <button class="admin-tab-btn" data-tab="users" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
+        <button class="admin-tab-btn" data-tab="analytics" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
+        <button class="admin-tab-btn" data-tab="settings" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'settings' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'settings' ? '#ffffff' : '#475569'};">Настройки</button>
       </div>
 
       <div id="admin-tab-content"></div>
@@ -3391,14 +3441,52 @@ function renderAdminMainView() {
 
   if (currentActiveTab === 'users') {
     renderUsersTab();
-  } else {
+  } else if (currentActiveTab === 'analytics') {
     renderAnalyticsTab();
+  } else {
+    renderSettingsTab();
   }
 }
 
 function closeAdminModal() {
   const modal = document.getElementById('admin-modal');
   if (modal) modal.style.display = 'none';
+}
+
+async function renderSettingsTab() {
+  const contentContainer = document.getElementById('admin-tab-content');
+  if (!contentContainer) return;
+
+  contentContainer.innerHTML = `
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+      <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 10px;">Игровые настройки</h3>
+      <p style="font-size: 14px; color: #64748b; margin-bottom: 20px;">Укажите количество правильных ответов, необходимое для перехода на следующий уровень и смены визуального стиля интерфейса.</p>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Шаг ответов для смены уровня:</label>
+        <input type="number" id="setting-step-input" value="${gameConfig.stepPerLevel}" min="1" max="100" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+      </div>
+
+      <button id="save-settings-btn" style="width: 100%; background: #22c55e; color: #ffffff; border: none; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer;">Сохранить настройки</button>
+    </div>
+  `;
+
+  document.getElementById('save-settings-btn').onclick = async () => {
+    const val = parseInt(document.getElementById('setting-step-input').value, 10);
+    if (isNaN(val) || val < 1) {
+      alert("Введите корректное число (больше 0).");
+      return;
+    }
+
+    try {
+      const settingsRef = doc(db, "settings", "game");
+      await setDoc(settingsRef, { stepPerLevel: val }, { merge: true });
+      gameConfig.stepPerLevel = val;
+      alert("Настройки успешно сохранены!");
+    } catch (err) {
+      alert("Ошибка сохранения: " + err.message);
+    }
+  };
 }
 
 async function renderUsersTab() {
@@ -3593,7 +3681,7 @@ async function renderAnalyticsTab() {
 
   contentContainer.innerHTML = `
     <div style="background: #fef9c3; border: 1px solid #fde047; padding: 14px; border-radius: 12px; font-size: 13px; color: #854d0e; margin-bottom: 20px; line-height: 1.4;">
-      <b>Внимание:</b> Расчет DAU происходит на клиенте и может быть медленным при большом количестве пользователей. Для продакшена рекомендуется использовать Cloud Functions для ежедневной агрегации данных.
+      <b>Внимание:</b> Расчет DAU происходит на клиенте и может быть медленным при большом количестве пользователей.
     </div>
 
     <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 15px; font-size: 12px; font-weight: 600;">
@@ -3700,20 +3788,18 @@ async function renderAnalyticsTab() {
 }
 
 === FILE: ./src/components/keyboard.js ===
+// src/components/keyboard.js
+
 export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }) {
-  // Эталонные ряды стандартной QWERTY-клавиатуры
   const qwertyRow1 = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'];
   const qwertyRow2 = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
   const qwertyRow3 = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
 
-  // Определяем набор доступных символов в зависимости от уровня
   let allowedChars = ['w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k'];
 
   if (level === 1) {
-    // Уровень 2: добавляем символы для отрицаний (n, a, m и апостроф ')
     allowedChars = ['w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k', 'n', 'a', 'm', "'"];
   } else if (level >= 2) {
-    // Уровень 3: добавляем символы для вопросов (включая заглавные D, W и вопросительный знак ?)
     allowedChars = [
       'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k', 
       'n', 'a', 'm', "'", '?', 'D', 'W', 'o', 'e', 's', 'i', 'd', 'l'
@@ -3724,13 +3810,8 @@ export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }
   const row2 = qwertyRow2.filter(char => allowedChars.includes(char) || allowedChars.includes(char.toUpperCase()));
   const row3 = ['shift', ...qwertyRow3.filter(char => allowedChars.includes(char))];
   
-  // Добавляем спецсимволы на третий ряд клавиатуры по уровням
-  if (level >= 1 && allowedChars.includes("'")) {
-    row3.push("'");
-  }
-  if (level >= 2 && allowedChars.includes('?')) {
-    row3.push('?');
-  }
+  if (level >= 1 && allowedChars.includes("'")) row3.push("'");
+  if (level >= 2 && allowedChars.includes('?')) row3.push('?');
 
   const kbContainer = document.getElementById('keyboard');
   if (!kbContainer) return;
@@ -3831,15 +3912,48 @@ export function setupModals() {
   }
 }
 
+=== FILE: ./src/config/gameConfig.js ===
+// src/config/gameConfig.js
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../firebase.js";
+
+export const gameConfig = {
+  stepPerLevel: 5, // Шаг правильных ответов для перехода на следующий уровень (регулируется в админке)
+};
+
+// Безопасная загрузка настроек из Firestore
+async function loadGameSettings() {
+  try {
+    const settingsRef = doc(db, "settings", "game");
+    const docSnap = await getDoc(settingsRef);
+    if (docSnap.exists() && docSnap.data().stepPerLevel !== undefined) {
+      gameConfig.stepPerLevel = Number(docSnap.data().stepPerLevel);
+    }
+  } catch (err) {
+    console.warn("Не удалось загрузить настройки из Firestore, используются стандартные:", err.message);
+  }
+}
+
+loadGameSettings();
+
+// Функция расчета уровня (всего 10 уровней: от 0 до 9)
+export function calculateLevel(totalCorrect) {
+  const step = gameConfig.stepPerLevel || 5;
+  const level = Math.floor(totalCorrect / step);
+  return Math.min(level, 9); // Ограничиваем максимальным 9-м уровнем
+}
+
 === FILE: ./src/main.js ===
+// src/main.js
 import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
+import { calculateLevel } from './config/gameConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -3859,7 +3973,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isAdminUser = false;
   let userUnsubscribe = null; 
   let loginPromptShown = false; 
-  let deferredPrompt = null; // Для установки PWA
+  let deferredPrompt = null; 
 
   let isExamMode = false;
   let examCorrectCount = 0;
@@ -3872,18 +3986,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Перехват события установки PWA
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     renderTrainer();
   });
 
-  // Функция сохранения прогресса в Firestore
+  function updateDynamicLevel() {
+    const computedLevel = calculateLevel(totalCorrectAnswers);
+    document.body.setAttribute('data-level', computedLevel.toString());
+    return computedLevel;
+  }
+
   async function saveProgressToFirestore() {
     if (!currentUser) return;
     try {
-      const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
+      const currentLevel = updateDynamicLevel();
       const userRef = doc(db, "users", currentUser.uid);
 
       await setDoc(userRef, {
@@ -3897,14 +4015,11 @@ document.addEventListener('DOMContentLoaded', () => {
         userLevel: currentLevel,
         lastActive: serverTimestamp()
       }, { merge: true });
-
-      console.log("✅ Уровень и статистика успешно сохранены:", { currentLevel, totalCorrectAnswers, totalIncorrectAnswers });
     } catch (error) {
       console.error("❌ Ошибка сохранения данных:", error);
     }
   }
 
-  // Загрузка профиля при входе
   async function initUserProfile(user) {
     if (!user) return;
     try {
@@ -3929,9 +4044,8 @@ document.addEventListener('DOMContentLoaded', () => {
         totalCorrectAnswers = Math.max(data.totalCorrect || 0, totalCorrectAnswers);
         totalIncorrectAnswers = Math.max(data.totalIncorrect || 0, totalIncorrectAnswers);
         secondsElapsed = Math.max(data.secondsElapsed || 0, secondsElapsed);
-        const savedLevel = data.userLevel !== undefined ? data.userLevel : 0;
-
-        document.body.setAttribute('data-level', savedLevel.toString());
+        
+        updateDynamicLevel();
         await setDoc(userRef, { lastLogin: serverTimestamp(), totalCorrect: totalCorrectAnswers, totalIncorrect: totalIncorrectAnswers }, { merge: true });
       }
     } catch (error) {
@@ -3967,7 +4081,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function getCurrentTasks() {
-    const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
+    const currentLevel = updateDynamicLevel();
     if (currentLevel >= 2) return level3Tasks;
     return currentLevel >= 1 ? level2Tasks : level1Tasks;
   }
@@ -3997,31 +4111,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const timerEl = document.getElementById('timer-display');
       if (timerEl && !isExamMode && totalCorrectAnswers >= 2) {
         timerEl.textContent = `⏱ ${formatTime(secondsElapsed)}`;
-      }
-    }, 1000);
-  }
-
-  function startExam() {
-    isExamMode = true;
-    examCorrectCount = 0;
-    examSecondsLeft = 120;
-    sessionIndex = 0;
-    pickNewTask();
-    renderTrainer();
-
-    if (examTimerInterval) clearInterval(examTimerInterval);
-    examTimerInterval = setInterval(() => {
-      examSecondsLeft--;
-      const examTimerEl = document.getElementById('exam-timer');
-      if (examTimerEl) {
-        examTimerEl.textContent = `⏳ Осталось: ${examSecondsLeft}с`;
-      }
-
-      if (examSecondsLeft <= 0) {
-        clearInterval(examTimerInterval);
-        alert("Время вышло! Экзамен не сдан.");
-        isExamMode = false;
-        renderTrainer();
       }
     }, 1000);
   }
@@ -4065,18 +4154,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const showStats = totalCorrectAnswers >= 2;
-    const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
-
-    let examButtonText = "🚀 Сдать экзамен на Уровень 2";
-    if (currentLevel === 1) {
-      examButtonText = "🚀 Сдать экзамен на Уровень 3 (Вопросы)";
-    }
+    const currentLevel = updateDynamicLevel();
 
     app.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <button id="words-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Слова</button>
+        <button id="words-btn" style="width: 80px; padding: 6px; font-size: 13px; background: inherit; color: inherit; border: 2px solid currentColor; cursor: pointer;">Слова</button>
         <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats && !isExamMode ? 'visible' : 'hidden'};">⏱ ${formatTime(secondsElapsed)}</div>
-        <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Правила</button>
+        <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: inherit; color: inherit; border: 2px solid currentColor; cursor: pointer;">Правила</button>
       </div>
 
       ${deferredPrompt ? `
@@ -4091,25 +4175,13 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       ` : ''}
 
-      ${currentLevel < 2 && !isExamMode ? `
-        <div style="margin-bottom: 10px;">
-          <button id="start-exam-btn" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 2px solid #000; font-size: 14px; font-weight: bold; cursor: pointer;">${examButtonText}</button>
-        </div>
-      ` : ''}
-
-      ${isExamMode ? `
-        <div style="background: #333; color: #fff; padding: 8px; margin-bottom: 10px; font-weight: bold; font-size: 14px;">
-          ЭКЗАМЕН: Верно ${examCorrectCount}/2 | <span id="exam-timer">⏳ Осталось: ${examSecondsLeft}с</span>
-        </div>
-      ` : ''}
-
       <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
         ${currentUser ? `
-          👤 ${currentUser.displayName || currentUser.email} (${isAdminUser ? 'Админ' : 'Уровень ' + (currentLevel + 1)})
-          <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
+          👤 ${currentUser.displayName || currentUser.email} (Уровень ${currentLevel + 1})
+          <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px; color: inherit;">Выйти</button>
         ` : `
-          👤 Гость (неавторизован)
-          <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Войти</button>
+          👤 Гость (Уровень ${currentLevel + 1})
+          <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px; color: inherit;">Войти</button>
         `}
       </div>
     `;
@@ -4118,21 +4190,21 @@ document.addEventListener('DOMContentLoaded', () => {
       app.innerHTML += `
         <div style="margin: 20px 0;">
           <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px;">
-            <div style="font-size: 24px; font-weight: bold; color: green; visibility: ${showStats && !isExamMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
             <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.ru}</p>
-            <div style="font-size: 24px; font-weight: bold; color: red; visibility: ${showStats && !isExamMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
-          <div id="answer-display" style="border: 2px solid #000; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px; background: #fff; color: #000;">${currentInput}</div>
+          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px; border-radius: var(--border-radius, 0px);">${currentInput}</div>
           <div id="feedback-msg" style="height: 24px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor};">${lastFeedback}</div>
         </div>
 
         <div id="keyboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;"></div>
 
         <div style="display: flex; gap: 8px;">
-          <button id="space-btn" style="flex: 3; padding: 15px; background: #fff; color: #000; border: 2px solid #000; font-size: 16px; cursor: pointer;">пробел</button>
-          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: #fff; color: #000; border: 2px solid #000; font-size: 18px; cursor: pointer;">⌫</button>
-          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: #fff; color: #000; border: 2px solid #000; font-size: 18px; font-weight: bold; cursor: pointer;">✓</button>
+          <button id="space-btn" style="flex: 3; padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer; border-radius: var(--border-radius, 0px);">пробел</button>
+          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; border-radius: var(--border-radius, 0px);">⌫</button>
+          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 0px);">✓</button>
         </div>
       `;
 
@@ -4157,44 +4229,23 @@ document.addEventListener('DOMContentLoaded', () => {
         onOk: async () => {
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
           
-          if (isExamMode) {
-            if (isCorrect) {
-              examCorrectCount++;
-              if (examCorrectCount >= 2) {
-                clearInterval(examTimerInterval);
-                isExamMode = false;
-                if (currentLevel === 0) {
-                  document.body.setAttribute('data-level', '1');
-                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2!");
-                } else if (currentLevel === 1) {
-                  document.body.setAttribute('data-level', '2');
-                  alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3!");
-                }
-              }
-            } else {
-              clearInterval(examTimerInterval);
-              alert("❌ Ошибка в экзамене!");
-              isExamMode = false;
+          if (isCorrect) {
+            if (totalCorrectAnswers >= 2) {
+              lastFeedback = "Правильно";
+              lastFeedbackColor = "#22c55e";
             }
+            totalCorrectAnswers++;
           } else {
-            if (isCorrect) {
-              if (totalCorrectAnswers >= 2) {
-                lastFeedback = "Правильно";
-                lastFeedbackColor = "green";
-              }
-              totalCorrectAnswers++;
-            } else {
-              if (totalCorrectAnswers >= 2) {
-                lastFeedback = "Неправильно";
-                lastFeedbackColor = "red";
-              }
-              totalIncorrectAnswers++;
+            if (totalCorrectAnswers >= 2) {
+              lastFeedback = "Неправильно";
+              lastFeedbackColor = "#ef4444";
             }
+            totalIncorrectAnswers++;
+          }
 
-            if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
-              loginPromptShown = true;
-              showLoginPromptModal();
-            }
+          if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
+            loginPromptShown = true;
+            showLoginPromptModal();
           }
 
           sessionIndex++;
@@ -4208,15 +4259,15 @@ document.addEventListener('DOMContentLoaded', () => {
       app.innerHTML += `
         <div style="margin: 20px 0;">
           <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 20px;">
-            <div style="font-size: 24px; font-weight: bold; color: green; visibility: ${showStats && !isExamMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
             <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.en}</p>
-            <div style="font-size: 24px; font-weight: bold; color: red; visibility: ${showStats && !isExamMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
           <div id="feedback-msg" style="height: 24px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor};">${lastFeedback}</div>
           <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
             ${currentTask.options.map(opt => `
-              <button class="option-btn" style="padding: 15px; background: #fff; color: #000; border: 2px solid #000; font-size: 18px; cursor: pointer; text-align: center;">${opt}</button>
+              <button class="option-btn" style="padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center; border-radius: var(--border-radius, 0px);">${opt}</button>
             `).join('')}
           </div>
         </div>
@@ -4240,11 +4291,6 @@ document.addEventListener('DOMContentLoaded', () => {
         deferredPrompt = null;
         renderTrainer();
       };
-    }
-
-    const examBtn = document.getElementById('start-exam-btn');
-    if (examBtn) {
-      examBtn.onclick = () => startExam();
     }
 
     const adminBtn = document.getElementById('admin-panel-btn');
@@ -4278,51 +4324,29 @@ document.addEventListener('DOMContentLoaded', () => {
     optionButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
         const isCorrect = btn.textContent.trim() === currentTask.correct;
-        const currentLevel = parseInt(document.body.getAttribute('data-level') || '0', 10);
 
-        if (isExamMode) {
-          if (isCorrect) {
-            examCorrectCount++;
-            if (examCorrectCount >= 2) {
-              clearInterval(examTimerInterval);
-              isExamMode = false;
-              if (currentLevel === 0) {
-                document.body.setAttribute('data-level', '1');
-                alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 2!");
-              } else if (currentLevel === 1) {
-                document.body.setAttribute('data-level', '2');
-                alert("🎉 Экзамен сдан! Добро пожаловать на Уровень 3!");
-              }
-            }
-          } else {
-            clearInterval(examTimerInterval);
-            alert("❌ Ошибка в экзамене!");
-            isExamMode = false;
+        if (isCorrect) {
+          if (totalCorrectAnswers >= 2) {
+            lastFeedback = "Правильно";
+            lastFeedbackColor = "#22c55e";
           }
+          totalCorrectAnswers++;
         } else {
-          if (isCorrect) {
-            if (totalCorrectAnswers >= 2) {
-              lastFeedback = "Правильно";
-              lastFeedbackColor = "green";
-            }
-            totalCorrectAnswers++;
-          } else {
-            if (totalCorrectAnswers >= 2) {
-              lastFeedback = "Неправильно";
-              lastFeedbackColor = "red";
-            }
-            totalIncorrectAnswers++;
+          if (totalCorrectAnswers >= 2) {
+            lastFeedback = "Неправильно";
+            lastFeedbackColor = "#ef4444";
           }
+          totalIncorrectAnswers++;
+        }
 
-          if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
-            loginPromptShown = true;
-            showLoginPromptModal();
-          }
+        if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
+          loginPromptShown = true;
+          showLoginPromptModal();
         }
 
         sessionIndex++;
         pickNewTask();
-        await saveProgressToFirestore(); 
+        await saveProgressToFirestore();
         renderTrainer();
       });
     });
