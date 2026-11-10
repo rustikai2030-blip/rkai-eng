@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let sessionIndex = 0;          
   let totalCorrectAnswers = 0;   
   let totalIncorrectAnswers = 0;  
-  let consecutiveErrors = 0;     // Счeтчик подряд идущих ошибок
+  let consecutiveErrors = 0;     
   let currentTask = null;        
   let isEnglishToRussian = false; 
   let currentInput = "";
@@ -141,8 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getCurrentTasks() {
     const currentLevel = updateDynamicLevel();
-    if (currentLevel >= 2) return level3Tasks;
-    return currentLevel >= 1 ? level2Tasks : level1Tasks;
+    if (currentLevel >= 6) return level3Tasks;
+    return currentLevel >= 3 ? level2Tasks : level1Tasks;
   }
 
   function pickNewTask() {
@@ -181,11 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
       promptModal.id = 'login-prompt-modal';
       promptModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 20px; box-sizing: border-box;';
       promptModal.innerHTML = `
-        <div style="background: #fff; color: #000; padding: 30px; border-radius: 8px; max-width: 400px; width: 100%; text-align: center; border: 2px solid #000;">
+        <div style="background: #fff; color: #000; padding: 30px; border-radius: var(--border-radius, 8px); max-width: 400px; width: 100%; text-align: center; border: 2px solid currentColor; box-shadow: var(--box-shadow, none);">
           <h2 style="margin-top: 0; font-size: 20px; margin-bottom: 15px;">Сохранение результатов</h2>
           <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.5;">Для сохранения ваших результатов, вам необходимо авторизоваться через Google.</p>
-          <button id="modal-google-login-btn" style="background: #000; color: #fff; border: 2px solid #000; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px;">Войти через Google</button>
-          <button id="modal-close-prompt-btn" style="background: #fff; color: #666; border: 1px solid #ccc; padding: 8px 15px; font-size: 14px; cursor: pointer; width: 100%;">Продолжить без сохранения</button>
+          <button id="modal-google-login-btn" style="background: var(--btn-bg, #000); color: inherit; border: 2px solid currentColor; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; border-radius: var(--border-radius, 4px);">Войти через Google</button>
+          <button id="modal-close-prompt-btn" style="background: inherit; color: inherit; border: 1px solid currentColor; padding: 8px 15px; font-size: 14px; cursor: pointer; width: 100%; border-radius: var(--border-radius, 4px);">Продолжить без сохранения</button>
         </div>
       `;
       document.body.appendChild(promptModal);
@@ -209,14 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleAnswerResult(isCorrect) {
     if (isCorrect) {
-      consecutiveErrors = 0; // Сбрасываем счетчик ошибок при правильном ответе
+      consecutiveErrors = 0; 
       if (totalCorrectAnswers >= 2) {
         lastFeedback = "Правильно";
         lastFeedbackColor = "#22c55e";
       }
       totalCorrectAnswers++;
     } else {
-      consecutiveErrors++; // Увеличиваем счетчик подряд идущих ошибок
+      consecutiveErrors++; 
       if (totalCorrectAnswers >= 2) {
         lastFeedback = getWrongPhrase(consecutiveErrors);
         lastFeedbackColor = "#ef4444";
@@ -244,20 +244,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     app.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <button id="words-btn" style="width: 80px; padding: 6px; font-size: 13px; background: inherit; color: inherit; border: 2px solid currentColor; cursor: pointer;">Слова</button>
+        <button id="words-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Слова</button>
         <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats ? 'visible' : 'hidden'};">⏱ ${formatTime(secondsElapsed)}</div>
-        <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: inherit; color: inherit; border: 2px solid currentColor; cursor: pointer;">Правила</button>
+        <button id="rules-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Правила</button>
       </div>
 
       ${deferredPrompt ? `
         <div style="margin-bottom: 10px;">
-          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid #000; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px;">📲 Установить приложение</button>
+          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 4px); box-shadow: var(--box-shadow, none);">📲 Установить приложение</button>
         </div>
       ` : ''}
 
       ${isAdminUser ? `
         <div style="margin-bottom: 8px; text-align: center;">
-          <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Админ-панель</button>
+          <button id="admin-panel-btn" style="padding: 6px 12px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 4px); box-shadow: var(--box-shadow, none);">📊 Админ-панель</button>
         </div>
       ` : ''}
 
@@ -281,16 +281,16 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
-          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px; border-radius: var(--border-radius, 0px);">${currentInput}</div>
+          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">${currentInput}</div>
           <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
         </div>
 
         <div id="keyboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;"></div>
 
         <div style="display: flex; gap: 8px;">
-          <button id="space-btn" style="flex: 3; padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer; border-radius: var(--border-radius, 0px);">пробел</button>
-          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; border-radius: var(--border-radius, 0px);">⌫</button>
-          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 0px);">✓</button>
+          <button id="space-btn" style="flex: 3; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">пробел</button>
+          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">⌫</button>
+          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">✓</button>
         </div>
       `;
 
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
           <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
             ${currentTask.options.map(opt => `
-              <button class="option-btn" style="padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center; border-radius: var(--border-radius, 0px);">${opt}</button>
+              <button class="option-btn" style="padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">${opt}</button>
             `).join('')}
           </div>
         </div>

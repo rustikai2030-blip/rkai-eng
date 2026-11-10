@@ -25,5 +25,5 @@ loadGameSettings();
 export function calculateLevel(totalCorrect) {
   const step = gameConfig.stepPerLevel || 5;
   const level = Math.floor(totalCorrect / step);
-  return Math.min(level, 9); // Ограничиваем максимальным 9-м уровнем
+  return Math.min(level, 19); // Ограничиваем максимальным 9-м уровнем
 }
