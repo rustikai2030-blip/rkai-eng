@@ -1,32 +1,4 @@
-body[data-level="0"] {
-  background-color: #ffffff;
-  color: #000000;
-  font-family: monospace, sans-serif;
-  --border-radius: 0px;
-  --key-height: 52px;
-  --key-font-size: 18px;
-  --key-gap: 6px;
-}
-
-body[data-level="1"] {
-  background-color: #f9f9f9;
-  color: #000000;
-  font-family: sans-serif;
-  --border-radius: 4px;
-  --key-height: 46px;
-  --key-font-size: 16px;
-  --key-gap: 5px;
-}
-
-body[data-level="2"] {
-  background-color: #f0f4f8;
-  color: #000000;
-  font-family: sans-serif;
-  --border-radius: 6px;
-  --key-height: 40px;
-  --key-font-size: 15px;
-  --key-gap: 4px;
-}
+/* src/styles/evolution.css */
 
 body {
   margin: 0;
@@ -34,6 +6,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 #app {
@@ -44,7 +17,77 @@ body {
   text-align: center;
 }
 
-/* Динамические стили клавиатурных кнопок на основе переменных уровня */
+/* Уровень 0: Строгий минимализм */
+body[data-level="0"] {
+  background-color: #ffffff; color: #000000; font-family: monospace, sans-serif;
+  --border-radius: 0px; --key-height: 52px; --key-font-size: 18px; --key-gap: 6px;
+  --box-shadow: none; --btn-bg: #fff; --btn-border: #000;
+}
+
+/* Уровень 1: Еле заметное скругление */
+body[data-level="1"] {
+  background-color: #fbfbfb; color: #111111; font-family: sans-serif;
+  --border-radius: 2px; --key-height: 50px; --key-font-size: 17px; --key-gap: 6px;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); --btn-bg: #fff; --btn-border: #e2e8f0;
+}
+
+/* Уровень 2: Мягкие грани */
+body[data-level="2"] {
+  background-color: #f8fafc; color: #111111; font-family: sans-serif;
+  --border-radius: 4px; --key-height: 48px; --key-font-size: 16px; --key-gap: 5px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04); --btn-bg: #fff; --btn-border: #cbd5e1;
+}
+
+/* Уровень 3: Легкие тени */
+body[data-level="3"] {
+  background-color: #f1f5f9; color: #0f172a; font-family: sans-serif;
+  --border-radius: 6px; --key-height: 46px; --key-font-size: 16px; --key-gap: 5px;
+  --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); --btn-bg: #f8fafc; --btn-border: #94a3b8;
+}
+
+/* Уровень 4: Полукруглые элементы */
+body[data-level="4"] {
+  background-color: #e2e8f0; color: #0f172a; font-family: sans-serif;
+  --border-radius: 8px; --key-height: 45px; --key-font-size: 15px; --key-gap: 5px;
+  --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.07); --btn-bg: #ffffff; --btn-border: #64748b;
+}
+
+/* Уровень 5: Переход к полумраку */
+body[data-level="5"] {
+  background-color: #cbd5e1; color: #0f172a; font-family: sans-serif;
+  --border-radius: 10px; --key-height: 44px; --key-font-size: 15px; --key-gap: 4px;
+  --box-shadow: 0 8px 16px rgba(0, 0, 0, 0.09); --btn-bg: #f1f5f9; --btn-border: #475569;
+}
+
+/* Уровень 6: Темная тема (Старт) */
+body[data-level="6"] {
+  background-color: #334155; color: #f8fafc; font-family: system-ui, sans-serif;
+  --border-radius: 12px; --key-height: 43px; --key-font-size: 15px; --key-gap: 4px;
+  --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); --btn-bg: #1e293b; --btn-border: #64748b;
+}
+
+/* Уровень 7: Глубокий синий оттенок */
+body[data-level="7"] {
+  background-color: #1e293b; color: #f8fafc; font-family: system-ui, sans-serif;
+  --border-radius: 14px; --key-height: 42px; --key-font-size: 15px; --key-gap: 4px;
+  --box-shadow: 0 12px 24px rgba(56, 189, 248, 0.15); --btn-bg: #0f172a; --btn-border: #38bdf8;
+}
+
+/* Уровень 8: Ночной режим */
+body[data-level="8"] {
+  background-color: #0f172a; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 18px; --key-height: 41px; --key-font-size: 14px; --key-gap: 4px;
+  --box-shadow: 0 16px 30px rgba(56, 189, 248, 0.25); --btn-bg: #1e293b; --btn-border: #38bdf8;
+}
+
+/* Уровень 9: Премиальный фиолетово-неоновый кибер-стиль */
+body[data-level="9"] {
+  background-color: #050811; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 24px; --key-height: 40px; --key-font-size: 14px; --key-gap: 4px;
+  --box-shadow: 0 20px 40px rgba(192, 132, 252, 0.35); --btn-bg: #0f172a; --btn-border: #c084fc;
+}
+
+/* Стили клавиатуры и кнопок */
 .kb-row {
   display: flex;
   justify-content: center;
@@ -57,19 +100,20 @@ body {
   height: var(--key-height, 52px);
   font-size: var(--key-font-size, 18px);
   font-weight: bold;
-  background: #fff;
-  color: #000;
-  border: 2px solid #000;
+  background: var(--btn-bg, #fff);
+  color: inherit;
+  border: 2px solid var(--btn-border, #000);
   border-radius: var(--border-radius, 0px);
+  box-shadow: var(--box-shadow, none);
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .kb-btn:active {
-  background: #000;
+  background: #38bdf8;
   color: #fff;
 }

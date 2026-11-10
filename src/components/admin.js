@@ -1,5 +1,7 @@
-import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+// src/components/admin.js
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, setDoc } from "firebase/firestore";
 import { db, auth } from "../firebase.js";
+import { gameConfig } from "../config/gameConfig.js";
 
 let allUsers = [];
 let currentActiveTab = 'users';
@@ -49,9 +51,10 @@ function renderAdminMainView() {
         <h1 style="font-size: 26px; font-weight: 700; margin: 0; color: #0f172a;">Админ-панель</h1>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-        <button class="admin-tab-btn" data-tab="users" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
-        <button class="admin-tab-btn" data-tab="analytics" style="padding: 14px; border-radius: 25px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
+      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <button class="admin-tab-btn" data-tab="users" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
+        <button class="admin-tab-btn" data-tab="analytics" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
+        <button class="admin-tab-btn" data-tab="settings" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'settings' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'settings' ? '#ffffff' : '#475569'};">Настройки</button>
       </div>
 
       <div id="admin-tab-content"></div>
@@ -70,14 +73,52 @@ function renderAdminMainView() {
 
   if (currentActiveTab === 'users') {
     renderUsersTab();
-  } else {
+  } else if (currentActiveTab === 'analytics') {
     renderAnalyticsTab();
+  } else {
+    renderSettingsTab();
   }
 }
 
 function closeAdminModal() {
   const modal = document.getElementById('admin-modal');
   if (modal) modal.style.display = 'none';
+}
+
+async function renderSettingsTab() {
+  const contentContainer = document.getElementById('admin-tab-content');
+  if (!contentContainer) return;
+
+  contentContainer.innerHTML = `
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+      <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 10px;">Игровые настройки</h3>
+      <p style="font-size: 14px; color: #64748b; margin-bottom: 20px;">Укажите количество правильных ответов, необходимое для перехода на следующий уровень и смены визуального стиля интерфейса.</p>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Шаг ответов для смены уровня:</label>
+        <input type="number" id="setting-step-input" value="${gameConfig.stepPerLevel}" min="1" max="100" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+      </div>
+
+      <button id="save-settings-btn" style="width: 100%; background: #22c55e; color: #ffffff; border: none; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer;">Сохранить настройки</button>
+    </div>
+  `;
+
+  document.getElementById('save-settings-btn').onclick = async () => {
+    const val = parseInt(document.getElementById('setting-step-input').value, 10);
+    if (isNaN(val) || val < 1) {
+      alert("Введите корректное число (больше 0).");
+      return;
+    }
+
+    try {
+      const settingsRef = doc(db, "settings", "game");
+      await setDoc(settingsRef, { stepPerLevel: val }, { merge: true });
+      gameConfig.stepPerLevel = val;
+      alert("Настройки успешно сохранены!");
+    } catch (err) {
+      alert("Ошибка сохранения: " + err.message);
+    }
+  };
 }
 
 async function renderUsersTab() {
@@ -272,7 +313,7 @@ async function renderAnalyticsTab() {
 
   contentContainer.innerHTML = `
     <div style="background: #fef9c3; border: 1px solid #fde047; padding: 14px; border-radius: 12px; font-size: 13px; color: #854d0e; margin-bottom: 20px; line-height: 1.4;">
-      <b>Внимание:</b> Расчет DAU происходит на клиенте и может быть медленным при большом количестве пользователей. Для продакшена рекомендуется использовать Cloud Functions для ежедневной агрегации данных.
+      <b>Внимание:</b> Расчет DAU происходит на клиенте и может быть медленным при большом количестве пользователей.
     </div>
 
     <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 15px; font-size: 12px; font-weight: 600;">

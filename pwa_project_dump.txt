@@ -5,8 +5,20 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>eng.rkai.app — Тренажер английского языка</title>
+    
+    <!-- Подключение PWA манифеста -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Настройка цвета темы для браузера -->
+    <meta name="theme-color" content="#000000" />
+    
+    <!-- Настройки для iOS (Apple) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Eng Trainer" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
   </head>
   <body data-level="0">
     <div id="app"></div>
@@ -2735,54 +2747,26 @@
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
-```[cite: 1]
 
----
-
-### Шаг 2. Подключаем манифест в `index.html`
-
-Откройте ваш файл `index.html` и добавьте строку подключения манифеста в секцию `<head>`[cite: 1]:
-
-```html
-<!DOCTYPE html>
-<html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>eng.rkai.app — Тренажер английского языка</title>
-    <!-- Подключение PWA манифеста -->
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#000000" />
-  </head>
-  <body data-level="0">
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
-</html>
-```[cite: 1]
-
----
-
-### Шаг 3. Добавляем Service Worker для офлайн-режима
-
-Чтобы приложение кэшировало файлы и открывалось без интернета[cite: 1], создадим файл **`public/sw.js`**:
-
-```javascript
+=== FILE: ./public/sw.js ===
 const CACHE_NAME = 'eng-rkai-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
   '/src/main.js',
-  '/src/styles/evolution.css'
+  '/src/styles/evolution.css',
+  '/manifest.json'
 ];
 
 // Установка сервис-воркера и кэширование файлов
@@ -2794,7 +2778,22 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Перехват запросов и выдача данных из кэша при отсутствии сети
+// Активация и очистка старых кэшей
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+// Перехват сетевых запросов
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
@@ -2802,28 +2801,6 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
-```[cite: 1]
-
-И зарегистрируем этот Service Worker в нашем главном файле **`src/main.js`** (например, в самом начале или внутри `DOMContentLoaded`):
-
-```javascript
-// Регистрация Service Worker для PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('ServiceWorker зарегистрирован успешно: ', registration.scope);
-      })
-      .catch((error) => {
-        console.log('Ошибка регистрации ServiceWorker: ', error);
-      });
-  });
-}
-```[cite: 1]
-
----
-
-
 
 === FILE: ./src/data/tasks.js ===
 // Базовый словарь для модального окна "Слова"
@@ -3881,6 +3858,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = null;
   let isAdminUser = false;
   let userUnsubscribe = null; 
+  let loginPromptShown = false; 
+  let deferredPrompt = null; // Для установки PWA
 
   let isExamMode = false;
   let examCorrectCount = 0;
@@ -3893,7 +3872,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Функция мгновенного сохранения всего прогресса в Firestore
+  // Перехват события установки PWA
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    renderTrainer();
+  });
+
+  // Функция сохранения прогресса в Firestore
   async function saveProgressToFirestore() {
     if (!currentUser) return;
     try {
@@ -3918,7 +3904,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Загрузка профиля при первом входе
+  // Загрузка профиля при входе
   async function initUserProfile(user) {
     if (!user) return;
     try {
@@ -3933,24 +3919,20 @@ document.addEventListener('DOMContentLoaded', () => {
           photoURL: user.photoURL || "",
           isAdmin: false,
           userLevel: 0,
-          totalCorrect: 0,
-          totalIncorrect: 0,
-          secondsElapsed: 0,
+          totalCorrect: totalCorrectAnswers,
+          totalIncorrect: totalIncorrectAnswers,
+          secondsElapsed: secondsElapsed,
           lastLogin: serverTimestamp()
         });
-        document.body.setAttribute('data-level', '0');
-        totalCorrectAnswers = 0;
-        totalIncorrectAnswers = 0;
-        secondsElapsed = 0;
       } else {
         const data = docSnap.data();
-        totalCorrectAnswers = data.totalCorrect || 0;
-        totalIncorrectAnswers = data.totalIncorrect || 0;
-        secondsElapsed = data.secondsElapsed || 0;
+        totalCorrectAnswers = Math.max(data.totalCorrect || 0, totalCorrectAnswers);
+        totalIncorrectAnswers = Math.max(data.totalIncorrect || 0, totalIncorrectAnswers);
+        secondsElapsed = Math.max(data.secondsElapsed || 0, secondsElapsed);
         const savedLevel = data.userLevel !== undefined ? data.userLevel : 0;
 
         document.body.setAttribute('data-level', savedLevel.toString());
-        await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+        await setDoc(userRef, { lastLogin: serverTimestamp(), totalCorrect: totalCorrectAnswers, totalIncorrect: totalIncorrectAnswers }, { merge: true });
       }
     } catch (error) {
       console.error("Ошибка инициализации профиля:", error);
@@ -3967,7 +3949,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (user) {
       await initUserProfile(user);
 
-      // Слушаем ТОЛЬКО изменение прав администратора (isAdmin), чтобы не перетирать прогресс ответов
       const userRef = doc(db, "users", user.uid);
       userUnsubscribe = onSnapshot(userRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -3981,9 +3962,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } else {
       isAdminUser = false;
-      document.body.setAttribute('data-level', '0');
     }
-    renderScreen();
+    renderTrainer();
   });
 
   function getCurrentTasks() {
@@ -4046,24 +4026,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
-  function renderScreen() {
-    if (!currentUser) {
-      app.innerHTML = `
-        <div style="text-align: center; max-width: 400px; margin: 50px auto; padding: 20px;">
-          <h1 style="font-size: 28px; margin-bottom: 10px;">eng.rkai.app</h1>
-          <p style="margin-bottom: 30px; font-size: 16px;">Тренажер английского языка</p>
-          <button id="google-login-btn" style="background: #fff; color: #000; border: 2px solid #000; padding: 15px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;">Войти через Google</button>
+  function showLoginPromptModal() {
+    let promptModal = document.getElementById('login-prompt-modal');
+    if (!promptModal) {
+      promptModal = document.createElement('div');
+      promptModal.id = 'login-prompt-modal';
+      promptModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 20px; box-sizing: border-box;';
+      promptModal.innerHTML = `
+        <div style="background: #fff; color: #000; padding: 30px; border-radius: 8px; max-width: 400px; width: 100%; text-align: center; border: 2px solid #000;">
+          <h2 style="margin-top: 0; font-size: 20px; margin-bottom: 15px;">Сохранение результатов</h2>
+          <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.5;">Для сохранения ваших результатов, вам необходимо авторизоваться через Google.</p>
+          <button id="modal-google-login-btn" style="background: #000; color: #fff; border: 2px solid #000; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px;">Войти через Google</button>
+          <button id="modal-close-prompt-btn" style="background: #fff; color: #666; border: 1px solid #ccc; padding: 8px 15px; font-size: 14px; cursor: pointer; width: 100%;">Продолжить без сохранения</button>
         </div>
       `;
-      document.getElementById('google-login-btn').addEventListener('click', async () => {
+      document.body.appendChild(promptModal);
+
+      document.getElementById('modal-google-login-btn').addEventListener('click', async () => {
         try {
           await signInWithPopup(auth, googleProvider);
+          promptModal.style.display = 'none';
         } catch (error) {
           alert("Ошибка входа: " + error.message);
         }
       });
+
+      document.getElementById('modal-close-prompt-btn').addEventListener('click', () => {
+        promptModal.style.display = 'none';
+      });
     } else {
-      renderTrainer();
+      promptModal.style.display = 'flex';
     }
   }
 
@@ -4087,6 +4079,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Правила</button>
       </div>
 
+      ${deferredPrompt ? `
+        <div style="margin-bottom: 10px;">
+          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid #000; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px;">📲 Установить приложение</button>
+        </div>
+      ` : ''}
+
       ${isAdminUser ? `
         <div style="margin-bottom: 8px; text-align: center;">
           <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Мониторинг сессий (Админ)</button>
@@ -4106,8 +4104,13 @@ document.addEventListener('DOMContentLoaded', () => {
       ` : ''}
 
       <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
-        👤 ${currentUser.displayName || currentUser.email} (${isAdminUser ? 'Админ' : 'Уровень ' + (currentLevel + 1)})
-        <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
+        ${currentUser ? `
+          👤 ${currentUser.displayName || currentUser.email} (${isAdminUser ? 'Админ' : 'Уровень ' + (currentLevel + 1)})
+          <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Выйти</button>
+        ` : `
+          👤 Гость (неавторизован)
+          <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px;">Войти</button>
+        `}
       </div>
     `;
 
@@ -4187,12 +4190,17 @@ document.addEventListener('DOMContentLoaded', () => {
               }
               totalIncorrectAnswers++;
             }
+
+            if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
+              loginPromptShown = true;
+              showLoginPromptModal();
+            }
           }
 
           sessionIndex++;
           currentInput = "";
           pickNewTask();
-          await saveProgressToFirestore(); // Сохранение после каждого ответа
+          await saveProgressToFirestore(); 
           renderTrainer();
         }
       });
@@ -4220,6 +4228,20 @@ document.addEventListener('DOMContentLoaded', () => {
     setupModals();
     startTimer();
 
+    const installBtn = document.getElementById('install-pwa-btn');
+    if (installBtn) {
+      installBtn.onclick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('Пользователь установил PWA');
+        }
+        deferredPrompt = null;
+        renderTrainer();
+      };
+    }
+
     const examBtn = document.getElementById('start-exam-btn');
     if (examBtn) {
       examBtn.onclick = () => startExam();
@@ -4230,11 +4252,25 @@ document.addEventListener('DOMContentLoaded', () => {
       adminBtn.onclick = () => openAdminPanel();
     }
 
-    document.getElementById('logout-btn').onclick = async () => {
-      if (userUnsubscribe) userUnsubscribe();
-      await saveProgressToFirestore();
-      signOut(auth);
-    };
+    const loginTriggerBtn = document.getElementById('login-trigger-btn');
+    if (loginTriggerBtn) {
+      loginTriggerBtn.onclick = async () => {
+        try {
+          await signInWithPopup(auth, googleProvider);
+        } catch (error) {
+          alert("Ошибка входа: " + error.message);
+        }
+      };
+    }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.onclick = async () => {
+        if (userUnsubscribe) userUnsubscribe();
+        await saveProgressToFirestore();
+        signOut(auth);
+      };
+    }
   }
 
   function setupOptions() {
@@ -4277,11 +4313,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             totalIncorrectAnswers++;
           }
+
+          if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
+            loginPromptShown = true;
+            showLoginPromptModal();
+          }
         }
 
         sessionIndex++;
         pickNewTask();
-        await saveProgressToFirestore(); // Сохранение после клика на вариант
+        await saveProgressToFirestore(); 
         renderTrainer();
       });
     });
