@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = null;
   let isAdminUser = false;
   let userUnsubscribe = null; 
-  let loginPromptShown = false; // Флаг, чтобы модальное окно с предложением входа показывалось один раз
+  let loginPromptShown = false; 
+  let deferredPrompt = null; // Для установки PWA
 
   let isExamMode = false;
   let examCorrectCount = 0;
@@ -36,6 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
   }
+
+  // Перехват события установки PWA
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    renderTrainer();
+  });
 
   // Функция сохранения прогресса в Firestore
   async function saveProgressToFirestore() {
@@ -184,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
-  // Модальное окно с предложением авторизации после двух правильных ответов
   function showLoginPromptModal() {
     let promptModal = document.getElementById('login-prompt-modal');
     if (!promptModal) {
@@ -237,6 +244,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats && !isExamMode ? 'visible' : 'hidden'};">⏱ ${formatTime(secondsElapsed)}</div>
         <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer;">Правила</button>
       </div>
+
+      ${deferredPrompt ? `
+        <div style="margin-bottom: 10px;">
+          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid #000; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px;">📲 Установить приложение</button>
+        </div>
+      ` : ''}
 
       ${isAdminUser ? `
         <div style="margin-bottom: 8px; text-align: center;">
@@ -344,7 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
               totalIncorrectAnswers++;
             }
 
-            // Если не авторизован и набрал 2 правильных ответа (впервые за сессию) — показываем предложение входа
             if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
               loginPromptShown = true;
               showLoginPromptModal();
@@ -381,6 +393,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupModals();
     startTimer();
+
+    const installBtn = document.getElementById('install-pwa-btn');
+    if (installBtn) {
+      installBtn.onclick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('Пользователь установил PWA');
+        }
+        deferredPrompt = null;
+        renderTrainer();
+      };
+    }
 
     const examBtn = document.getElementById('start-exam-btn');
     if (examBtn) {
@@ -454,7 +480,6 @@ document.addEventListener('DOMContentLoaded', () => {
             totalIncorrectAnswers++;
           }
 
-          // Если не авторизован и набрал 2 правильных ответа — показываем предложение входа
           if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
             loginPromptShown = true;
             showLoginPromptModal();

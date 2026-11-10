@@ -9,91 +9,14 @@
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
-```[cite: 1]
-
----
-
-### Шаг 2. Подключаем манифест в `index.html`
-
-Откройте ваш файл `index.html` и добавьте строку подключения манифеста в секцию `<head>`[cite: 1]:
-
-```html
-<!DOCTYPE html>
-<html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>eng.rkai.app — Тренажер английского языка</title>
-    <!-- Подключение PWA манифеста -->
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#000000" />
-  </head>
-  <body data-level="0">
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
-</html>
-```[cite: 1]
-
----
-
-### Шаг 3. Добавляем Service Worker для офлайн-режима
-
-Чтобы приложение кэшировало файлы и открывалось без интернета[cite: 1], создадим файл **`public/sw.js`**:
-
-```javascript
-const CACHE_NAME = 'eng-rkai-cache-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/src/main.js',
-  '/src/styles/evolution.css'
-];
-
-// Установка сервис-воркера и кэширование файлов
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    })
-  );
-});
-
-// Перехват запросов и выдача данных из кэша при отсутствии сети
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
-});
-```[cite: 1]
-
-И зарегистрируем этот Service Worker в нашем главном файле **`src/main.js`** (например, в самом начале или внутри `DOMContentLoaded`):
-
-```javascript
-// Регистрация Service Worker для PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('ServiceWorker зарегистрирован успешно: ', registration.scope);
-      })
-      .catch((error) => {
-        console.log('Ошибка регистрации ServiceWorker: ', error);
-      });
-  });
-}
-```[cite: 1]
-
----
-
