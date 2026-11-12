@@ -399,8 +399,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (val.length < MAX_INPUT_LENGTH) {
             let charToAdd = char;
+            // Делаем букву заглавной ТОЛЬКО если курсор стоит в самом начале (позиция 0) 
+            // и перед ним нет никакого текста (поле абсолютно пустое).
             if (start === 0 && val.length === 0) {
               charToAdd = char.toUpperCase();
+            } else {
+              charToAdd = char.toLowerCase();
             }
 
             inputEl.value = val.substring(0, start) + charToAdd + val.substring(end);
@@ -441,10 +445,9 @@ document.addEventListener('DOMContentLoaded', () => {
         onOk: async () => {
           if (inputEl) currentInput = inputEl.value;
 
-          // Проверка на пустое поле ввода
           if (!currentInput.trim()) {
             lastFeedback = "Сначала введите перевод";
-            lastFeedbackColor = "#eab308"; // Желтоватый/предупреждающий цвет
+            lastFeedbackColor = "#eab308";
             renderTrainer();
             return;
           }
