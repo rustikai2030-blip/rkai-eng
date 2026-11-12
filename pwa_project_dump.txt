@@ -3406,6 +3406,11 @@ body {
   align-items: center;
   min-height: 100vh;
   transition: background-color 0.4s ease, color 0.4s ease;
+  
+  /* Исключаем выделение текста и контекстное меню на уровне всей страницы */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #app {
@@ -3418,133 +3423,203 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-/* Базовые размеры и переменные для крупного интерфейса */
+/* Базовые размеры и переменные для интерфейса */
 :root {
   --key-height: 60px;
   --key-font-size: 22px;
   --key-gap: 8px;
 }
 
-/* Уровень 0: Строгий минимализм */
+/* Уровень 0: Строгий монохромный минимализм */
 body[data-level="0"] {
   background-color: #ffffff; color: #000000; font-family: monospace, sans-serif;
   --border-radius: 0px; --box-shadow: none; --btn-bg: #fff; --btn-border: #000;
+  --accent: #000000; --accent-bg: rgba(0, 0, 0, 0.05);
 }
 
 /* Уровень 1 */
 body[data-level="1"] {
   background-color: #fefefe; color: #080808; font-family: sans-serif;
   --border-radius: 2px; --box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01); --btn-bg: #fff; --btn-border: #e8ecef;
+  --accent: #2563eb; --accent-bg: rgba(37, 99, 235, 0.08);
 }
 
 /* Уровень 2 */
 body[data-level="2"] {
   background-color: #fbfbfb; color: #111111; font-family: sans-serif;
   --border-radius: 4px; --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); --btn-bg: #fff; --btn-border: #e2e8f0;
+  --accent: #0284c7; --accent-bg: rgba(2, 132, 199, 0.08);
 }
 
 /* Уровень 3 */
 body[data-level="3"] {
   background-color: #faebd7; color: #141414; font-family: sans-serif;
   --border-radius: 6px; --box-shadow: 0 3px 5px rgba(0, 0, 0, 0.03); --btn-bg: #fff; --btn-border: #d8dee4;
+  --accent: #0d9488; --accent-bg: rgba(13, 148, 136, 0.08);
 }
 
 /* Уровень 4 */
 body[data-level="4"] {
   background-color: #f8fafc; color: #111111; font-family: sans-serif;
   --border-radius: 8px; --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04); --btn-bg: #fff; --btn-border: #cbd5e1;
+  --accent: #16a34a; --accent-bg: rgba(22, 163, 74, 0.08);
 }
 
 /* Уровень 5 */
 body[data-level="5"] {
   background-color: #f6f8fa; color: #101318; font-family: sans-serif;
   --border-radius: 8px; --box-shadow: 0 4px 7px rgba(0, 0, 0, 0.045); --btn-bg: #f8fafc; --btn-border: #b8c5d6;
+  --accent: #ca8a04; --accent-bg: rgba(202, 138, 4, 0.08);
 }
 
 /* Уровень 6 */
 body[data-level="6"] {
   background-color: #f1f5f9; color: #0f172a; font-family: sans-serif;
   --border-radius: 10px; --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); --btn-bg: #f8fafc; --btn-border: #94a3b8;
+  --accent: #ea580c; --accent-bg: rgba(234, 88, 12, 0.08);
 }
 
 /* Уровень 7 */
 body[data-level="7"] {
   background-color: #edf2f7; color: #0f172a; font-family: sans-serif;
   --border-radius: 10px; --box-shadow: 0 5px 10px rgba(0, 0, 0, 0.06); --btn-bg: #fdfdfd; --btn-border: #7c90a8;
+  --accent: #dc2626; --accent-bg: rgba(220, 38, 38, 0.08);
 }
 
 /* Уровень 8 */
 body[data-level="8"] {
   background-color: #e2e8f0; color: #0f172a; font-family: sans-serif;
   --border-radius: 12px; --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.07); --btn-bg: #ffffff; --btn-border: #64748b;
+  --accent: #db2777; --accent-bg: rgba(219, 39, 119, 0.08);
 }
 
 /* Уровень 9 */
 body[data-level="9"] {
   background-color: #d8e2ec; color: #0f172a; font-family: sans-serif;
   --border-radius: 12px; --box-shadow: 0 7px 14px rgba(0, 0, 0, 0.08); --btn-bg: #f5f7fa; --btn-border: #55667c;
+  --accent: #9333ea; --accent-bg: rgba(147, 51, 234, 0.08);
 }
 
 /* Уровень 10 */
 body[data-level="10"] {
   background-color: #cbd5e1; color: #0f172a; font-family: sans-serif;
   --border-radius: 14px; --box-shadow: 0 8px 16px rgba(0, 0, 0, 0.09); --btn-bg: #f1f5f9; --btn-border: #475569;
+  --accent: #7c3aed; --accent-bg: rgba(124, 58, 237, 0.08);
 }
 
 /* Уровень 11 */
 body[data-level="11"] {
   background-color: #b8c9dc; color: #0f172a; font-family: system-ui, sans-serif;
   --border-radius: 14px; --box-shadow: 0 9px 18px rgba(0, 0, 0, 0.14); --btn-bg: #2a3b52; --btn-border: #526581;
+  --accent: #6366f1; --accent-bg: rgba(99, 102, 241, 0.15);
 }
 
 /* Уровень 12: Темная тема (Старт) */
 body[data-level="12"] {
   background-color: #334155; color: #f8fafc; font-family: system-ui, sans-serif;
   --border-radius: 14px; --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); --btn-bg: #1e293b; --btn-border: #64748b;
+  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.15);
 }
 
 /* Уровень 13 */
 body[data-level="13"] {
   background-color: #29374c; color: #f8fafc; font-family: system-ui, sans-serif;
   --border-radius: 16px; --box-shadow: 0 11px 22px rgba(56, 189, 248, 0.12); --btn-bg: #192333; --btn-border: #4a90e2;
+  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.15);
 }
 
 /* Уровень 14 */
 body[data-level="14"] {
   background-color: #1e293b; color: #f8fafc; font-family: system-ui, sans-serif;
   --border-radius: 16px; --box-shadow: 0 12px 24px rgba(56, 189, 248, 0.15); --btn-bg: #0f172a; --btn-border: #38bdf8;
+  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.15);
 }
 
 /* Уровень 15 */
 body[data-level="15"] {
   background-color: #162030; color: #fcfdfe; font-family: system-ui, sans-serif;
   --border-radius: 18px; --box-shadow: 0 13px 26px rgba(56, 189, 248, 0.18); --btn-bg: #0b111a; --btn-border: #30a5db;
+  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.18);
 }
 
 /* Уровень 16 */
 body[data-level="16"] {
   background-color: #0f172a; color: #ffffff; font-family: system-ui, sans-serif;
   --border-radius: 18px; --box-shadow: 0 14px 28px rgba(56, 189, 248, 0.22); --btn-bg: #1e293b; --btn-border: #38bdf8;
+  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.2);
 }
 
 /* Уровень 17 */
 body[data-level="17"] {
   background-color: #0b1120; color: #ffffff; font-family: system-ui, sans-serif;
   --border-radius: 20px; --box-shadow: 0 16px 32px rgba(192, 132, 252, 0.25); --btn-bg: #141b2d; --btn-border: #9b51e0;
+  --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.2);
 }
 
 /* Уровень 18 */
 body[data-level="18"] {
   background-color: #080c18; color: #ffffff; font-family: system-ui, sans-serif;
   --border-radius: 22px; --box-shadow: 0 18px 36px rgba(192, 132, 252, 0.3); --btn-bg: #0f172a; --btn-border: #b06efc;
+  --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.25);
 }
 
 /* Уровень 19: Премиальный фиолетово-неоновый кибер-стиль (Максимум) */
 body[data-level="19"] {
   background-color: #050811; color: #ffffff; font-family: system-ui, sans-serif;
   --border-radius: 24px; --box-shadow: 0 20px 40px rgba(192, 132, 252, 0.35); --btn-bg: #0f172a; --btn-border: #c084fc;
+  --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.3);
+}
+
+/* Поле ввода ответа */
+#answer-display {
+  border-radius: var(--border-radius, 0px);
+  box-shadow: var(--box-shadow, none);
+  border: 2px solid var(--btn-border, currentColor);
+  background: var(--btn-bg, inherit);
+  transition: all 0.3s ease;
+  
+  min-height: 36px;
+  max-height: 82px;
+  padding: 10px 14px;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.3;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Все обычные кнопки интерфейса */
+button {
+  border-radius: var(--border-radius, 0px);
+  box-shadow: var(--box-shadow, none);
+  border: 2px solid var(--btn-border, currentColor);
+  background: var(--btn-bg, inherit);
+  color: inherit;
+  transition: all 0.3s ease;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Кнопка запуска теста */
+#start-test-btn {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: 2px solid var(--accent) !important;
 }
 
 /* Стили клавиатуры и кнопок */
@@ -3571,10 +3646,14 @@ body[data-level="19"] {
   box-sizing: border-box;
   cursor: pointer;
   transition: all 0.25s ease;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .kb-btn:active {
-  background: #38bdf8;
+  background: var(--accent);
   color: #fff;
 }
 
@@ -4149,7 +4228,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   let rowsData = [];
 
   if (level === 1) {
-    // 1 уровень: 4 ряда букв/функций + 5 ряд (пробел и ввод)
     rowsData = [
       ['w', 'e', 'r', 't'],
       ['y', 'u', 'i', 'o'],
@@ -4158,7 +4236,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
       ['space', 'ok']
     ];
   } else if (level === 2) {
-    // 2 уровень: 4 ряда букв/функций + 5 ряд (апостроф ', пробел и ввод)
     rowsData = [
       ['w', 'e', 'r', 't'],
       ['y', 'u', 'i', 'o'],
@@ -4167,7 +4244,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
       ["'", 'space', 'ok']
     ];
   } else {
-    // 3 уровень и выше: вопросительный знак '?' перенесен после буквы 'n'
     rowsData = [
       ['w', 'e', 'r', 't'],
       ['y', 'u', 'i', 'o'],
@@ -4181,7 +4257,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   if (!kbContainer) return;
   kbContainer.innerHTML = '';
 
-  // Скрываем или показываем старый блок кнопок под клавиатурой в зависимости от уровня
   const oldActionContainer = kbContainer.nextElementSibling;
   if (oldActionContainer && (oldActionContainer.tagName === 'DIV' || oldActionContainer.style)) {
     if (level === 1 || level === 2 || level === 3) {
@@ -4214,10 +4289,40 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
           };
         } else if (key === 'backspace') {
           btn.textContent = '⌫';
-          btn.onclick = () => onBackspace();
+
+          let backspaceInterval = null;
+          let backspaceTimeout = null;
+
+          const startDeleting = (e) => {
+            e.preventDefault();
+            onBackspace(); // Стираем сразу при нажатии
+
+            // Задержка перед началом непрерывного стирания (500 мс)
+            backspaceTimeout = setTimeout(() => {
+              // Интервал повторного удаления (каждые 100 мс)
+              backspaceInterval = setInterval(() => {
+                onBackspace();
+              }, 100);
+            }, 500);
+          };
+
+          const stopDeleting = () => {
+            clearTimeout(backspaceTimeout);
+            clearInterval(backspaceInterval);
+          };
+
+          // Подключаем события как для мыши, так и для сенсорных экранов
+          btn.addEventListener('mousedown', startDeleting);
+          btn.addEventListener('mouseup', stopDeleting);
+          btn.addEventListener('mouseleave', stopDeleting);
+          
+          btn.addEventListener('touchstart', startDeleting);
+          btn.addEventListener('touchend', stopDeleting);
+          btn.addEventListener('touchcancel', stopDeleting);
+
         } else if (key === 'space') {
           btn.textContent = 'пробел';
-          btn.style.flex = '2'; // Пробел шире остальных
+          btn.style.flex = '2';
           btn.onclick = () => onSpace();
         } else if (key === 'ok') {
           btn.textContent = '✓';
@@ -4256,16 +4361,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   }
 
   renderRows();
-
-  // Для уровней выше сохраняем работу стандартных внешних кнопок (если они есть в разметке)
-  const backspaceBtn = document.getElementById('backspace-btn');
-  if (backspaceBtn) backspaceBtn.onclick = () => onBackspace();
-
-  const spaceBtn = document.getElementById('space-btn');
-  if (spaceBtn) spaceBtn.onclick = () => onSpace();
-
-  const okBtn = document.getElementById('ok-btn');
-  if (okBtn) okBtn.onclick = () => onOk();
 }
 
 === FILE: ./src/components/modals.js ===
@@ -4403,6 +4498,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let testCorrectCount = 0;
   let testSecondsLeft = 120;
   let testTimerInterval = null;
+
+  const MAX_INPUT_LENGTH = 35; // Ограничение символов, чтобы текст гарантированно помещался максимум в 2 строки
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -4566,7 +4663,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function startTestMode() {
     isTestMode = true;
     sessionIndex = 0; 
-    currentInput = ""; // Очищаем поле ввода при входе в тест
+    currentInput = ""; 
     testQuestionsAnswered = 0;
     testCorrectCount = 0;
     testSecondsLeft = gameConfig.testTimeSeconds || 120;
@@ -4591,7 +4688,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (testTimerInterval) clearInterval(testTimerInterval);
     isTestMode = false;
     sessionIndex = 0;
-    currentInput = ""; // Очищаем поле ввода при выходе из теста
+    currentInput = "";
 
     const totalQ = gameConfig.testQuestionCount || 30;
     const requiredCorrect = Math.ceil(totalQ * 0.9);
@@ -4653,7 +4750,6 @@ document.addEventListener('DOMContentLoaded', () => {
       pickNewTask();
     }
 
-    // Дополнительно гарантируем очистку текста на экране при рендере
     currentInput = "";
 
     updateStyleLevel();
@@ -4676,14 +4772,14 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <button id="words-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; border-radius: 8px; cursor: pointer;">Слова</button>
+          <button id="words-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Слова</button>
           <div id="timer-display" style="font-size: 15px; font-weight: bold; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
-          <button id="rules-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; border-radius: 8px; cursor: pointer;">Правила</button>
+          <button id="rules-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Правила</button>
         </div>
 
         ${!isTestMode ? `
           <div style="margin-bottom: 12px;">
-            <button id="start-test-btn" style="width: 100%; padding: 12px; background: var(--accent, #aa3bff); color: #fff; border: none; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 8px;">Перейти на ${currentLevel + 1} уровень (тест)</button>
+            <button id="start-test-btn" style="width: 100%; padding: 12px; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 8px;">Перейти на ${currentLevel + 1} уровень (тест)</button>
           </div>
         ` : `
           <div style="margin-bottom: 12px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 8px;">
@@ -4694,13 +4790,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ${deferredPrompt ? `
           <div style="margin-bottom: 10px;">
-            <button id="install-pwa-btn" style="width: 100%; padding: 12px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 8px;">📲 Установить приложение</button>
+            <button id="install-pwa-btn" style="width: 100%; padding: 12px; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 8px;">📲 Установить приложение</button>
           </div>
         ` : ''}
 
         ${isAdminUser ? `
           <div style="margin-bottom: 8px; text-align: center;">
-            <button id="admin-panel-btn" style="padding: 8px 14px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 6px;">📊 Админ-панель</button>
+            <button id="admin-panel-btn" style="padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 6px;">📊 Админ-панель</button>
           </div>
         ` : ''}
       </div>
@@ -4714,7 +4810,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
-            <div id="answer-display" style="border: 2px solid currentColor; padding: 16px; font-size: 26px; min-height: 36px; margin-bottom: 10px; border-radius: 8px; letter-spacing: 2px; background: var(--btn-bg, inherit);">${currentInput}</div>
+            <div id="answer-display" style="font-size: 24px; margin-bottom: 10px;">${currentInput}</div>
             <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
         ` : `
@@ -4728,7 +4824,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
             <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
               ${currentTask.options.map(opt => `
-                <button class="option-btn" style="padding: 16px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 20px; font-weight: 600; cursor: pointer; text-align: center; border-radius: 8px;">${opt}</button>
+                <button class="option-btn" style="padding: 16px; font-size: 20px; font-weight: 600; cursor: pointer; text-align: center; border-radius: 8px;">${opt}</button>
               `).join('')}
             </div>
           </div>
@@ -4744,20 +4840,24 @@ document.addEventListener('DOMContentLoaded', () => {
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
-          if (currentInput.length === 0) {
-            currentInput += char.toUpperCase();
-          } else {
-            currentInput += char;
+          if (currentInput.length < MAX_INPUT_LENGTH) {
+            if (currentInput.length === 0) {
+              currentInput += char.toUpperCase();
+            } else {
+              currentInput += char;
+            }
+            document.getElementById('answer-display').textContent = currentInput;
           }
-          document.getElementById('answer-display').textContent = currentInput;
         },
         onBackspace: () => {
           currentInput = currentInput.slice(0, -1);
           document.getElementById('answer-display').textContent = currentInput;
         },
         onSpace: () => {
-          currentInput += " ";
-          document.getElementById('answer-display').textContent = currentInput;
+          if (currentInput.length < MAX_INPUT_LENGTH) {
+            currentInput += " ";
+            document.getElementById('answer-display').textContent = currentInput;
+          }
         },
         onOk: async () => {
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
@@ -4820,7 +4920,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
       logoutBtn.onclick = async () => {
         if (userUnsubscribe) userUnsubscribe();
-        await saveProgressToFirestore();
+        await saveProgressTestSession();
         signOut(auth);
       };
     }

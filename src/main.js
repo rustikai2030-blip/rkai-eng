@@ -259,6 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return;
       }
+      sessionIndex++;
+      currentInput = "";
+      pickNewTask();
     } else {
       if (isCorrect) {
         consecutiveErrors = 0; 
@@ -268,6 +271,9 @@ document.addEventListener('DOMContentLoaded', () => {
           lastFeedbackColor = "#22c55e";
         }
         totalCorrectAnswers++;
+        sessionIndex++; 
+        currentInput = ""; // Очищаем только при правильном ответе для следующего вопроса
+        pickNewTask();
       } else {
         consecutiveErrors++; 
         const elementLevel = calculateElementLevel(totalCorrectAnswers);
@@ -276,20 +282,15 @@ document.addEventListener('DOMContentLoaded', () => {
           lastFeedbackColor = "#ef4444";
         }
         totalIncorrectAnswers++;
+        // При ошибке поле ввода НЕ очищаем, чтобы пользователь мог исправить свой ответ
       }
     }
-
-    sessionIndex++; 
-    currentInput = "";
-    pickNewTask();
   }
 
   function renderTrainer() {
     if (!currentTask) {
       pickNewTask();
     }
-
-    currentInput = "";
 
     updateStyleLevel();
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
@@ -459,7 +460,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
       logoutBtn.onclick = async () => {
         if (userUnsubscribe) userUnsubscribe();
-        await saveProgressTestSession();
         signOut(auth);
       };
     }

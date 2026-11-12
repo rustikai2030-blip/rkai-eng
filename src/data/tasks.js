@@ -99,7 +99,7 @@ const questionsEnRu = [
   { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?", category: "question" }
 ];
 
-// Уровни уроков с учетом пропорций внутри каждого типа (для Ур. 2 и Ур. 3 сохраняем баланс утверждений/отрицаний/вопросов)
+// Уровни уроков с учетом пропорций внутри каждого типа
 export const level1Tasks = {
   ruEn: statementsRuEn,
   enRu: statementsEnRu
@@ -115,13 +115,30 @@ export const level3Tasks = {
   enRu: [...statementsEnRu, ...negativesEnRu, ...questionsEnRu, ...questionsEnRu, ...questionsEnRu, ...questionsEnRu]
 };
 
+// Функция перемешивания массива (алгоритм Фишера — Йетса)
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 // Функция строгого циклического выбора: 7 русско-английских, затем 3 англо-русских
 export function getCyclicTask(sessionIndex, levelTasks) {
-  // Цикл из 10 шагов: индексы 0-6 (7 штук) — русско-английский, индексы 7-9 (3 штуки) — англо-русский
   const positionInCycle = sessionIndex % 10;
   const isEnRu = positionInCycle >= 7; 
 
   const pool = isEnRu ? levelTasks.enRu : levelTasks.ruEn;
-  const task = pool[Math.floor(Math.random() * pool.length)];
+  const rawTask = pool[Math.floor(Math.random() * pool.length)];
+
+  let task = { ...rawTask };
+
+  // Если это задание с вариантами ответа (англ -> рус), рандомизируем порядок кнопок
+  if (isEnRu && task.options) {
+    task.options = shuffleArray(task.options);
+  }
+
   return { task, isEnglishToRussian: isEnRu };
 }
