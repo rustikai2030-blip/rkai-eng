@@ -13,16 +13,22 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
       ['space', 'ok']
     ];
   } else if (level === 2) {
+    // 2 уровень: 4 ряда букв/функций + 5 ряд (апостроф ', пробел и ввод)
     rowsData = [
       ['w', 'e', 'r', 't'],
-      ['y', 'u', 'i', 'o', ',', "'"],
-      ['s', 'd', 'h', 'k', 'm', 'n']
+      ['y', 'u', 'i', 'o'],
+      ['s', 'd', 'h', 'k'],
+      ['shift', 'l', 'n', 'backspace'],
+      ["'", 'space', 'ok']
     ];
   } else {
+    // 3 уровень и выше: вопросительный знак '?' перенесен после буквы 'n'
     rowsData = [
       ['w', 'e', 'r', 't'],
-      ['y', 'u', 'i', 'o', ',', "'", '?'],
-      ['shift', 's', 'd', 'h', 'k', 'n', '?']
+      ['y', 'u', 'i', 'o'],
+      ['s', 'd', 'h', 'k'],
+      ['shift', 'l', 'n', '?', 'backspace'],
+      ["'", 'space', 'ok']
     ];
   }
 
@@ -30,10 +36,10 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   if (!kbContainer) return;
   kbContainer.innerHTML = '';
 
-  // Скрываем или удаляем старый блок кнопок под клавиатурой из main.js для 1-го уровня
+  // Скрываем или показываем старый блок кнопок под клавиатурой в зависимости от уровня
   const oldActionContainer = kbContainer.nextElementSibling;
   if (oldActionContainer && (oldActionContainer.tagName === 'DIV' || oldActionContainer.style)) {
-    if (level === 1) {
+    if (level === 1 || level === 2 || level === 3) {
       oldActionContainer.style.display = 'none';
     } else {
       oldActionContainer.style.display = 'flex';
@@ -66,24 +72,29 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
           btn.onclick = () => onBackspace();
         } else if (key === 'space') {
           btn.textContent = 'пробел';
-          btn.style.flex = '2';
+          btn.style.flex = '2'; // Пробел шире остальных
           btn.onclick = () => onSpace();
         } else if (key === 'ok') {
           btn.textContent = '✓';
           btn.style.flex = '1';
           btn.style.fontWeight = 'bold';
           btn.onclick = () => onOk();
-        } else if (key === "'" || key === ',' || key === '?') {
+        } else if (key === "'" || key === '?') {
           btn.textContent = key;
+          btn.style.flex = '1';
           btn.addEventListener('click', () => onInput(key));
-        } else if (key === 'l') {
-          btn.textContent = isUpperCase ? 'L' : 'l';
+        } else if (key === 'l' || key === 'n') {
+          const char = key;
+          btn.textContent = isUpperCase ? char.toUpperCase() : char;
           btn.addEventListener('click', () => {
-            let charToAdd = isUpperCase ? 'L' : 'l';
+            let charToAdd = isUpperCase ? char.toUpperCase() : char;
             isUpperCase = false;
             renderRows();
             onInput(charToAdd);
           });
+        } else if (key === ',') {
+          btn.textContent = key;
+          btn.addEventListener('click', () => onInput(key));
         } else {
           btn.textContent = isUpperCase ? key.toUpperCase() : key;
           btn.addEventListener('click', () => {
@@ -101,7 +112,7 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
 
   renderRows();
 
-  // Для уровней выше 1 сохраняем работу стандартных внешних кнопок (если они есть в разметке)
+  // Для уровней выше сохраняем работу стандартных внешних кнопок (если они есть в разметке)
   const backspaceBtn = document.getElementById('backspace-btn');
   if (backspaceBtn) backspaceBtn.onclick = () => onBackspace();
 
