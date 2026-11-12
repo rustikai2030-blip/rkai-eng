@@ -250,3 +250,21 @@ button {
   background: var(--accent);
   color: #fff;
 }
+/* Анимация встряски при ошибке */
+@keyframes shakeAnimation {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.shake-effect {
+  animation: shakeAnimation 0.4s ease;
+  border-color: #ef4444 !important;
+}
+
+/* Зеленая подсветка при правильном ответе */
+.success-flash {
+  border-color: #22c55e !important;
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  transition: all 0.2s ease;
+}

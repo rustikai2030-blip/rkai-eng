@@ -8,7 +8,7 @@ import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
-import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
+import { calculateStyleLevel, gameConfig } from './config/gameConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -38,7 +38,46 @@ document.addEventListener('DOMContentLoaded', () => {
   let testSecondsLeft = 120;
   let testTimerInterval = null;
 
+  let isSoundEnabled = localStorage.getItem('rkai_sound_enabled') !== 'false';
+
   const MAX_INPUT_LENGTH = 35;
+
+  // Расчет уровня элементов интерфейса (от 0 до 6)
+  function calculateElementLevel(totalCorrect) {
+    const step = gameConfig.stepPerElementLevel || 5;
+    const level = Math.floor(totalCorrect / step);
+    return Math.min(level, 6); 
+  }
+
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (!isSoundEnabled) return;
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    } else if (type === 'error') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    }
+  }
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -193,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
       const elementLevel = calculateElementLevel(totalCorrectAnswers);
-      if (timerEl && elementLevel >= 1 && !isTestMode) {
+      if (timerEl && elementLevel >= 3 && !isTestMode) {
         timerEl.textContent = `${formatTime(secondsElapsed)}`;
       }
     }, 1000);
@@ -244,9 +283,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleAnswerResult(isCorrect) {
+    const elementLevel = calculateElementLevel(totalCorrectAnswers);
+
     if (isTestMode) {
       testQuestionsAnswered++;
-      if (isCorrect) testCorrectCount++;
+      if (isCorrect) {
+        testCorrectCount++;
+        if (elementLevel >= 5) playSound('success');
+      } else {
+        if (elementLevel >= 5) playSound('error');
+      }
 
       const totalQ = gameConfig.testQuestionCount || 30;
       const requiredCorrect = Math.ceil(totalQ * 0.9);
@@ -265,22 +311,53 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       if (isCorrect) {
         consecutiveErrors = 0; 
-        const elementLevel = calculateElementLevel(totalCorrectAnswers);
+        
+        // Звук включается строго с 5 уровня элементов
+        if (elementLevel >= 5) {
+          playSound('success');
+        }
+
         if (elementLevel >= 1) {
           lastFeedback = "Правильно";
           lastFeedbackColor = "#22c55e";
         }
+
+        // Спецэффекты (подсветка) включаются строго с 6 уровня элементов
+        if (elementLevel >= 6 && !isEnglishToRussian) {
+          const inputEl = document.getElementById('answer-display');
+          if (inputEl) {
+            inputEl.classList.add('success-flash');
+          }
+        }
+
         totalCorrectAnswers++;
         sessionIndex++; 
         currentInput = ""; 
         pickNewTask();
       } else {
         consecutiveErrors++; 
-        const elementLevel = calculateElementLevel(totalCorrectAnswers);
+        
+        // Звук ошибки включается строго с 5 уровня элементов
+        if (elementLevel >= 5) {
+          playSound('error');
+        }
+
         if (elementLevel >= 1) {
           lastFeedback = getWrongPhrase(consecutiveErrors);
           lastFeedbackColor = "#ef4444";
         }
+
+        // Спецэффекты (встряска) включаются строго с 6 уровня элементов
+        if (elementLevel >= 6 && !isEnglishToRussian) {
+          const inputEl = document.getElementById('answer-display');
+          if (inputEl) {
+            inputEl.classList.add('shake-effect');
+            setTimeout(() => {
+              inputEl.classList.remove('shake-effect');
+            }, 400);
+          }
+        }
+
         totalIncorrectAnswers++;
       }
     }
@@ -293,7 +370,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateStyleLevel();
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
-    const showStats = elementLevel >= 1;
+
+    // Четкое разделение видимости компонентов по уровням (0 до 6):
+    const showFeedback = elementLevel >= 1;
+    const showCounters = elementLevel >= 2;
+    const showTimer = elementLevel >= 3;
+    const showTestButton = elementLevel >= 4;
+    const showSoundToggle = elementLevel >= 5; // Звук и кнопка управления звуком на 5 уровне
 
     app.innerHTML = `
       <div>
@@ -301,7 +384,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div>
             👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} | Уровень ${currentLevel}
           </div>
-          <div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            ${showSoundToggle ? `
+              <button id="sound-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 16px;" title="Вкл/Выкл звук">
+                ${isSoundEnabled ? '🔊' : '🔇'}
+              </button>
+            ` : ''}
             ${currentUser ? `
               <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 14px; color: inherit;">Выйти</button>
             ` : `
@@ -312,20 +400,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <button id="words-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Слова</button>
-          <div id="timer-display" style="font-size: 15px; font-weight: bold; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
+          <div id="timer-display" style="font-size: 15px; font-weight: bold; visibility: ${showTimer && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
           <button id="rules-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Правила</button>
         </div>
 
-        ${!isTestMode ? `
+        ${showTestButton && !isTestMode ? `
           <div style="margin-bottom: 12px;">
             <button id="start-test-btn" style="width: 100%; padding: 12px; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 8px;">Перейти на ${currentLevel + 1} уровень (тест)</button>
           </div>
-        ` : `
+        ` : ''}
+
+        ${isTestMode ? `
           <div style="margin-bottom: 12px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 8px;">
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">РЕЖИМ ТЕСТИРОВАНИЯ (${testQuestionsAnswered}/${gameConfig.testQuestionCount})</div>
             <div id="test-timer-display" style="font-size: 15px; color: #ef4444; font-weight: bold;">Осталось времени: ${formatTime(testSecondsLeft)}</div>
           </div>
-        `}
+        ` : ''}
 
         ${deferredPrompt ? `
           <div style="margin-bottom: 10px;">
@@ -344,23 +434,23 @@ document.addEventListener('DOMContentLoaded', () => {
         ${!isEnglishToRussian ? `
           <div>
             <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 12px;">
-              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
               <p style="font-size: 30px; font-weight: bold; margin: 0; line-height: 1.2;">${currentTask.ru}</p>
-              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
             <input type="text" id="answer-display" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" readonly />
-            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showStats || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
+            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showFeedback || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
         ` : `
           <div>
             <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px;">
-              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
               <p style="font-size: 30px; font-weight: bold; margin: 0;">${currentTask.en}</p>
-              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
-            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
+            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
             <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
               ${currentTask.options.map(opt => `
                 <button class="option-btn" style="padding: 16px; font-size: 20px; font-weight: 600; cursor: pointer; text-align: center; border-radius: 8px;">${opt}</button>
@@ -374,6 +464,15 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="keyboard" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;"></div>
       </div>
     `;
+
+    const soundToggleBtn = document.getElementById('sound-toggle-btn');
+    if (soundToggleBtn) {
+      soundToggleBtn.onclick = () => {
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('rkai_sound_enabled', isSoundEnabled);
+        renderTrainer();
+      };
+    }
 
     if (!isEnglishToRussian) {
       const inputEl = document.getElementById('answer-display');
@@ -399,8 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (val.length < MAX_INPUT_LENGTH) {
             let charToAdd = char;
-            // Делаем букву заглавной ТОЛЬКО если курсор стоит в самом начале (позиция 0) 
-            // и перед ним нет никакого текста (поле абсолютно пустое).
             if (start === 0 && val.length === 0) {
               charToAdd = char.toUpperCase();
             } else {
@@ -519,6 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setupOptions() {
     const optionButtons = document.querySelectorAll('.option-btn');
+    optionButtons.buttonListenersAdded = true;
     optionButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
         const isCorrect = btn.textContent.trim() === currentTask.correct;
