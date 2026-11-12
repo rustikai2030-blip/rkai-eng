@@ -13,7 +13,7 @@ import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
 
-  let sessionIndex = 0;          // Общий индекс ответов для поддержания цикла 7/3
+  let sessionIndex = 0;          
   let currentLevel = 1;          
   let totalCorrectAnswers = 0;   
   let totalIncorrectAnswers = 0;  
@@ -30,10 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = null;
   let isAdminUser = false;
   let userUnsubscribe = null; 
-  let loginPromptShown = false; 
   let deferredPrompt = null; 
 
-  // Состояние режима тестирования
   let isTestMode = false;
   let testQuestionsAnswered = 0;
   let testCorrectCount = 0;
@@ -201,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startTestMode() {
     isTestMode = true;
-    sessionIndex = 0; // сбрасываем индекс для теста, чтобы тест начинался с блока из 7 рус-анг и 3 англ-рус
+    sessionIndex = 0; 
     testQuestionsAnswered = 0;
     testCorrectCount = 0;
     testSecondsLeft = gameConfig.testTimeSeconds || 120;
@@ -228,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionIndex = 0;
 
     const totalQ = gameConfig.testQuestionCount || 30;
-    const requiredCorrect = Math.ceil(totalQ * 0.9); // порог сдачи (например 90%)
+    const requiredCorrect = Math.ceil(totalQ * 0.9);
 
     if (passed && testCorrectCount >= requiredCorrect) {
       alert(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на уровень ${currentLevel + 1}!`);
@@ -277,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    sessionIndex++; // инкрементируем для поддержания цикла 7/3
+    sessionIndex++; 
     currentInput = "";
     pickNewTask();
   }
@@ -292,71 +290,86 @@ document.addEventListener('DOMContentLoaded', () => {
     const showStats = elementLevel >= 1;
 
     app.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 12px;">
-        <div>
-          👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} | Уровень ${currentLevel}
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-bottom: 10px;">
+          <div>
+            👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} | Уровень ${currentLevel}
+          </div>
+          <div>
+            ${currentUser ? `
+              <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 14px; color: inherit;">Выйти</button>
+            ` : `
+              <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 14px; color: inherit;">Войти</button>
+            `}
+          </div>
         </div>
-        <div>
-          ${currentUser ? `
-            <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit;">Выйти</button>
-          ` : `
-            <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit;">Войти</button>
-          `}
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <button id="words-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; border-radius: 8px; cursor: pointer;">Слова</button>
+          <div id="timer-display" style="font-size: 15px; font-weight: bold; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
+          <button id="rules-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; border-radius: 8px; cursor: pointer;">Правила</button>
         </div>
+
+        ${!isTestMode ? `
+          <div style="margin-bottom: 12px;">
+            <button id="start-test-btn" style="width: 100%; padding: 12px; background: var(--accent, #aa3bff); color: #fff; border: none; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 8px;">Перейти на ${currentLevel + 1} уровень (тест)</button>
+          </div>
+        ` : `
+          <div style="margin-bottom: 12px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 8px;">
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">РЕЖИМ ТЕСТИРОВАНИЯ (${testQuestionsAnswered}/${gameConfig.testQuestionCount})</div>
+            <div id="test-timer-display" style="font-size: 15px; color: #ef4444; font-weight: bold;">Осталось времени: ${formatTime(testSecondsLeft)}</div>
+          </div>
+        `}
+
+        ${deferredPrompt ? `
+          <div style="margin-bottom: 10px;">
+            <button id="install-pwa-btn" style="width: 100%; padding: 12px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 8px;">📲 Установить приложение</button>
+          </div>
+        ` : ''}
+
+        ${isAdminUser ? `
+          <div style="margin-bottom: 8px; text-align: center;">
+            <button id="admin-panel-btn" style="padding: 8px 14px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 6px;">📊 Админ-панель</button>
+          </div>
+        ` : ''}
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <button id="words-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer;">Слова</button>
-        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
-        <button id="rules-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer;">Правила</button>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; margin: 10px 0;">
+        ${!isEnglishToRussian ? `
+          <div>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 12px;">
+              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <p style="font-size: 30px; font-weight: bold; margin: 0; line-height: 1.2;">${currentTask.ru}</p>
+              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            </div>
+
+            <div id="answer-display" style="border: 2px solid currentColor; padding: 16px; font-size: 26px; min-height: 36px; margin-bottom: 10px; border-radius: 8px; letter-spacing: 2px; background: var(--btn-bg, inherit);">${currentInput}</div>
+            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
+          </div>
+        ` : `
+          <div>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px;">
+              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <p style="font-size: 30px; font-weight: bold; margin: 0;">${currentTask.en}</p>
+              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            </div>
+
+            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
+            <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
+              ${currentTask.options.map(opt => `
+                <button class="option-btn" style="padding: 16px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 20px; font-weight: 600; cursor: pointer; text-align: center; border-radius: 8px;">${opt}</button>
+              `).join('')}
+            </div>
+          </div>
+        `}
       </div>
 
-      ${!isTestMode ? `
-        <div style="margin-bottom: 15px;">
-          <button id="start-test-btn" style="width: 100%; padding: 10px; background: var(--accent, #aa3bff); color: #fff; border: none; font-weight: bold; font-size: 15px; cursor: pointer; border-radius: var(--border-radius, 4px);">Перейти на ${currentLevel + 1} уровень (тест)</button>
-        </div>
-      ` : `
-        <div style="margin-bottom: 15px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 4px;">
-          <div style="font-weight: bold; margin-bottom: 4px;">РЕЖИМ ТЕСТИРОВАНИЯ (${testQuestionsAnswered}/${gameConfig.testQuestionCount})</div>
-          <div id="test-timer-display" style="font-size: 14px; color: #ef4444; font-weight: bold;">Осталось времени: ${formatTime(testSecondsLeft)}</div>
-        </div>
-      `}
-
-      ${deferredPrompt ? `
-        <div style="margin-bottom: 10px;">
-          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 14px; font-weight: bold; cursor: pointer;">📲 Установить приложение</button>
-        </div>
-      ` : ''}
-
-      ${isAdminUser ? `
-        <div style="margin-bottom: 8px; text-align: center;">
-          <button id="admin-panel-btn" style="padding: 6px 12px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 12px; font-weight: bold; cursor: pointer;">📊 Админ-панель</button>
-        </div>
-      ` : ''}
+      <div>
+        <div id="keyboard" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;"></div>
+      </div>
     `;
 
     if (!isEnglishToRussian) {
-      app.innerHTML += `
-        <div style="margin: 20px 0;">
-          <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px;">
-            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
-            <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.ru}</p>
-            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
-          </div>
-
-          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px;">${currentInput}</div>
-          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
-        </div>
-
-        <div id="keyboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;"></div>
-
-        <div style="display: flex; gap: 8px;">
-          <button id="space-btn" style="flex: 3; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer;">пробел</button>
-          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer;">⌫</button>
-          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer;">✓</button>
-        </div>
-      `;
-
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
@@ -383,23 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     } else {
-      app.innerHTML += `
-        <div style="margin: 20px 0;">
-          <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 20px;">
-            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
-            <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.en}</p>
-            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
-          </div>
-
-          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
-          <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
-            ${currentTask.options.map(opt => `
-              <button class="option-btn" style="padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center;">${opt}</button>
-            `).join('')}
-          </div>
-        </div>
-      `;
-
       setupOptions();
     }
 
