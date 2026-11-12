@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   }
 
-  function handleAnswerResult(isCorrect) {
+  async function handleAnswerResult(isCorrect) {
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
 
     if (isTestMode) {
@@ -308,11 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionIndex++;
       currentInput = "";
       pickNewTask();
+      renderTrainer();
     } else {
       if (isCorrect) {
         consecutiveErrors = 0; 
         
-        // Звук включается строго с 5 уровня элементов
         if (elementLevel >= 5) {
           playSound('success');
         }
@@ -322,22 +322,36 @@ document.addEventListener('DOMContentLoaded', () => {
           lastFeedbackColor = "#22c55e";
         }
 
-        // Спецэффекты (подсветка) включаются строго с 6 уровня элементов
+        // Если уровень >= 6, подсвечиваем зеленым и делаем задержку 300мс перед переключением задания
         if (elementLevel >= 6 && !isEnglishToRussian) {
           const inputEl = document.getElementById('answer-display');
           if (inputEl) {
             inputEl.classList.add('success-flash');
           }
+          
+          totalCorrectAnswers++;
+          sessionIndex++;
+          currentInput = "";
+
+          setTimeout(() => {
+            pickNewTask();
+            renderTrainer();
+          }, 300);
+          
+          await saveProgressToFirestore();
+          return;
         }
 
         totalCorrectAnswers++;
         sessionIndex++; 
         currentInput = ""; 
         pickNewTask();
+        await saveProgressToFirestore();
+        renderTrainer();
+
       } else {
         consecutiveErrors++; 
         
-        // Звук ошибки включается строго с 5 уровня элементов
         if (elementLevel >= 5) {
           playSound('error');
         }
@@ -347,7 +361,6 @@ document.addEventListener('DOMContentLoaded', () => {
           lastFeedbackColor = "#ef4444";
         }
 
-        // Спецэффекты (встряска) включаются строго с 6 уровня элементов
         if (elementLevel >= 6 && !isEnglishToRussian) {
           const inputEl = document.getElementById('answer-display');
           if (inputEl) {
@@ -359,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         totalIncorrectAnswers++;
+        renderTrainer();
       }
     }
   }
@@ -371,12 +385,11 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStyleLevel();
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
 
-    // Четкое разделение видимости компонентов по уровням (0 до 6):
     const showFeedback = elementLevel >= 1;
     const showCounters = elementLevel >= 2;
     const showTimer = elementLevel >= 3;
     const showTestButton = elementLevel >= 4;
-    const showSoundToggle = elementLevel >= 5; // Звук и кнопка управления звуком на 5 уровне
+    const showSoundToggle = elementLevel >= 5;
 
     app.innerHTML = `
       <div>
@@ -550,9 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
-          handleAnswerResult(isCorrect);
-          if (!isTestMode) await saveProgressToFirestore(); 
-          renderTrainer();
+          await handleAnswerResult(isCorrect);
         }
       });
     } else {
@@ -620,9 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
     optionButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
         const isCorrect = btn.textContent.trim() === currentTask.correct;
-        handleAnswerResult(isCorrect);
-        if (!isTestMode) await saveProgressToFirestore();
-        renderTrainer();
+        await handleAnswerResult(isCorrect);
       });
     });
   }
