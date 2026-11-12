@@ -2966,7 +2966,7 @@ export function saveWrongPhrases(phrasesObj) {
 }
 
 === FILE: ./src/data/tasks.js ===
-// Базовый словарь для модального окна "Слова"
+// src/data/tasks.js
 export const dictionaryWords = [
   { en: "I", ru: "Я" },
   { en: "You", ru: "Ты" },
@@ -2978,111 +2978,121 @@ export const dictionaryWords = [
   { en: "Work", ru: "Работать" },
   { en: "Worked", ru: "Работал (прошед. время)" },
   { en: "Will work", ru: "Буду работать (будущ. время)" },
-  { en: "Don't / Doesn't work", ru: "Не работаю(ет) (отрицание — Ур. 2)" },
-  { en: "Didn't work", ru: "Не работал (прошед. отрицание — Ур. 2)" },
-  { en: "Do / Does... work?", ru: "Работаешь/работает ли? (вопрос — Ур. 3)" },
-  { en: "Did... work?", ru: "Работал ли? (прошед. вопрос — Ур. 3)" }
+  { en: "Don't / Doesn't work", ru: "Не работаю(ет) (отрицание)" },
+  { en: "Didn't work", ru: "Не работал (прошед. отрицание)" },
+  { en: "Do / Does... work?", ru: "Работаешь/работает ли? (вопрос)" },
+  { en: "Did... work?", ru: "Работал ли? (прошед. вопрос)" }
 ];
 
-// Полный свод правил для модального окна "Правила" (Уровни 1, 2 и 3)
 export const grammarRules = `
   <h2>Правила (Simple)</h2>
-  
   <h3>1. Утвердительная форма (Уровень 1)</h3>
   <p><b>Будущее:</b> I / You / We / They / He / She / It <b>will work</b>.</p>
   <p><b>Настоящее:</b> I / You / We / They <b>work</b> | He / She / It <b>works</b></p>
   <p><b>Прошедшее:</b> I / You / We / They / He / She / It <b>worked</b></p>
 
   <h3>2. Отрицательная форма (Уровень 2)</h3>
-  <p><b>Настоящее:</b> I / You / We / They <b>don't work</b> — Я / Ты / Мы / Они не работаем</p>
-  <p><b>Настоящее (He/She/It):</b> He / She / It <b>doesn't work</b> — Он / Она / Оно не работает</p>
-  <p><b>Прошедшее:</b> I / You / We / They / He / She / It <b>didn't work</b> — Я / Ты / Мы / Он / Оно не работал(а/или)</p>
+  <p><b>Настоящее:</b> I / You / We / They <b>don't work</b></p>
+  <p><b>Настоящее (He/She/It):</b> He / She / It <b>doesn't work</b></p>
+  <p><b>Прошедшее:</b> <b>didn't work</b></p>
 
   <h3>3. Вопросительная форма (Уровень 3)</h3>
-  <p><b>Настоящее:</b> <b>Do</b> I / you / we / they <b>work?</b> — Я / ты / мы / они работаем?</p>
-  <p><b>Настоящее (He/She/It):</b> <b>Does</b> he / she / it <b>work?</b> — Он / она / оно работает?</p>
-  <p><b>Прошедшее:</b> <b>Did</b> I / you / we / they / he / she / it <b>work?</b> — Я / ты / он работал(а)?</p>
-  <p><b>Будущее:</b> <b>Will</b> I / you / we / they / he / she / it <b>work?</b> — Я / ты / он будет работать?</p>
+  <p><b>Настоящее:</b> <b>Do / Does</b> ... <b>work?</b></p>
+  <p><b>Прошедшее:</b> <b>Did</b> ... <b>work?</b></p>
 `;
 
-// Задачи для Уровня 1 (только утверждения)
+const statementsRuEn = [
+  { ru: "Я работаю", en: "I work", category: "statement" },
+  { ru: "Ты работаешь", en: "You work", category: "statement" },
+  { ru: "Мы работаем", en: "We work", category: "statement" },
+  { ru: "Они работают", en: "They work", category: "statement" },
+  { ru: "Он работает", en: "He works", category: "statement" },
+  { ru: "Она работает", en: "She works", category: "statement" },
+  { ru: "Оно работает", en: "It works", category: "statement" },
+  { ru: "Я работал", en: "I worked", category: "statement" },
+  { ru: "Ты работал", en: "You worked", category: "statement" },
+  { ru: "Мы работали", en: "We worked", category: "statement" },
+  { ru: "Он работал", en: "He worked", category: "statement" },
+  { ru: "Она работала", en: "She worked", category: "statement" },
+  { ru: "Я буду работать", en: "I will work", category: "statement" }
+];
+
+const negativesRuEn = [
+  { ru: "Я не работаю", en: "I don't work", category: "negative" },
+  { ru: "Ты не работаешь", en: "You don't work", category: "negative" },
+  { ru: "Мы не работаем", en: "We don't work", category: "negative" },
+  { ru: "Они не работают", en: "They don't work", category: "negative" },
+  { ru: "Он не работает", en: "He doesn't work", category: "negative" },
+  { ru: "Она не работает", en: "She doesn't work", category: "negative" },
+  { ru: "Оно не работает", en: "It doesn't work", category: "negative" },
+  { ru: "Я не работал", en: "I didn't work", category: "negative" },
+  { ru: "Он не работал", en: "He didn't work", category: "negative" }
+];
+
+const questionsRuEn = [
+  { ru: "Я работаю?", en: "Do I work?", category: "question" },
+  { ru: "Ты работаешь?", en: "Do you work?", category: "question" },
+  { ru: "Мы работаем?", en: "Do we work?", category: "question" },
+  { ru: "Они работают?", en: "Do they work?", category: "question" },
+  { ru: "Он работает?", en: "Does he work?", category: "question" },
+  { ru: "Она работает?", en: "Does she work?", category: "question" },
+  { ru: "Оно работает?", en: "Does it work?", category: "question" },
+  { ru: "Я работал?", en: "Did I work?", category: "question" },
+  { ru: "Ты работал?", en: "Did you work?", category: "question" },
+  { ru: "Он работал?", en: "Did he work?", category: "question" },
+  { ru: "Я буду работать?", en: "Will I work?", category: "question" }
+];
+
+const statementsEnRu = [
+  { en: "I work", options: ["Я работаю", "Ты работаешь", "Мы работаем", "Он работает"], correct: "Я работаю", category: "statement" },
+  { en: "You work", options: ["Ты работаешь", "Они работают", "Оно работает", "Я работаю"], correct: "Ты работаешь", category: "statement" },
+  { en: "We work", options: ["Мы работаем", "Вы работаете", "Они работают", "Я работаю"], correct: "Мы работаем", category: "statement" },
+  { en: "They work", options: ["Они работают", "Мы работаем", "Он работает", "Она работает"], correct: "Они работают", category: "statement" },
+  { en: "He works", options: ["Он работает", "Она работает", "Оно работает", "Я работает"], correct: "Он работает", category: "statement" },
+  { en: "She works", options: ["Она работает", "Он работает", "Мы работаем", "Они работают"], correct: "Она работает", category: "statement" },
+  { en: "I worked", options: ["Я работал", "Ты работал", "Мы работали", "Он работал"], correct: "Я работал", category: "statement" },
+  { en: "I will work", options: ["Я буду работать", "Я работал", "Я работаю", "Он будет работать"], correct: "Я буду работать", category: "statement" }
+];
+
+const negativesEnRu = [
+  { en: "I don't work", options: ["Я не работаю", "Ты не работаешь", "Я работал", "Мы не работаем"], correct: "Я не работаю", category: "negative" },
+  { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работаю"], correct: "Он не работает", category: "negative" },
+  { en: "I didn't work", options: ["Я не работал", "Я не работаю", "Он не работал", "Я работал"], correct: "Я не работал", category: "negative" }
+];
+
+const questionsEnRu = [
+  { en: "Do I work?", options: ["Я работаю?", "Ты работаешь?", "Я работал?", "Мы работаем?"], correct: "Я работаю?", category: "question" },
+  { en: "Does he work?", options: ["Он работает?", "Она работает?", "Он работает", "Он не работает?"], correct: "Он работает?", category: "question" },
+  { en: "Did you work?", options: ["Ты работал?", "Ты работаешь?", "Вы работаете?", "Я работал?"], correct: "Ты работал?", category: "question" },
+  { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?", category: "question" }
+];
+
+// Уровни уроков с учетом пропорций внутри каждого типа (для Ур. 2 и Ур. 3 сохраняем баланс утверждений/отрицаний/вопросов)
 export const level1Tasks = {
-  ruEn: [
-    { ru: "Я работаю", en: "I work" },
-    { ru: "Ты работаешь", en: "You work" },
-    { ru: "Мы работаем", en: "We work" },
-    { ru: "Они работают", en: "They work" },
-    { ru: "Он работает", en: "He works" },
-    { ru: "Она работает", en: "She works" },
-    { ru: "Оно работает", en: "It works" },
-    { ru: "Я работал", en: "I worked" },
-    { ru: "Ты работал", en: "You worked" },
-    { ru: "Мы работали", en: "We worked" },
-    { ru: "Он работал", en: "He worked" },
-    { ru: "Она работала", en: "She worked" },
-    { ru: "Оно работало", en: "It worked" },
-    { ru: "Они работали", en: "They worked" },
-    { ru: "Я буду работать", en: "I will work" }
-  ],
-  enRu: [
-    { en: "I work", options: ["Я работаю", "Ты работаешь", "Мы работаем", "Он работает"], correct: "Я работаю" },
-    { en: "You work", options: ["Ты работаешь", "Они работают", "Оно работает", "Я работаю"], correct: "Ты работаешь" },
-    { en: "We work", options: ["Мы работаем", "Вы работаете", "Они работают", "Я работаю"], correct: "Мы работаем" },
-    { en: "They work", options: ["Они работают", "Мы работаем", "Он работает", "Она работает"], correct: "Они работают" },
-    { en: "He works", options: ["Он работает", "Она работает", "Оно работает", "Я работаю"], correct: "Он работает" },
-    { en: "She works", options: ["Она работает", "Он работает", "Мы работаем", "Они работают"], correct: "Она работает" },
-    { en: "It works", options: ["Оно работает", "Он работает", "Она работает", "Я работаю"], correct: "Оно работает" },
-    { en: "I worked", options: ["Я работал", "Ты работал", "Мы работали", "Он работал"], correct: "Я работал" },
-    { en: "I will work", options: ["Я буду работать", "Я работал", "Я работаю", "Он будет работать"], correct: "Я буду работать" }
-  ]
+  ruEn: statementsRuEn,
+  enRu: statementsEnRu
 };
 
-// Задачи для Уровня 2 (утверждения + отрицания)
 export const level2Tasks = {
-  ruEn: [
-    ...level1Tasks.ruEn,
-    { ru: "Я не работаю", en: "I don't work" },
-    { ru: "Ты не работаешь", en: "You don't work" },
-    { ru: "Мы не работаем", en: "We don't work" },
-    { ru: "Они не работают", en: "They don't work" },
-    { ru: "Он не работает", en: "He doesn't work" },
-    { ru: "Она не работает", en: "She doesn't work" },
-    { ru: "Оно не работает", en: "It doesn't work" },
-    { ru: "Я не работал", en: "I didn't work" },
-    { ru: "Он не работал", en: "He didn't work" }
-  ],
-  enRu: [
-    ...level1Tasks.enRu,
-    { en: "I don't work", options: ["Я не работаю", "Ты не работаешь", "Я работал", "Мы не работаем"], correct: "Я не работаю" },
-    { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работаю"], correct: "Он не работает" },
-    { en: "I didn't work", options: ["Я не работал", "Я не работаю", "Он не работал", "Я работал"], correct: "Я не работал" }
-  ]
+  ruEn: [...statementsRuEn, ...negativesRuEn, ...negativesRuEn], 
+  enRu: [...statementsEnRu, ...negativesEnRu, ...negativesEnRu]
 };
 
-// Задачи для Уровня 3 (утверждения + отрицания + вопросы)
 export const level3Tasks = {
-  ruEn: [
-    ...level2Tasks.ruEn,
-    { ru: "Я работаю?", en: "Do I work?" },
-    { ru: "Ты работаешь?", en: "Do you work?" },
-    { ru: "Мы работаем?", en: "Do we work?" },
-    { ru: "Они работают?", en: "Do they work?" },
-    { ru: "Он работает?", en: "Does he work?" },
-    { ru: "Она работает?", en: "Does she work?" },
-    { ru: "Оно работает?", en: "Does it work?" },
-    { ru: "Я работал?", en: "Did I work?" },
-    { ru: "Ты работал?", en: "Did you work?" },
-    { ru: "Он работал?", en: "Did he work?" },
-    { ru: "Я буду работать?", en: "Will I work?" }
-  ],
-  enRu: [
-    ...level2Tasks.enRu,
-    { en: "Do I work?", options: ["Я работаю?", "Ты работаешь?", "Я работал?", "Мы работаем?"], correct: "Я работаю?" },
-    { en: "Does he work?", options: ["Он работает?", "Она работает?", "Он работает", "Он не работает?"], correct: "Он работает?" },
-    { en: "Did you work?", options: ["Ты работал?", "Ты работаешь?", "Вы работаете?", "Я работал?"], correct: "Ты работал?" },
-    { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?" }
-  ]
+  ruEn: [...statementsRuEn, ...negativesRuEn, ...questionsRuEn, ...questionsRuEn, ...questionsRuEn, ...questionsRuEn],
+  enRu: [...statementsEnRu, ...negativesEnRu, ...questionsEnRu, ...questionsEnRu, ...questionsEnRu, ...questionsEnRu]
 };
+
+// Функция строгого циклического выбора: 7 русско-английских, затем 3 англо-русских
+export function getCyclicTask(sessionIndex, levelTasks) {
+  // Цикл из 10 шагов: индексы 0-6 (7 штук) — русско-английский, индексы 7-9 (3 штуки) — англо-русский
+  const positionInCycle = sessionIndex % 10;
+  const isEnRu = positionInCycle >= 7; 
+
+  const pool = isEnRu ? levelTasks.enRu : levelTasks.ruEn;
+  const task = pool[Math.floor(Math.random() * pool.length)];
+  return { task, isEnglishToRussian: isEnRu };
+}
 
 === FILE: ./src/levels/registry.js ===
 
@@ -3736,7 +3746,6 @@ function renderPhrasesTab() {
   html += `</div>`;
   contentContainer.innerHTML = html;
 
-  // Обработчики кнопок удаления
   document.querySelectorAll('.delete-phrase-btn').forEach(btn => {
     btn.onclick = () => {
       const lvl = btn.getAttribute('data-level');
@@ -3747,7 +3756,6 @@ function renderPhrasesTab() {
     };
   });
 
-  // Обработчики кнопок добавления
   document.querySelectorAll('.add-phrase-btn').forEach(btn => {
     btn.onclick = () => {
       const lvl = btn.getAttribute('data-level');
@@ -3761,7 +3769,6 @@ function renderPhrasesTab() {
     };
   });
 
-  // Автосохранение при изменении текста инпутов
   document.querySelectorAll('.phrase-input-item').forEach(input => {
     input.onchange = () => {
       const lvl = input.getAttribute('data-level');
@@ -3774,7 +3781,6 @@ function renderPhrasesTab() {
     };
   });
 
-  // Сброс к дефолтным
   document.getElementById('reset-phrases-default').onclick = () => {
     if (confirm("Сбросить все фразы к стандартным значениям?")) {
       saveWrongPhrases(initialWrongPhrases);
@@ -3790,11 +3796,25 @@ async function renderSettingsTab() {
   contentContainer.innerHTML = `
     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
       <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 10px;">Игровые настройки</h3>
-      <p style="font-size: 14px; color: #64748b; margin-bottom: 20px;">Укажите количество правильных ответов, необходимое для перехода на следующий уровень и смены визуального стиля интерфейса.</p>
       
       <div style="margin-bottom: 15px;">
-        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Шаг ответов для смены уровня:</label>
-        <input type="number" id="setting-step-input" value="${gameConfig.stepPerLevel}" min="1" max="100" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Шаг ответов для смены уровня стиля:</label>
+        <input type="number" id="setting-style-step-input" value="${gameConfig.stepPerStyleLevel}" min="1" max="100" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Шаг ответов для появления элементов интерфейса:</label>
+        <input type="number" id="setting-element-step-input" value="${gameConfig.stepPerElementLevel}" min="1" max="100" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Количество вопросов в тесте:</label>
+        <input type="number" id="setting-test-q-count" value="${gameConfig.testQuestionCount}" min="1" max="200" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Время теста (в секундах):</label>
+        <input type="number" id="setting-test-time" value="${gameConfig.testTimeSeconds}" min="10" max="3600" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
       </div>
 
       <button id="save-settings-btn" style="width: 100%; background: #22c55e; color: #ffffff; border: none; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer;">Сохранить настройки</button>
@@ -3802,16 +3822,30 @@ async function renderSettingsTab() {
   `;
 
   document.getElementById('save-settings-btn').onclick = async () => {
-    const val = parseInt(document.getElementById('setting-step-input').value, 10);
-    if (isNaN(val) || val < 1) {
-      alert("Введите корректное число (больше 0).");
+    const styleVal = parseInt(document.getElementById('setting-style-step-input').value, 10);
+    const elementVal = parseInt(document.getElementById('setting-element-step-input').value, 10);
+    const testQCountVal = parseInt(document.getElementById('setting-test-q-count').value, 10);
+    const testTimeVal = parseInt(document.getElementById('setting-test-time').value, 10);
+
+    if (isNaN(styleVal) || styleVal < 1 || isNaN(elementVal) || elementVal < 1 || isNaN(testQCountVal) || testQCountVal < 1 || isNaN(testTimeVal) || testTimeVal < 10) {
+      alert("Введите корректные числовые значения.");
       return;
     }
 
     try {
       const settingsRef = doc(db, "settings", "game");
-      await setDoc(settingsRef, { stepPerLevel: val }, { merge: true });
-      gameConfig.stepPerLevel = val;
+      await setDoc(settingsRef, { 
+        stepPerStyleLevel: styleVal, 
+        stepPerElementLevel: elementVal,
+        testQuestionCount: testQCountVal,
+        testTimeSeconds: testTimeVal
+      }, { merge: true });
+      
+      gameConfig.stepPerStyleLevel = styleVal;
+      gameConfig.stepPerElementLevel = elementVal;
+      gameConfig.testQuestionCount = testQCountVal;
+      gameConfig.testTimeSeconds = testTimeVal;
+
       alert("Настройки успешно сохранены!");
     } catch (err) {
       alert("Ошибка сохранения: " + err.message);
@@ -4248,29 +4282,48 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 
 export const gameConfig = {
-  stepPerLevel: 5, // Шаг правильных ответов для перехода на следующий уровень (регулируется в админке)
+  stepPerStyleLevel: 5,   
+  stepPerElementLevel: 5, 
+  testQuestionCount: 30,  // Количество вопросов на тесте по умолчанию
+  testTimeSeconds: 120,   // Время на тест в секундах (120 сек = 2 минуты) по умолчанию
 };
 
-// Безопасная загрузка настроек из Firestore
 async function loadGameSettings() {
   try {
     const settingsRef = doc(db, "settings", "game");
     const docSnap = await getDoc(settingsRef);
-    if (docSnap.exists() && docSnap.data().stepPerLevel !== undefined) {
-      gameConfig.stepPerLevel = Number(docSnap.data().stepPerLevel);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.stepPerStyleLevel !== undefined) {
+        gameConfig.stepPerStyleLevel = Number(data.stepPerStyleLevel);
+      }
+      if (data.stepPerElementLevel !== undefined) {
+        gameConfig.stepPerElementLevel = Number(data.stepPerElementLevel);
+      }
+      if (data.testQuestionCount !== undefined) {
+        gameConfig.testQuestionCount = Number(data.testQuestionCount);
+      }
+      if (data.testTimeSeconds !== undefined) {
+        gameConfig.testTimeSeconds = Number(data.testTimeSeconds);
+      }
     }
   } catch (err) {
-    console.warn("Не удалось загрузить настройки из Firestore, используются стандартные:", err.message);
+    console.warn("Не удалось загрузить настройки из Firestore:", err.message);
   }
 }
 
 loadGameSettings();
 
-// Функция расчета уровня (всего 10 уровней: от 0 до 9)
-export function calculateLevel(totalCorrect) {
-  const step = gameConfig.stepPerLevel || 5;
+export function calculateStyleLevel(totalCorrect) {
+  const step = gameConfig.stepPerStyleLevel || 5;
   const level = Math.floor(totalCorrect / step);
-  return Math.min(level, 19); // Ограничиваем максимальным 9-м уровнем
+  return Math.min(level, 19); 
+}
+
+export function calculateElementLevel(totalCorrect) {
+  const step = gameConfig.stepPerElementLevel || 5;
+  const level = Math.floor(totalCorrect / step);
+  return Math.min(level, 10);
 }
 
 === FILE: ./src/main.js ===
@@ -4279,17 +4332,18 @@ import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
-import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
+import { level1Tasks, level2Tasks, level3Tasks, getCyclicTask } from './data/tasks.js';
 import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
-import { calculateLevel } from './config/gameConfig.js';
+import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
 
-  let sessionIndex = 0;          
+  let sessionIndex = 0;          // Общий индекс ответов для поддержания цикла 7/3
+  let currentLevel = 1;          
   let totalCorrectAnswers = 0;   
   let totalIncorrectAnswers = 0;  
   let consecutiveErrors = 0;     
@@ -4299,14 +4353,21 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastFeedback = "";        
   let lastFeedbackColor = "";   
   
-  let secondsElapsed = 0;       // Таймер текущей сессии (на экране с 0)
-  let lastSyncedSeconds = 0;    // Для подсчета дельты времени для отправки в базу
+  let secondsElapsed = 0;       
+  let lastSyncedSeconds = 0;    
   let timerInterval = null;
   let currentUser = null;
   let isAdminUser = false;
   let userUnsubscribe = null; 
   let loginPromptShown = false; 
   let deferredPrompt = null; 
+
+  // Состояние режима тестирования
+  let isTestMode = false;
+  let testQuestionsAnswered = 0;
+  let testCorrectCount = 0;
+  let testSecondsLeft = 120;
+  let testTimerInterval = null;
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -4320,13 +4381,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   });
 
-  // Отправка накопленного времени при закрытии страницы
   window.addEventListener('beforeunload', () => {
     if (currentUser) {
       const deltaSeconds = secondsElapsed - lastSyncedSeconds;
       if (deltaSeconds > 0) {
         const userRef = doc(db, "users", currentUser.uid);
-        // Используем sendBeacon или синхронный/асинхронный вызов обновления
         updateDoc(userRef, {
           totalTimeSpent: increment(deltaSeconds),
           lastActive: serverTimestamp()
@@ -4335,28 +4394,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  function updateDynamicLevel() {
-    const computedLevel = calculateLevel(totalCorrectAnswers);
-    document.body.setAttribute('data-level', computedLevel.toString());
-    return computedLevel;
+  function updateStyleLevel() {
+    const styleLevel = calculateStyleLevel(totalCorrectAnswers);
+    document.body.setAttribute('data-level', styleLevel.toString());
+    return styleLevel;
   }
 
   function getWrongPhrase(errorsCount) {
     const phrases = getWrongPhrases();
-    const level = Math.min(Math.max(errorsCount, 1), 5);
-    const list = phrases[level] || phrases[1];
-    const randomIndex = Math.floor(Math.random() * list.length);
-    return list[randomIndex];
+    const lvl = Math.min(Math.max(errorsCount, 1), 5);
+    const list = phrases[lvl] || phrases[1];
+    return list[Math.floor(Math.random() * list.length)];
   }
 
   async function saveProgressToFirestore() {
     if (!currentUser) return;
     try {
-      const currentLevel = updateDynamicLevel();
+      updateStyleLevel();
       const userRef = doc(db, "users", currentUser.uid);
-
       const deltaSeconds = secondsElapsed - lastSyncedSeconds;
-      lastSyncedSeconds = secondsElapsed; // сбрасываем дельту
+      lastSyncedSeconds = secondsElapsed; 
 
       await setDoc(userRef, {
         uid: currentUser.uid,
@@ -4365,12 +4422,12 @@ document.addEventListener('DOMContentLoaded', () => {
         photoURL: currentUser.photoURL || "",
         totalCorrect: totalCorrectAnswers,
         totalIncorrect: totalIncorrectAnswers,
-        userLevel: currentLevel,
+        currentLessonLevel: currentLevel,
         totalTimeSpent: increment(deltaSeconds > 0 ? deltaSeconds : 0),
         lastActive: serverTimestamp()
       }, { merge: true });
     } catch (error) {
-      console.error("❌ Ошибка сохранения данных:", error);
+      console.error("Ошибка сохранения данных:", error);
     }
   }
 
@@ -4387,10 +4444,10 @@ document.addEventListener('DOMContentLoaded', () => {
           displayName: user.displayName || "",
           photoURL: user.photoURL || "",
           isAdmin: false,
-          userLevel: 0,
+          currentLessonLevel: 1,
           totalCorrect: 0,
           totalIncorrect: 0,
-          visitCount: 1, // Первый визит
+          visitCount: 1, 
           totalTimeSpent: 0,
           lastLogin: serverTimestamp()
         });
@@ -4398,9 +4455,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = docSnap.data();
         totalCorrectAnswers = Math.max(data.totalCorrect || 0, totalCorrectAnswers);
         totalIncorrectAnswers = Math.max(data.totalIncorrect || 0, totalIncorrectAnswers);
+        currentLevel = data.currentLessonLevel || 1;
         
-        updateDynamicLevel();
-        // Увеличиваем счетчик визитов на 1 при входе
+        updateStyleLevel();
         await setDoc(userRef, { 
           lastLogin: serverTimestamp(), 
           visitCount: increment(1),
@@ -4440,22 +4497,17 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   });
 
-  function getCurrentTasks() {
-    const currentLevel = updateDynamicLevel();
-    if (currentLevel >= 6) return level3Tasks;
-    return currentLevel >= 3 ? level2Tasks : level1Tasks;
+  function getCurrentTasksForLevel(lvl) {
+    if (lvl === 3) return level3Tasks;
+    if (lvl === 2) return level2Tasks;
+    return level1Tasks;
   }
 
   function pickNewTask() {
-    let modeIndex = sessionIndex % 10;
-    isEnglishToRussian = modeIndex >= 7; 
-    const tasks = getCurrentTasks();
-
-    if (!isEnglishToRussian) {
-      currentTask = tasks.ruEn[Math.floor(Math.random() * tasks.ruEn.length)];
-    } else {
-      currentTask = tasks.enRu[Math.floor(Math.random() * tasks.enRu.length)];
-    }
+    const tasks = getCurrentTasksForLevel(currentLevel);
+    const result = getCyclicTask(sessionIndex, tasks);
+    currentTask = result.task;
+    isEnglishToRussian = result.isEnglishToRussian;
   }
 
   function formatTime(totalSeconds) {
@@ -4469,68 +4521,92 @@ document.addEventListener('DOMContentLoaded', () => {
     timerInterval = setInterval(() => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
-      if (timerEl && totalCorrectAnswers >= 2) {
+      const elementLevel = calculateElementLevel(totalCorrectAnswers);
+      if (timerEl && elementLevel >= 1 && !isTestMode) {
         timerEl.textContent = `${formatTime(secondsElapsed)}`;
       }
     }, 1000);
   }
 
-  function showLoginPromptModal() {
-    let promptModal = document.getElementById('login-prompt-modal');
-    if (!promptModal) {
-      promptModal = document.createElement('div');
-      promptModal.id = 'login-prompt-modal';
-      promptModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 20px; box-sizing: border-box;';
-      promptModal.innerHTML = `
-        <div style="background: #fff; color: #000; padding: 30px; border-radius: var(--border-radius, 8px); max-width: 400px; width: 100%; text-align: center; border: 2px solid currentColor; box-shadow: var(--box-shadow, none);">
-          <h2 style="margin-top: 0; font-size: 20px; margin-bottom: 15px;">Сохранение результатов</h2>
-          <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.5;">Для сохранения ваших результатов, вам необходимо авторизоваться через Google.</p>
-          <button id="modal-google-login-btn" style="background: var(--btn-bg, #000); color: inherit; border: 2px solid currentColor; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; border-radius: var(--border-radius, 4px);">Войти через Google</button>
-          <button id="modal-close-prompt-btn" style="background: inherit; color: inherit; border: 1px solid currentColor; padding: 8px 15px; font-size: 14px; cursor: pointer; width: 100%; border-radius: var(--border-radius, 4px);">Продолжить без сохранения</button>
-        </div>
-      `;
-      document.body.appendChild(promptModal);
+  function startTestMode() {
+    isTestMode = true;
+    sessionIndex = 0; // сбрасываем индекс для теста, чтобы тест начинался с блока из 7 рус-анг и 3 англ-рус
+    testQuestionsAnswered = 0;
+    testCorrectCount = 0;
+    testSecondsLeft = gameConfig.testTimeSeconds || 120;
+    pickNewTask();
+    renderTrainer();
 
-      document.getElementById('modal-google-login-btn').addEventListener('click', async () => {
-        try {
-          await signInWithPopup(auth, googleProvider);
-          promptModal.style.display = 'none';
-        } catch (error) {
-          alert("Ошибка входа: " + error.message);
-        }
-      });
+    if (testTimerInterval) clearInterval(testTimerInterval);
+    testTimerInterval = setInterval(() => {
+      testSecondsLeft--;
+      const testTimerEl = document.getElementById('test-timer-display');
+      if (testTimerEl) {
+        testTimerEl.textContent = `Осталось времени: ${formatTime(testSecondsLeft)}`;
+      }
 
-      document.getElementById('modal-close-prompt-btn').addEventListener('click', () => {
-        promptModal.style.display = 'none';
-      });
+      if (testSecondsLeft <= 0) {
+        finishTest(false); 
+      }
+    }, 1000);
+  }
+
+  function finishTest(passed) {
+    if (testTimerInterval) clearInterval(testTimerInterval);
+    isTestMode = false;
+    sessionIndex = 0;
+
+    const totalQ = gameConfig.testQuestionCount || 30;
+    const requiredCorrect = Math.ceil(totalQ * 0.9); // порог сдачи (например 90%)
+
+    if (passed && testCorrectCount >= requiredCorrect) {
+      alert(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на уровень ${currentLevel + 1}!`);
+      currentLevel++;
+      saveProgressToFirestore();
     } else {
-      promptModal.style.display = 'flex';
+      alert(`Время вышло или недостаточно правильных ответов (${testCorrectCount}/${totalQ}, нужно >= ${requiredCorrect}). Вы остаетесь на текущем уровне, тренируйтесь дальше!`);
     }
+    pickNewTask();
+    renderTrainer();
   }
 
   function handleAnswerResult(isCorrect) {
-    if (isCorrect) {
-      consecutiveErrors = 0; 
-      if (totalCorrectAnswers >= 2) {
-        lastFeedback = "Правильно";
-        lastFeedbackColor = "#22c55e";
+    if (isTestMode) {
+      testQuestionsAnswered++;
+      if (isCorrect) testCorrectCount++;
+
+      const totalQ = gameConfig.testQuestionCount || 30;
+      const requiredCorrect = Math.ceil(totalQ * 0.9);
+
+      if (testQuestionsAnswered >= totalQ) {
+        if (testCorrectCount >= requiredCorrect) {
+          finishTest(true);
+        } else {
+          finishTest(false);
+        }
+        return;
       }
-      totalCorrectAnswers++;
     } else {
-      consecutiveErrors++; 
-      if (totalCorrectAnswers >= 2) {
-        lastFeedback = getWrongPhrase(consecutiveErrors);
-        lastFeedbackColor = "#ef4444";
+      if (isCorrect) {
+        consecutiveErrors = 0; 
+        const elementLevel = calculateElementLevel(totalCorrectAnswers);
+        if (elementLevel >= 1) {
+          lastFeedback = "Правильно";
+          lastFeedbackColor = "#22c55e";
+        }
+        totalCorrectAnswers++;
+      } else {
+        consecutiveErrors++; 
+        const elementLevel = calculateElementLevel(totalCorrectAnswers);
+        if (elementLevel >= 1) {
+          lastFeedback = getWrongPhrase(consecutiveErrors);
+          lastFeedbackColor = "#ef4444";
+        }
+        totalIncorrectAnswers++;
       }
-      totalIncorrectAnswers++;
     }
 
-    if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
-      loginPromptShown = true;
-      showLoginPromptModal();
-    }
-
-    sessionIndex++;
+    sessionIndex++; // инкрементируем для поддержания цикла 7/3
     currentInput = "";
     pickNewTask();
   }
@@ -4540,13 +4616,14 @@ document.addEventListener('DOMContentLoaded', () => {
       pickNewTask();
     }
 
-    const showStats = totalCorrectAnswers >= 2;
-    const currentLevel = updateDynamicLevel();
+    updateStyleLevel();
+    const elementLevel = calculateElementLevel(totalCorrectAnswers);
+    const showStats = elementLevel >= 1;
 
     app.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 12px;">
         <div>
-          👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} (Уровень ${currentLevel + 1})
+          👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} | Уровень ${currentLevel}
         </div>
         <div>
           ${currentUser ? `
@@ -4558,20 +4635,31 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <button id="words-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Слова</button>
-        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
-        <button id="rules-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Правила</button>
+        <button id="words-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer;">Слова</button>
+        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
+        <button id="rules-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer;">Правила</button>
       </div>
+
+      ${!isTestMode ? `
+        <div style="margin-bottom: 15px;">
+          <button id="start-test-btn" style="width: 100%; padding: 10px; background: var(--accent, #aa3bff); color: #fff; border: none; font-weight: bold; font-size: 15px; cursor: pointer; border-radius: var(--border-radius, 4px);">Перейти на ${currentLevel + 1} уровень (тест)</button>
+        </div>
+      ` : `
+        <div style="margin-bottom: 15px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 4px;">
+          <div style="font-weight: bold; margin-bottom: 4px;">РЕЖИМ ТЕСТИРОВАНИЯ (${testQuestionsAnswered}/${gameConfig.testQuestionCount})</div>
+          <div id="test-timer-display" style="font-size: 14px; color: #ef4444; font-weight: bold;">Осталось времени: ${formatTime(testSecondsLeft)}</div>
+        </div>
+      `}
 
       ${deferredPrompt ? `
         <div style="margin-bottom: 10px;">
-          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 4px); box-shadow: var(--box-shadow, none);">📲 Установить приложение</button>
+          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 14px; font-weight: bold; cursor: pointer;">📲 Установить приложение</button>
         </div>
       ` : ''}
 
       ${isAdminUser ? `
         <div style="margin-bottom: 8px; text-align: center;">
-          <button id="admin-panel-btn" style="padding: 6px 12px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 4px); box-shadow: var(--box-shadow, none);">📊 Админ-панель</button>
+          <button id="admin-panel-btn" style="padding: 6px 12px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 12px; font-weight: bold; cursor: pointer;">📊 Админ-панель</button>
         </div>
       ` : ''}
     `;
@@ -4580,21 +4668,21 @@ document.addEventListener('DOMContentLoaded', () => {
       app.innerHTML += `
         <div style="margin: 20px 0;">
           <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px;">
-            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
             <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.ru}</p>
-            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
-          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">${currentInput}</div>
-          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
+          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px;">${currentInput}</div>
+          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
         </div>
 
         <div id="keyboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;"></div>
 
         <div style="display: flex; gap: 8px;">
-          <button id="space-btn" style="flex: 3; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">пробел</button>
-          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">⌫</button>
-          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">✓</button>
+          <button id="space-btn" style="flex: 3; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer;">пробел</button>
+          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer;">⌫</button>
+          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer;">✓</button>
         </div>
       `;
 
@@ -4619,7 +4707,7 @@ document.addEventListener('DOMContentLoaded', () => {
         onOk: async () => {
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
           handleAnswerResult(isCorrect);
-          await saveProgressToFirestore(); 
+          if (!isTestMode) await saveProgressToFirestore(); 
           renderTrainer();
         }
       });
@@ -4627,15 +4715,15 @@ document.addEventListener('DOMContentLoaded', () => {
       app.innerHTML += `
         <div style="margin: 20px 0;">
           <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 20px;">
-            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
             <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.en}</p>
-            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
-          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
+          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
           <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
             ${currentTask.options.map(opt => `
-              <button class="option-btn" style="padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">${opt}</button>
+              <button class="option-btn" style="padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center;">${opt}</button>
             `).join('')}
           </div>
         </div>
@@ -4645,7 +4733,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setupModals();
-    startTimer();
+    if (!isTestMode) startTimer();
+
+    const startTestBtn = document.getElementById('start-test-btn');
+    if (startTestBtn) {
+      startTestBtn.onclick = () => {
+        const testMins = Math.floor((gameConfig.testTimeSeconds || 120) / 60);
+        const testSecs = (gameConfig.testTimeSeconds || 120) % 60;
+        const timeStr = `${testMins > 0 ? testMins + ' мин. ' : ''}${testSecs > 0 ? testSecs + ' сек.' : ''}`;
+
+        if (confirm(`Вы переходите в режим тестирования на уровень ${currentLevel + 1}. Вам нужно ответить на ${gameConfig.testQuestionCount} вопросов за ${timeStr} (по схеме 7 рус-анг / 3 англ-рус). Начать?`)) {
+          startTestMode();
+        }
+      };
+    }
 
     const installBtn = document.getElementById('install-pwa-btn');
     if (installBtn) {
@@ -4693,7 +4794,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const isCorrect = btn.textContent.trim() === currentTask.correct;
         handleAnswerResult(isCorrect);
-        await saveProgressToFirestore();
+        if (!isTestMode) await saveProgressToFirestore();
         renderTrainer();
       });
     });

@@ -1,39 +1,52 @@
 // src/components/keyboard.js
 
-export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }) {
-  const qwertyRow1 = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'];
-  const qwertyRow2 = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
-  const qwertyRow3 = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
-
-  let allowedChars = ['w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k'];
+export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }) {
+  let rowsData = [];
 
   if (level === 1) {
-    allowedChars = ['w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k', 'n', 'a', 'm', "'"];
-  } else if (level >= 2) {
-    allowedChars = [
-      'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'l', 's', 'd', 'h', 'k', 
-      'n', 'a', 'm', "'", '?', 'D', 'W', 'o', 'e', 's', 'i', 'd', 'l'
+    // 1 уровень: 4 ряда букв/функций + 5 ряд (пробел и ввод)
+    rowsData = [
+      ['w', 'e', 'r', 't'],
+      ['y', 'u', 'i', 'o'],
+      ['s', 'd', 'h', 'k'],
+      ['shift', 'l', 'backspace'],
+      ['space', 'ok']
+    ];
+  } else if (level === 2) {
+    rowsData = [
+      ['w', 'e', 'r', 't'],
+      ['y', 'u', 'i', 'o', ',', "'"],
+      ['s', 'd', 'h', 'k', 'm', 'n']
+    ];
+  } else {
+    rowsData = [
+      ['w', 'e', 'r', 't'],
+      ['y', 'u', 'i', 'o', ',', "'", '?'],
+      ['shift', 's', 'd', 'h', 'k', 'n', '?']
     ];
   }
-
-  const row1 = qwertyRow1.filter(char => allowedChars.includes(char) || allowedChars.includes(char.toUpperCase()));
-  const row2 = qwertyRow2.filter(char => allowedChars.includes(char) || allowedChars.includes(char.toUpperCase()));
-  const row3 = ['shift', ...qwertyRow3.filter(char => allowedChars.includes(char))];
-  
-  if (level >= 1 && allowedChars.includes("'")) row3.push("'");
-  if (level >= 2 && allowedChars.includes('?')) row3.push('?');
 
   const kbContainer = document.getElementById('keyboard');
   if (!kbContainer) return;
   kbContainer.innerHTML = '';
 
+  // Скрываем или удаляем старый блок кнопок под клавиатурой из main.js для 1-го уровня
+  const oldActionContainer = kbContainer.nextElementSibling;
+  if (oldActionContainer && (oldActionContainer.tagName === 'DIV' || oldActionContainer.style)) {
+    if (level === 1) {
+      oldActionContainer.style.display = 'none';
+    } else {
+      oldActionContainer.style.display = 'flex';
+    }
+  }
+
   let isUpperCase = true;
-  const rowsData = [row1, row2, row3];
 
   function renderRows() {
     kbContainer.innerHTML = '';
+
     rowsData.forEach(rowKeys => {
-      if (rowKeys.length === 0 || (rowKeys.length === 1 && rowKeys[0] === 'shift')) return;
+      if (rowKeys.length === 0) return;
 
       const rowDiv = document.createElement('div');
       rowDiv.className = 'kb-row';
@@ -48,14 +61,35 @@ export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }
             isUpperCase = !isUpperCase;
             renderRows();
           };
-        } else if (key === "'" || key === '?') {
+        } else if (key === 'backspace') {
+          btn.textContent = '⌫';
+          btn.onclick = () => onBackspace();
+        } else if (key === 'space') {
+          btn.textContent = 'пробел';
+          btn.style.flex = '2';
+          btn.onclick = () => onSpace();
+        } else if (key === 'ok') {
+          btn.textContent = '✓';
+          btn.style.flex = '1';
+          btn.style.fontWeight = 'bold';
+          btn.onclick = () => onOk();
+        } else if (key === "'" || key === ',' || key === '?') {
           btn.textContent = key;
           btn.addEventListener('click', () => onInput(key));
+        } else if (key === 'l') {
+          btn.textContent = isUpperCase ? 'L' : 'l';
+          btn.addEventListener('click', () => {
+            let charToAdd = isUpperCase ? 'L' : 'l';
+            isUpperCase = false;
+            renderRows();
+            onInput(charToAdd);
+          });
         } else {
           btn.textContent = isUpperCase ? key.toUpperCase() : key;
           btn.addEventListener('click', () => {
             let charToAdd = isUpperCase ? key.toUpperCase() : key;
             isUpperCase = false;
+            renderRows();
             onInput(charToAdd);
           });
         }
@@ -67,6 +101,7 @@ export function setupKeyboard({ level = 0, onInput, onBackspace, onSpace, onOk }
 
   renderRows();
 
+  // Для уровней выше 1 сохраняем работу стандартных внешних кнопок (если они есть в разметке)
   const backspaceBtn = document.getElementById('backspace-btn');
   if (backspaceBtn) backspaceBtn.onclick = () => onBackspace();
 
