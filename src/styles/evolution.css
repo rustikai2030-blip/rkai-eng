@@ -168,13 +168,26 @@ body[data-level="19"] {
   --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.3);
 }
 
-/* Поле ввода ответа */
+/* Поле ввода ответа с ограничением в 2 строки, переносом слов и фиксированной высотой */
 #answer-display {
   border-radius: var(--border-radius, 0px);
   box-shadow: var(--box-shadow, none);
   border: 2px solid var(--btn-border, currentColor);
   background: var(--btn-bg, inherit);
   transition: all 0.3s ease;
+  
+  /* Новые свойства для многострочности и жесткого ограничения в 2 строки */
+  min-height: 36px;
+  max-height: 82px;
+  padding: 10px 14px;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.3;
 }
 
 /* Все обычные кнопки интерфейса («Слова», «Правила», опции ответов и др.) */
@@ -197,6 +210,7 @@ button {
 /* Стили клавиатуры и кнопок */
 .kb-row {
   display: flex;
+  justify-size: center;
   justify-content: center;
   gap: var(--key-gap, 8px);
   margin-bottom: var(--key-gap, 8px);

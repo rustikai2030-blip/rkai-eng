@@ -38,6 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let testSecondsLeft = 120;
   let testTimerInterval = null;
 
+  const MAX_INPUT_LENGTH = 35; // Ограничение символов, чтобы текст гарантированно помещался максимум в 2 строки
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -200,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function startTestMode() {
     isTestMode = true;
     sessionIndex = 0; 
-    currentInput = ""; // Очищаем поле ввода при входе в тест
+    currentInput = ""; 
     testQuestionsAnswered = 0;
     testCorrectCount = 0;
     testSecondsLeft = gameConfig.testTimeSeconds || 120;
@@ -225,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (testTimerInterval) clearInterval(testTimerInterval);
     isTestMode = false;
     sessionIndex = 0;
-    currentInput = ""; // Очищаем поле ввода при выходе из теста
+    currentInput = "";
 
     const totalQ = gameConfig.testQuestionCount || 30;
     const requiredCorrect = Math.ceil(totalQ * 0.9);
@@ -287,7 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
       pickNewTask();
     }
 
-    // Дополнительно гарантируем очистку текста на экране при рендере
     currentInput = "";
 
     updateStyleLevel();
@@ -310,14 +311,14 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <button id="words-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; border-radius: 8px; cursor: pointer;">Слова</button>
+          <button id="words-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Слова</button>
           <div id="timer-display" style="font-size: 15px; font-weight: bold; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
-          <button id="rules-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; border-radius: 8px; cursor: pointer;">Правила</button>
+          <button id="rules-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Правила</button>
         </div>
 
         ${!isTestMode ? `
           <div style="margin-bottom: 12px;">
-            <button id="start-test-btn" style="width: 100%; padding: 12px; background: var(--accent, #aa3bff); color: #fff; border: none; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 8px;">Перейти на ${currentLevel + 1} уровень (тест)</button>
+            <button id="start-test-btn" style="width: 100%; padding: 12px; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 8px;">Перейти на ${currentLevel + 1} уровень (тест)</button>
           </div>
         ` : `
           <div style="margin-bottom: 12px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 8px;">
@@ -328,13 +329,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ${deferredPrompt ? `
           <div style="margin-bottom: 10px;">
-            <button id="install-pwa-btn" style="width: 100%; padding: 12px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 8px;">📲 Установить приложение</button>
+            <button id="install-pwa-btn" style="width: 100%; padding: 12px; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 8px;">📲 Установить приложение</button>
           </div>
         ` : ''}
 
         ${isAdminUser ? `
           <div style="margin-bottom: 8px; text-align: center;">
-            <button id="admin-panel-btn" style="padding: 8px 14px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 6px;">📊 Админ-панель</button>
+            <button id="admin-panel-btn" style="padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 6px;">📊 Админ-панель</button>
           </div>
         ` : ''}
       </div>
@@ -348,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
-            <div id="answer-display" style="border: 2px solid currentColor; padding: 16px; font-size: 26px; min-height: 36px; margin-bottom: 10px; border-radius: 8px; letter-spacing: 2px; background: var(--btn-bg, inherit);">${currentInput}</div>
+            <div id="answer-display" style="font-size: 24px; margin-bottom: 10px;">${currentInput}</div>
             <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
         ` : `
@@ -362,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
             <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
               ${currentTask.options.map(opt => `
-                <button class="option-btn" style="padding: 16px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 20px; font-weight: 600; cursor: pointer; text-align: center; border-radius: 8px;">${opt}</button>
+                <button class="option-btn" style="padding: 16px; font-size: 20px; font-weight: 600; cursor: pointer; text-align: center; border-radius: 8px;">${opt}</button>
               `).join('')}
             </div>
           </div>
@@ -378,20 +379,24 @@ document.addEventListener('DOMContentLoaded', () => {
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
-          if (currentInput.length === 0) {
-            currentInput += char.toUpperCase();
-          } else {
-            currentInput += char;
+          if (currentInput.length < MAX_INPUT_LENGTH) {
+            if (currentInput.length === 0) {
+              currentInput += char.toUpperCase();
+            } else {
+              currentInput += char;
+            }
+            document.getElementById('answer-display').textContent = currentInput;
           }
-          document.getElementById('answer-display').textContent = currentInput;
         },
         onBackspace: () => {
           currentInput = currentInput.slice(0, -1);
           document.getElementById('answer-display').textContent = currentInput;
         },
         onSpace: () => {
-          currentInput += " ";
-          document.getElementById('answer-display').textContent = currentInput;
+          if (currentInput.length < MAX_INPUT_LENGTH) {
+            currentInput += " ";
+            document.getElementById('answer-display').textContent = currentInput;
+          }
         },
         onOk: async () => {
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
@@ -454,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
       logoutBtn.onclick = async () => {
         if (userUnsubscribe) userUnsubscribe();
-        await saveProgressToFirestore();
+        await saveProgressTestSession();
         signOut(auth);
       };
     }
