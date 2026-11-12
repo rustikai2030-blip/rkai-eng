@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <input type="text" id="answer-display" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" readonly />
-            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
+            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showStats || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
         ` : `
           <div>
@@ -381,7 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
         inputEl.focus();
         inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
 
-        // Синхронизируем currentInput, если пользователь кликнул в инпут, чтобы изменить позицию курсора
         inputEl.addEventListener('click', () => {
           currentInput = inputEl.value;
         });
@@ -400,7 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (val.length < MAX_INPUT_LENGTH) {
             let charToAdd = char;
-            // Автоматически делаем заглавной первую букву, если курсор в самом начале и текст пустой/стал пустым
             if (start === 0 && val.length === 0) {
               charToAdd = char.toUpperCase();
             }
@@ -418,11 +416,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const val = inputEl.value;
 
           if (start !== end) {
-            // Удаляем выделенный фрагмент
             inputEl.value = val.substring(0, start) + val.substring(end);
             inputEl.selectionStart = inputEl.selectionEnd = start;
           } else if (start > 0) {
-            // Удаляем символ перед курсором
             inputEl.value = val.substring(0, start - 1) + val.substring(start);
             inputEl.selectionStart = inputEl.selectionEnd = start - 1;
           }
@@ -444,6 +440,15 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         onOk: async () => {
           if (inputEl) currentInput = inputEl.value;
+
+          // Проверка на пустое поле ввода
+          if (!currentInput.trim()) {
+            lastFeedback = "Сначала введите перевод";
+            lastFeedbackColor = "#eab308"; // Желтоватый/предупреждающий цвет
+            renderTrainer();
+            return;
+          }
+
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
           handleAnswerResult(isCorrect);
           if (!isTestMode) await saveProgressToFirestore(); 
