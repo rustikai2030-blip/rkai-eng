@@ -3056,7 +3056,7 @@ const statementsEnRu = [
 
 const negativesEnRu = [
   { en: "I don't work", options: ["Я не работаю", "Ты не работаешь", "Я работал", "Мы не работаем"], correct: "Я не работаю", category: "negative" },
-  { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работаю"], correct: "Он не работает", category: "negative" },
+  { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работает"], correct: "Он не работает", category: "negative" },
   { en: "I didn't work", options: ["Я не работал", "Я не работаю", "Он не работал", "Я работал"], correct: "Я не работал", category: "negative" }
 ];
 
@@ -3067,7 +3067,6 @@ const questionsEnRu = [
   { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?", category: "question" }
 ];
 
-// Уровни уроков с учетом пропорций внутри каждого типа
 export const level1Tasks = {
   ruEn: statementsRuEn,
   enRu: statementsEnRu
@@ -3093,14 +3092,33 @@ function shuffleArray(array) {
   return arr;
 }
 
-// Функция строгого циклического выбора: 7 русско-английских, затем 3 англо-русских
+// Очереди для равномерного распределения без повторений подряд
+let shuffledRuEnPool = [];
+let shuffledEnRuPool = [];
+
+function getNextTaskFromPool(poolType, sourcePool) {
+  if (poolType === 'ruEn') {
+    if (shuffledRuEnPool.length === 0) {
+      shuffledRuEnPool = shuffleArray(sourcePool);
+    }
+    return shuffledRuEnPool.pop();
+  } else {
+    if (shuffledEnRuPool.length === 0) {
+      shuffledEnRuPool = shuffleArray(sourcePool);
+    }
+    return shuffledEnRuPool.pop();
+  }
+}
+
+// Функция циклического выбора с равномерным распределением элементов
 export function getCyclicTask(sessionIndex, levelTasks) {
   const positionInCycle = sessionIndex % 10;
   const isEnRu = positionInCycle >= 7; 
 
-  const pool = isEnRu ? levelTasks.enRu : levelTasks.ruEn;
-  const rawTask = pool[Math.floor(Math.random() * pool.length)];
+  const sourcePool = isEnRu ? levelTasks.enRu : levelTasks.ruEn;
+  const poolType = isEnRu ? 'enRu' : 'ruEn';
 
+  const rawTask = getNextTaskFromPool(poolType, sourcePool);
   let task = { ...rawTask };
 
   // Если это задание с вариантами ответа (англ -> рус), рандомизируем порядок кнопок
@@ -3665,6 +3683,24 @@ button {
 .kb-btn:active {
   background: var(--accent);
   color: #fff;
+}
+/* Анимация встряски при ошибке */
+@keyframes shakeAnimation {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.shake-effect {
+  animation: shakeAnimation 0.4s ease;
+  border-color: #ef4444 !important;
+}
+
+/* Зеленая подсветка при правильном ответе */
+.success-flash {
+  border-color: #22c55e !important;
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  transition: all 0.2s ease;
 }
 
 === FILE: ./src/firebase.js ===
@@ -4479,7 +4515,7 @@ import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
-import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
+import { calculateStyleLevel, gameConfig } from './config/gameConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -4509,7 +4545,46 @@ document.addEventListener('DOMContentLoaded', () => {
   let testSecondsLeft = 120;
   let testTimerInterval = null;
 
+  let isSoundEnabled = localStorage.getItem('rkai_sound_enabled') !== 'false';
+
   const MAX_INPUT_LENGTH = 35;
+
+  // Расчет уровня элементов интерфейса (от 0 до 6)
+  function calculateElementLevel(totalCorrect) {
+    const step = gameConfig.stepPerElementLevel || 5;
+    const level = Math.floor(totalCorrect / step);
+    return Math.min(level, 6); 
+  }
+
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (!isSoundEnabled) return;
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    } else if (type === 'error') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    }
+  }
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -4664,7 +4739,7 @@ document.addEventListener('DOMContentLoaded', () => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
       const elementLevel = calculateElementLevel(totalCorrectAnswers);
-      if (timerEl && elementLevel >= 1 && !isTestMode) {
+      if (timerEl && elementLevel >= 3 && !isTestMode) {
         timerEl.textContent = `${formatTime(secondsElapsed)}`;
       }
     }, 1000);
@@ -4714,10 +4789,17 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   }
 
-  function handleAnswerResult(isCorrect) {
+  async function handleAnswerResult(isCorrect) {
+    const elementLevel = calculateElementLevel(totalCorrectAnswers);
+
     if (isTestMode) {
       testQuestionsAnswered++;
-      if (isCorrect) testCorrectCount++;
+      if (isCorrect) {
+        testCorrectCount++;
+        if (elementLevel >= 5) playSound('success');
+      } else {
+        if (elementLevel >= 5) playSound('error');
+      }
 
       const totalQ = gameConfig.testQuestionCount || 30;
       const requiredCorrect = Math.ceil(totalQ * 0.9);
@@ -4733,26 +4815,71 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionIndex++;
       currentInput = "";
       pickNewTask();
+      renderTrainer();
     } else {
       if (isCorrect) {
         consecutiveErrors = 0; 
-        const elementLevel = calculateElementLevel(totalCorrectAnswers);
+        
+        if (elementLevel >= 5) {
+          playSound('success');
+        }
+
         if (elementLevel >= 1) {
           lastFeedback = "Правильно";
           lastFeedbackColor = "#22c55e";
         }
+
+        // Если уровень >= 6, подсвечиваем зеленым и делаем задержку 300мс перед переключением задания
+        if (elementLevel >= 6 && !isEnglishToRussian) {
+          const inputEl = document.getElementById('answer-display');
+          if (inputEl) {
+            inputEl.classList.add('success-flash');
+          }
+          
+          totalCorrectAnswers++;
+          sessionIndex++;
+          currentInput = "";
+
+          setTimeout(() => {
+            pickNewTask();
+            renderTrainer();
+          }, 300);
+          
+          await saveProgressToFirestore();
+          return;
+        }
+
         totalCorrectAnswers++;
         sessionIndex++; 
         currentInput = ""; 
         pickNewTask();
+        await saveProgressToFirestore();
+        renderTrainer();
+
       } else {
         consecutiveErrors++; 
-        const elementLevel = calculateElementLevel(totalCorrectAnswers);
+        
+        if (elementLevel >= 5) {
+          playSound('error');
+        }
+
         if (elementLevel >= 1) {
           lastFeedback = getWrongPhrase(consecutiveErrors);
           lastFeedbackColor = "#ef4444";
         }
+
+        if (elementLevel >= 6 && !isEnglishToRussian) {
+          const inputEl = document.getElementById('answer-display');
+          if (inputEl) {
+            inputEl.classList.add('shake-effect');
+            setTimeout(() => {
+              inputEl.classList.remove('shake-effect');
+            }, 400);
+          }
+        }
+
         totalIncorrectAnswers++;
+        renderTrainer();
       }
     }
   }
@@ -4764,7 +4891,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateStyleLevel();
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
-    const showStats = elementLevel >= 1;
+
+    const showFeedback = elementLevel >= 1;
+    const showCounters = elementLevel >= 2;
+    const showTimer = elementLevel >= 3;
+    const showTestButton = elementLevel >= 4;
+    const showSoundToggle = elementLevel >= 5;
 
     app.innerHTML = `
       <div>
@@ -4772,7 +4904,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div>
             👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} | Уровень ${currentLevel}
           </div>
-          <div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            ${showSoundToggle ? `
+              <button id="sound-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 16px;" title="Вкл/Выкл звук">
+                ${isSoundEnabled ? '🔊' : '🔇'}
+              </button>
+            ` : ''}
             ${currentUser ? `
               <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 14px; color: inherit;">Выйти</button>
             ` : `
@@ -4783,20 +4920,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <button id="words-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Слова</button>
-          <div id="timer-display" style="font-size: 15px; font-weight: bold; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
+          <div id="timer-display" style="font-size: 15px; font-weight: bold; visibility: ${showTimer && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
           <button id="rules-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Правила</button>
         </div>
 
-        ${!isTestMode ? `
+        ${showTestButton && !isTestMode ? `
           <div style="margin-bottom: 12px;">
             <button id="start-test-btn" style="width: 100%; padding: 12px; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 8px;">Перейти на ${currentLevel + 1} уровень (тест)</button>
           </div>
-        ` : `
+        ` : ''}
+
+        ${isTestMode ? `
           <div style="margin-bottom: 12px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 8px;">
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">РЕЖИМ ТЕСТИРОВАНИЯ (${testQuestionsAnswered}/${gameConfig.testQuestionCount})</div>
             <div id="test-timer-display" style="font-size: 15px; color: #ef4444; font-weight: bold;">Осталось времени: ${formatTime(testSecondsLeft)}</div>
           </div>
-        `}
+        ` : ''}
 
         ${deferredPrompt ? `
           <div style="margin-bottom: 10px;">
@@ -4815,23 +4954,23 @@ document.addEventListener('DOMContentLoaded', () => {
         ${!isEnglishToRussian ? `
           <div>
             <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 12px;">
-              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
               <p style="font-size: 30px; font-weight: bold; margin: 0; line-height: 1.2;">${currentTask.ru}</p>
-              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
             <input type="text" id="answer-display" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" readonly />
-            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showStats || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
+            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showFeedback || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
         ` : `
           <div>
             <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px;">
-              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
               <p style="font-size: 30px; font-weight: bold; margin: 0;">${currentTask.en}</p>
-              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
-            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
+            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
             <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
               ${currentTask.options.map(opt => `
                 <button class="option-btn" style="padding: 16px; font-size: 20px; font-weight: 600; cursor: pointer; text-align: center; border-radius: 8px;">${opt}</button>
@@ -4845,6 +4984,15 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="keyboard" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;"></div>
       </div>
     `;
+
+    const soundToggleBtn = document.getElementById('sound-toggle-btn');
+    if (soundToggleBtn) {
+      soundToggleBtn.onclick = () => {
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('rkai_sound_enabled', isSoundEnabled);
+        renderTrainer();
+      };
+    }
 
     if (!isEnglishToRussian) {
       const inputEl = document.getElementById('answer-display');
@@ -4870,8 +5018,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (val.length < MAX_INPUT_LENGTH) {
             let charToAdd = char;
-            // Делаем букву заглавной ТОЛЬКО если курсор стоит в самом начале (позиция 0) 
-            // и перед ним нет никакого текста (поле абсолютно пустое).
             if (start === 0 && val.length === 0) {
               charToAdd = char.toUpperCase();
             } else {
@@ -4924,9 +5070,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
-          handleAnswerResult(isCorrect);
-          if (!isTestMode) await saveProgressToFirestore(); 
-          renderTrainer();
+          await handleAnswerResult(isCorrect);
         }
       });
     } else {
@@ -4990,12 +5134,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setupOptions() {
     const optionButtons = document.querySelectorAll('.option-btn');
+    optionButtons.buttonListenersAdded = true;
     optionButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
         const isCorrect = btn.textContent.trim() === currentTask.correct;
-        handleAnswerResult(isCorrect);
-        if (!isTestMode) await saveProgressToFirestore();
-        renderTrainer();
+        await handleAnswerResult(isCorrect);
       });
     });
   }
