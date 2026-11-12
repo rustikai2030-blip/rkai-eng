@@ -2802,6 +2802,169 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+=== FILE: ./src/data/wrongPhrases.js ===
+// src/data/wrongPhrases.js
+
+export const initialWrongPhrases = {
+  1: [
+    "Неправильно"
+  ],
+  2: [
+    "Ну ты что дружок?!",
+    "Соберись, друг!",
+    "Не спеши, подумай.",
+    "Мимо, друг мой.",
+    "Внимательнее, дружище.",
+    "Почти, но нет.",
+    "Ошибочка вышла.",
+    "Давай еще раз.",
+    "Не торопись.",
+    "Попробуй снова."
+  ],
+  3: [
+    "Ну сколько можно?",
+    "Серьезно?",
+    "Ты отвлекся?",
+    "Ну как же так?",
+    "Собери мысли в кучу.",
+    "Глаза разбегаются?",
+    "Нужно сосредоточиться.",
+    "Опять мимо.",
+    "Теряешь концентрацию.",
+    "Соберись с силами."
+  ],
+  4: [
+    "Ты что? Издеваешься?",
+    "Это уже не смешно!",
+    "Ты специально?",
+    "Хватит шутить!",
+    "Включи мозг, пожалуйста.",
+    "Куда ты смотришь?!",
+    "Это элементарно!",
+    "Прекращай угадывать.",
+    "Соберись капитально!",
+    "Ты испытываешь мое терпение."
+  ],
+  5: [
+    "Закрой приложение и не заходи сюда больше!",
+    "Иди отдохни, голова уже не варит.",
+    "Все, хватит на сегодня мучить себя.",
+    "Компьютер плачет от твоих ответов.",
+    "Пойди попей водички и остынь.",
+    "Хватит ломать тренажер!",
+    "У тебя официально перерыв.",
+    "Отдохни от учебы, друг.",
+    "Закрой вкладку и поспи.",
+    "Мозг перегрелся, выключайся.",
+    "Ты решил пробить дно англичанки?",
+    "Даже Т9 в шоке от твоих действий.",
+    "Ты что, клавиатуру жопой давишь?",
+    "Может, включишь экран, прежде чем кликать?",
+    "Шекспир только что перевернулся в гробу.",
+    "Ты точно на английском пытаешься писать?",
+    "Удаляй Duolingo, тебе даже оно не поможет.",
+    "Звоню твоей учительнице английского...",
+    "Ты тыкаешь наугад или это секретный шифр?",
+    "Признайся, ты просто проверяешь все фразы?",
+    "Снимай видео для TikTok, ты побил рекорд по ошибкам!",
+    "Тут даже нейросеть бессильна.",
+    "Хватит тестировать мою нервную систему!",
+    "Ты кликаешь быстрее, чем думаешь.",
+    "Английский — это не твое, попробуй клингонский.",
+    "Кажется, твой пальчик соскользнул... 5 раз подряд.",
+    "Спойлер: правильный ответ был ДРУГОЙ.",
+    "Тебе за эти ошибки хоть платят?",
+    "Какая-то лютая дичь вместо ответа.",
+    "Админ плачет, глядя на твою статистику.",
+    "Ты решил собрать коллекцию всех фраз?",
+    "Может, позвать кого-то взросленького?",
+    "Ты случайно не кот, который ходит по клавиатуре?",
+    "Я сейчас выключу тебе интернет!",
+    "За такое в Лондоне сразу депортируют.",
+    "Пс-с... Правильный ответ был в правилах, но кто их читает?",
+    "Твой английский на уровне 'Лондон из зе капитал оф грейт британ'.",
+    "Это не ошибки, это стиль жизни, да?",
+    "Спасибо за тест интерфейса, но хватит!",
+    "Ты что, играешь в 'Как НЕ сдать экзамен'?",
+    "Уровень интеллекта ответов: Хлебушек.",
+    "Мой искусственный интеллект начинает тупеть от твоих вариантов.",
+    "Хватит тыкать пальцем в небо!",
+    "Королева Елизавета недовольна тобой.",
+    "Поздравляю, ты нашел секретный уровень позора!",
+    "Скажи честно, ты просто веселишь друзей за экраном?",
+    "Жми Alt+F4, не позорься.",
+    "Даже решето держит лучше, чем твоя память.",
+    "Открой учебник хотя бы на первой странице!",
+    "Я сейчас вызову бригаду филологов!",
+    "Тебе надо в Книгу Гиннесса за эти ответы.",
+    "Ты случайно не с закрытыми глазами играешь?",
+    "Твой English сошел с ума.",
+    "Шо, опять?!",
+    "Хьюстон, у нас проблемы, тут кто-то не знает базу!",
+    "Похоже, твоя автозамена сдалась.",
+    "Нажми уши, чтоб мозг не вытек.",
+    "Загугли хотя бы слово 'Work'!",
+    "Ты тестируешь лимиты админа?",
+    "Тут даже гугл-переводчик завис.",
+    "Может, вернемся в детский сад?",
+    "Система обнаружила 100% отсутствие английского.",
+    "Твои ошибки вредят экологии сайта!",
+    "Разраб не спал ночами не для того, чтобы ты так ошибался!",
+    "Угадайка не прошла.",
+    "Давай, сделай еще ошибку, посмейся.",
+    "Король ошибок найден!",
+    "Позовите переводчика, мы его теряем!",
+    "Кажется, кнопка 'Отправить' от тебя устала.",
+    "Ты что, с марсианского переводишь?",
+    "Эй, IQ-тест в другой вкладке!",
+    "У тебя что, день противоположных ответов?",
+    "Тебе не стыдно перед экраном?",
+    "Твой английский сломался, несите новый.",
+    "Оскар за самую оригинальную ошибку идет тебе!",
+    "Может, попробуешь думать перед кликом?",
+    "Даже попугай бы уже выучил 'I work'!",
+    "Error 404: Знания не найдены.",
+    "Ты победил тренажер по количеству фейлов!",
+    "Так, стоп! Сделай глубокий вдох и подумай.",
+    "Твой уровень английского: Ноль целых, ноль десятых.",
+    "Покажи этот экран маме, пусть порадуется.",
+    "Ты специально сливаешь катку?",
+    "Осторожно, сайт сейчас самоуничтожится от твоих ответов!",
+    "Сфокусируйся! Ты можешь лучше (наверное).",
+    "Хватит прощупывать дно базы данных!",
+    "Мимо! Совсем мимо!",
+    "Ну всё, я обиделся и больше не отвечаю. (Шутка, пробуй еще).",
+    "Твой результат попадет в мемы этого года.",
+    "Глаза мои бы этого не видели...",
+    "Иди погладь кота, сними стресс.",
+    "Мастер-класс по тому, как НЕ надо учить английский.",
+    "Английский язык покинул чат.",
+    "Ну ты и кадр, конечно!",
+    "Каждый твой клик — это боль для сервера.",
+    "Давай без фанатизма, почитай правила!",
+    "Всё, пока, я спать, с тобой бесполезно.",
+    "Ты выиграл главную награду: 'Главный тролль приложения'!",
+    "Закрой приложение и не заходи сюда больше, пока не выучишь!"
+  ]
+};
+
+// Загрузка фраз (с поддержкой localStorage для редактирования из админки)
+export function getWrongPhrases() {
+  const saved = localStorage.getItem('rkai_wrong_phrases');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      console.error("Ошибка парсинга фраз из localStorage", e);
+    }
+  }
+  return initialWrongPhrases;
+}
+
+export function saveWrongPhrases(phrasesObj) {
+  localStorage.setItem('rkai_wrong_phrases', JSON.stringify(phrasesObj));
+}
+
 === FILE: ./src/data/tasks.js ===
 // Базовый словарь для модального окна "Слова"
 export const dictionaryWords = [
@@ -3250,64 +3413,134 @@ body[data-level="0"] {
   --box-shadow: none; --btn-bg: #fff; --btn-border: #000;
 }
 
-/* Уровень 1: Еле заметное скругление */
+/* Уровень 1 */
 body[data-level="1"] {
+  background-color: #fefefe; color: #080808; font-family: sans-serif;
+  --border-radius: 1px; --key-height: 51px; --key-font-size: 17.5px; --key-gap: 6px;
+  --box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01); --btn-bg: #fff; --btn-border: #e8ecef;
+}
+
+/* Уровень 2 */
+body[data-level="2"] {
   background-color: #fbfbfb; color: #111111; font-family: sans-serif;
   --border-radius: 2px; --key-height: 50px; --key-font-size: 17px; --key-gap: 6px;
   --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); --btn-bg: #fff; --btn-border: #e2e8f0;
 }
 
-/* Уровень 2: Мягкие грани */
-body[data-level="2"] {
+/* Уровень 3 */
+body[data-level="3"] {
+  background-color: #faebd7; color: #141414; font-family: sans-serif;
+  --border-radius: 3px; --key-height: 49px; --key-font-size: 16.5px; --key-gap: 5.5px;
+  --box-shadow: 0 3px 5px rgba(0, 0, 0, 0.03); --btn-bg: #fff; --btn-border: #d8dee4;
+}
+
+/* Уровень 4 */
+body[data-level="4"] {
   background-color: #f8fafc; color: #111111; font-family: sans-serif;
   --border-radius: 4px; --key-height: 48px; --key-font-size: 16px; --key-gap: 5px;
   --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04); --btn-bg: #fff; --btn-border: #cbd5e1;
 }
 
-/* Уровень 3: Легкие тени */
-body[data-level="3"] {
+/* Уровень 5 */
+body[data-level="5"] {
+  background-color: #f6f8fa; color: #101318; font-family: sans-serif;
+  --border-radius: 5px; --key-height: 47px; --key-font-size: 16px; --key-gap: 5px;
+  --box-shadow: 0 4px 7px rgba(0, 0, 0, 0.045); --btn-bg: #f8fafc; --btn-border: #b8c5d6;
+}
+
+/* Уровень 6 */
+body[data-level="6"] {
   background-color: #f1f5f9; color: #0f172a; font-family: sans-serif;
   --border-radius: 6px; --key-height: 46px; --key-font-size: 16px; --key-gap: 5px;
   --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); --btn-bg: #f8fafc; --btn-border: #94a3b8;
 }
 
-/* Уровень 4: Полукруглые элементы */
-body[data-level="4"] {
+/* Уровень 7 */
+body[data-level="7"] {
+  background-color: #edf2f7; color: #0f172a; font-family: sans-serif;
+  --border-radius: 7px; --key-height: 45.5px; --key-font-size: 15.5px; --key-gap: 5px;
+  --box-shadow: 0 5px 10px rgba(0, 0, 0, 0.06); --btn-bg: #fdfdfd; --btn-border: #7c90a8;
+}
+
+/* Уровень 8 */
+body[data-level="8"] {
   background-color: #e2e8f0; color: #0f172a; font-family: sans-serif;
   --border-radius: 8px; --key-height: 45px; --key-font-size: 15px; --key-gap: 5px;
   --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.07); --btn-bg: #ffffff; --btn-border: #64748b;
 }
 
-/* Уровень 5: Переход к полумраку */
-body[data-level="5"] {
+/* Уровень 9 */
+body[data-level="9"] {
+  background-color: #d8e2ec; color: #0f172a; font-family: sans-serif;
+  --border-radius: 9px; --key-height: 44.5px; --key-font-size: 15px; --key-gap: 4.5px;
+  --box-shadow: 0 7px 14px rgba(0, 0, 0, 0.08); --btn-bg: #f5f7fa; --btn-border: #55667c;
+}
+
+/* Уровень 10 */
+body[data-level="10"] {
   background-color: #cbd5e1; color: #0f172a; font-family: sans-serif;
   --border-radius: 10px; --key-height: 44px; --key-font-size: 15px; --key-gap: 4px;
   --box-shadow: 0 8px 16px rgba(0, 0, 0, 0.09); --btn-bg: #f1f5f9; --btn-border: #475569;
 }
 
-/* Уровень 6: Темная тема (Старт) */
-body[data-level="6"] {
+/* Уровень 11 */
+body[data-level="11"] {
+  background-color: #b8c9dc; color: #0f172a; font-family: system-ui, sans-serif;
+  --border-radius: 11px; --key-height: 43.5px; --key-font-size: 15px; --key-gap: 4px;
+  --box-shadow: 0 9px 18px rgba(0, 0, 0, 0.14); --btn-bg: #2a3b52; --btn-border: #526581;
+}
+
+/* Уровень 12: Темная тема (Старт) */
+body[data-level="12"] {
   background-color: #334155; color: #f8fafc; font-family: system-ui, sans-serif;
   --border-radius: 12px; --key-height: 43px; --key-font-size: 15px; --key-gap: 4px;
   --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); --btn-bg: #1e293b; --btn-border: #64748b;
 }
 
-/* Уровень 7: Глубокий синий оттенок */
-body[data-level="7"] {
+/* Уровень 13 */
+body[data-level="13"] {
+  background-color: #29374c; color: #f8fafc; font-family: system-ui, sans-serif;
+  --border-radius: 13px; --key-height: 42.5px; --key-font-size: 15px; --key-gap: 4px;
+  --box-shadow: 0 11px 22px rgba(56, 189, 248, 0.12); --btn-bg: #192333; --btn-border: #4a90e2;
+}
+
+/* Уровень 14 */
+body[data-level="14"] {
   background-color: #1e293b; color: #f8fafc; font-family: system-ui, sans-serif;
   --border-radius: 14px; --key-height: 42px; --key-font-size: 15px; --key-gap: 4px;
   --box-shadow: 0 12px 24px rgba(56, 189, 248, 0.15); --btn-bg: #0f172a; --btn-border: #38bdf8;
 }
 
-/* Уровень 8: Ночной режим */
-body[data-level="8"] {
-  background-color: #0f172a; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 18px; --key-height: 41px; --key-font-size: 14px; --key-gap: 4px;
-  --box-shadow: 0 16px 30px rgba(56, 189, 248, 0.25); --btn-bg: #1e293b; --btn-border: #38bdf8;
+/* Уровень 15 */
+body[data-level="15"] {
+  background-color: #162030; color: #fcfdfe; font-family: system-ui, sans-serif;
+  --border-radius: 15px; --key-height: 41.5px; --key-font-size: 14.5px; --key-gap: 4px;
+  --box-shadow: 0 13px 26px rgba(56, 189, 248, 0.18); --btn-bg: #0b111a; --btn-border: #30a5db;
 }
 
-/* Уровень 9: Премиальный фиолетово-неоновый кибер-стиль */
-body[data-level="9"] {
+/* Уровень 16 */
+body[data-level="16"] {
+  background-color: #0f172a; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 16px; --key-height: 41px; --key-font-size: 14px; --key-gap: 4px;
+  --box-shadow: 0 14px 28px rgba(56, 189, 248, 0.22); --btn-bg: #1e293b; --btn-border: #38bdf8;
+}
+
+/* Уровень 17 */
+body[data-level="17"] {
+  background-color: #0b1120; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 18px; --key-height: 40.5px; --key-font-size: 14px; --key-gap: 4px;
+  --box-shadow: 0 16px 32px rgba(192, 132, 252, 0.25); --btn-bg: #141b2d; --btn-border: #9b51e0;
+}
+
+/* Уровень 18 */
+body[data-level="18"] {
+  background-color: #080c18; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 21px; --key-height: 40px; --key-font-size: 14px; --key-gap: 4px;
+  --box-shadow: 0 18px 36px rgba(192, 132, 252, 0.3); --btn-bg: #0f172a; --btn-border: #b06efc;
+}
+
+/* Уровень 19: Премиальный фиолетово-неоновый кибер-стиль (Максимум) */
+body[data-level="19"] {
   background-color: #050811; color: #ffffff; font-family: system-ui, sans-serif;
   --border-radius: 24px; --key-height: 40px; --key-font-size: 14px; --key-gap: 4px;
   --box-shadow: 0 20px 40px rgba(192, 132, 252, 0.35); --btn-bg: #0f172a; --btn-border: #c084fc;
@@ -3370,6 +3603,7 @@ export const db = getFirestore(app);
 import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, setDoc } from "firebase/firestore";
 import { db, auth } from "../firebase.js";
 import { gameConfig } from "../config/gameConfig.js";
+import { getWrongPhrases, saveWrongPhrases, initialWrongPhrases } from "../data/wrongPhrases.js";
 
 let allUsers = [];
 let currentActiveTab = 'users';
@@ -3419,10 +3653,11 @@ function renderAdminMainView() {
         <h1 style="font-size: 26px; font-weight: 700; margin: 0; color: #0f172a;">Админ-панель</h1>
       </div>
 
-      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-        <button class="admin-tab-btn" data-tab="users" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
-        <button class="admin-tab-btn" data-tab="analytics" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
-        <button class="admin-tab-btn" data-tab="settings" style="flex: 1; padding: 12px; border-radius: 20px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'settings' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'settings' ? '#ffffff' : '#475569'};">Настройки</button>
+      <div style="display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="admin-tab-btn" data-tab="users" style="flex: 1; min-width: 100px; padding: 10px; border-radius: 16px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'users' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'users' ? '#ffffff' : '#475569'};">Пользователи</button>
+        <button class="admin-tab-btn" data-tab="phrases" style="flex: 1; min-width: 100px; padding: 10px; border-radius: 16px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'phrases' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'phrases' ? '#ffffff' : '#475569'};">Фразы</button>
+        <button class="admin-tab-btn" data-tab="analytics" style="flex: 1; min-width: 100px; padding: 10px; border-radius: 16px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'analytics' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'analytics' ? '#ffffff' : '#475569'};">Аналитика</button>
+        <button class="admin-tab-btn" data-tab="settings" style="flex: 1; min-width: 100px; padding: 10px; border-radius: 16px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: ${currentActiveTab === 'settings' ? '#38bdf8' : '#cbd5e1'}; color: ${currentActiveTab === 'settings' ? '#ffffff' : '#475569'};">Настройки</button>
       </div>
 
       <div id="admin-tab-content"></div>
@@ -3441,6 +3676,8 @@ function renderAdminMainView() {
 
   if (currentActiveTab === 'users') {
     renderUsersTab();
+  } else if (currentActiveTab === 'phrases') {
+    renderPhrasesTab();
   } else if (currentActiveTab === 'analytics') {
     renderAnalyticsTab();
   } else {
@@ -3451,6 +3688,99 @@ function renderAdminMainView() {
 function closeAdminModal() {
   const modal = document.getElementById('admin-modal');
   if (modal) modal.style.display = 'none';
+}
+
+function renderPhrasesTab() {
+  const contentContainer = document.getElementById('admin-tab-content');
+  if (!contentContainer) return;
+
+  const phrases = getWrongPhrases();
+
+  let html = `
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0;">Управление фразами</h3>
+        <button id="reset-phrases-default" style="background: #f59e0b; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">Сбросить по умолч.</button>
+      </div>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">Здесь вы можете добавлять или удалять фразы для каждого уровня ошибок.</p>
+  `;
+
+  for (let lvl = 1; lvl <= 5; lvl++) {
+    const list = phrases[lvl] || [];
+    html += `
+      <div style="margin-bottom: 20px; background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px;">
+        <h4 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 10px 0;">Уровень ${lvl} (${list.length} выраж.)</h4>
+        
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;" id="phrase-list-lvl-${lvl}">
+    `;
+
+    list.forEach((phrase, index) => {
+      html += `
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="text" data-level="${lvl}" data-index="${index}" class="phrase-input-item" value="${phrase}" style="flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px;" />
+          <button data-level="${lvl}" data-index="${index}" class="delete-phrase-btn" style="background: #ef4444; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer;">✕</button>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="new-phrase-lvl-${lvl}" placeholder="Новое выражение..." style="flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid #38bdf8; font-size: 14px;" />
+          <button data-level="${lvl}" class="add-phrase-btn" style="background: #22c55e; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">Добавить</button>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  contentContainer.innerHTML = html;
+
+  // Обработчики кнопок удаления
+  document.querySelectorAll('.delete-phrase-btn').forEach(btn => {
+    btn.onclick = () => {
+      const lvl = btn.getAttribute('data-level');
+      const idx = parseInt(btn.getAttribute('data-index'), 10);
+      phrases[lvl].splice(idx, 1);
+      saveWrongPhrases(phrases);
+      renderPhrasesTab();
+    };
+  });
+
+  // Обработчики кнопок добавления
+  document.querySelectorAll('.add-phrase-btn').forEach(btn => {
+    btn.onclick = () => {
+      const lvl = btn.getAttribute('data-level');
+      const input = document.getElementById(`new-phrase-lvl-${lvl}`);
+      const val = input.value.trim();
+      if (val) {
+        phrases[lvl].push(val);
+        saveWrongPhrases(phrases);
+        renderPhrasesTab();
+      }
+    };
+  });
+
+  // Автосохранение при изменении текста инпутов
+  document.querySelectorAll('.phrase-input-item').forEach(input => {
+    input.onchange = () => {
+      const lvl = input.getAttribute('data-level');
+      const idx = parseInt(input.getAttribute('data-index'), 10);
+      const val = input.value.trim();
+      if (val) {
+        phrases[lvl][idx] = val;
+        saveWrongPhrases(phrases);
+      }
+    };
+  });
+
+  // Сброс к дефолтным
+  document.getElementById('reset-phrases-default').onclick = () => {
+    if (confirm("Сбросить все фразы к стандартным значениям?")) {
+      saveWrongPhrases(initialWrongPhrases);
+      renderPhrasesTab();
+    }
+  };
 }
 
 async function renderSettingsTab() {
@@ -3940,7 +4270,7 @@ loadGameSettings();
 export function calculateLevel(totalCorrect) {
   const step = gameConfig.stepPerLevel || 5;
   const level = Math.floor(totalCorrect / step);
-  return Math.min(level, 9); // Ограничиваем максимальным 9-м уровнем
+  return Math.min(level, 19); // Ограничиваем максимальным 9-м уровнем
 }
 
 === FILE: ./src/main.js ===
@@ -3948,8 +4278,9 @@ export function calculateLevel(totalCorrect) {
 import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
 import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
+import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
@@ -3961,24 +4292,21 @@ document.addEventListener('DOMContentLoaded', () => {
   let sessionIndex = 0;          
   let totalCorrectAnswers = 0;   
   let totalIncorrectAnswers = 0;  
+  let consecutiveErrors = 0;     
   let currentTask = null;        
   let isEnglishToRussian = false; 
   let currentInput = "";
   let lastFeedback = "";        
   let lastFeedbackColor = "";   
   
-  let secondsElapsed = 0;       
+  let secondsElapsed = 0;       // Таймер текущей сессии (на экране с 0)
+  let lastSyncedSeconds = 0;    // Для подсчета дельты времени для отправки в базу
   let timerInterval = null;
   let currentUser = null;
   let isAdminUser = false;
   let userUnsubscribe = null; 
   let loginPromptShown = false; 
   let deferredPrompt = null; 
-
-  let isExamMode = false;
-  let examCorrectCount = 0;
-  let examSecondsLeft = 120;
-  let examTimerInterval = null;
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -3992,10 +4320,33 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   });
 
+  // Отправка накопленного времени при закрытии страницы
+  window.addEventListener('beforeunload', () => {
+    if (currentUser) {
+      const deltaSeconds = secondsElapsed - lastSyncedSeconds;
+      if (deltaSeconds > 0) {
+        const userRef = doc(db, "users", currentUser.uid);
+        // Используем sendBeacon или синхронный/асинхронный вызов обновления
+        updateDoc(userRef, {
+          totalTimeSpent: increment(deltaSeconds),
+          lastActive: serverTimestamp()
+        }).catch(() => {});
+      }
+    }
+  });
+
   function updateDynamicLevel() {
     const computedLevel = calculateLevel(totalCorrectAnswers);
     document.body.setAttribute('data-level', computedLevel.toString());
     return computedLevel;
+  }
+
+  function getWrongPhrase(errorsCount) {
+    const phrases = getWrongPhrases();
+    const level = Math.min(Math.max(errorsCount, 1), 5);
+    const list = phrases[level] || phrases[1];
+    const randomIndex = Math.floor(Math.random() * list.length);
+    return list[randomIndex];
   }
 
   async function saveProgressToFirestore() {
@@ -4004,6 +4355,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const currentLevel = updateDynamicLevel();
       const userRef = doc(db, "users", currentUser.uid);
 
+      const deltaSeconds = secondsElapsed - lastSyncedSeconds;
+      lastSyncedSeconds = secondsElapsed; // сбрасываем дельту
+
       await setDoc(userRef, {
         uid: currentUser.uid,
         email: currentUser.email || "anonymous",
@@ -4011,8 +4365,8 @@ document.addEventListener('DOMContentLoaded', () => {
         photoURL: currentUser.photoURL || "",
         totalCorrect: totalCorrectAnswers,
         totalIncorrect: totalIncorrectAnswers,
-        secondsElapsed: secondsElapsed,
         userLevel: currentLevel,
+        totalTimeSpent: increment(deltaSeconds > 0 ? deltaSeconds : 0),
         lastActive: serverTimestamp()
       }, { merge: true });
     } catch (error) {
@@ -4034,19 +4388,25 @@ document.addEventListener('DOMContentLoaded', () => {
           photoURL: user.photoURL || "",
           isAdmin: false,
           userLevel: 0,
-          totalCorrect: totalCorrectAnswers,
-          totalIncorrect: totalIncorrectAnswers,
-          secondsElapsed: secondsElapsed,
+          totalCorrect: 0,
+          totalIncorrect: 0,
+          visitCount: 1, // Первый визит
+          totalTimeSpent: 0,
           lastLogin: serverTimestamp()
         });
       } else {
         const data = docSnap.data();
         totalCorrectAnswers = Math.max(data.totalCorrect || 0, totalCorrectAnswers);
         totalIncorrectAnswers = Math.max(data.totalIncorrect || 0, totalIncorrectAnswers);
-        secondsElapsed = Math.max(data.secondsElapsed || 0, secondsElapsed);
         
         updateDynamicLevel();
-        await setDoc(userRef, { lastLogin: serverTimestamp(), totalCorrect: totalCorrectAnswers, totalIncorrect: totalIncorrectAnswers }, { merge: true });
+        // Увеличиваем счетчик визитов на 1 при входе
+        await setDoc(userRef, { 
+          lastLogin: serverTimestamp(), 
+          visitCount: increment(1),
+          totalCorrect: totalCorrectAnswers, 
+          totalIncorrect: totalIncorrectAnswers 
+        }, { merge: true });
       }
     } catch (error) {
       console.error("Ошибка инициализации профиля:", error);
@@ -4082,8 +4442,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getCurrentTasks() {
     const currentLevel = updateDynamicLevel();
-    if (currentLevel >= 2) return level3Tasks;
-    return currentLevel >= 1 ? level2Tasks : level1Tasks;
+    if (currentLevel >= 6) return level3Tasks;
+    return currentLevel >= 3 ? level2Tasks : level1Tasks;
   }
 
   function pickNewTask() {
@@ -4109,8 +4469,8 @@ document.addEventListener('DOMContentLoaded', () => {
     timerInterval = setInterval(() => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
-      if (timerEl && !isExamMode && totalCorrectAnswers >= 2) {
-        timerEl.textContent = `⏱ ${formatTime(secondsElapsed)}`;
+      if (timerEl && totalCorrectAnswers >= 2) {
+        timerEl.textContent = `${formatTime(secondsElapsed)}`;
       }
     }, 1000);
   }
@@ -4122,11 +4482,11 @@ document.addEventListener('DOMContentLoaded', () => {
       promptModal.id = 'login-prompt-modal';
       promptModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 20px; box-sizing: border-box;';
       promptModal.innerHTML = `
-        <div style="background: #fff; color: #000; padding: 30px; border-radius: 8px; max-width: 400px; width: 100%; text-align: center; border: 2px solid #000;">
+        <div style="background: #fff; color: #000; padding: 30px; border-radius: var(--border-radius, 8px); max-width: 400px; width: 100%; text-align: center; border: 2px solid currentColor; box-shadow: var(--box-shadow, none);">
           <h2 style="margin-top: 0; font-size: 20px; margin-bottom: 15px;">Сохранение результатов</h2>
           <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.5;">Для сохранения ваших результатов, вам необходимо авторизоваться через Google.</p>
-          <button id="modal-google-login-btn" style="background: #000; color: #fff; border: 2px solid #000; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px;">Войти через Google</button>
-          <button id="modal-close-prompt-btn" style="background: #fff; color: #666; border: 1px solid #ccc; padding: 8px 15px; font-size: 14px; cursor: pointer; width: 100%;">Продолжить без сохранения</button>
+          <button id="modal-google-login-btn" style="background: var(--btn-bg, #000); color: inherit; border: 2px solid currentColor; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; border-radius: var(--border-radius, 4px);">Войти через Google</button>
+          <button id="modal-close-prompt-btn" style="background: inherit; color: inherit; border: 1px solid currentColor; padding: 8px 15px; font-size: 14px; cursor: pointer; width: 100%; border-radius: var(--border-radius, 4px);">Продолжить без сохранения</button>
         </div>
       `;
       document.body.appendChild(promptModal);
@@ -4148,6 +4508,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function handleAnswerResult(isCorrect) {
+    if (isCorrect) {
+      consecutiveErrors = 0; 
+      if (totalCorrectAnswers >= 2) {
+        lastFeedback = "Правильно";
+        lastFeedbackColor = "#22c55e";
+      }
+      totalCorrectAnswers++;
+    } else {
+      consecutiveErrors++; 
+      if (totalCorrectAnswers >= 2) {
+        lastFeedback = getWrongPhrase(consecutiveErrors);
+        lastFeedbackColor = "#ef4444";
+      }
+      totalIncorrectAnswers++;
+    }
+
+    if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
+      loginPromptShown = true;
+      showLoginPromptModal();
+    }
+
+    sessionIndex++;
+    currentInput = "";
+    pickNewTask();
+  }
+
   function renderTrainer() {
     if (!currentTask) {
       pickNewTask();
@@ -4157,33 +4544,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentLevel = updateDynamicLevel();
 
     app.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 12px;">
+        <div>
+          👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} (Уровень ${currentLevel + 1})
+        </div>
+        <div>
+          ${currentUser ? `
+            <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit;">Выйти</button>
+          ` : `
+            <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit;">Войти</button>
+          `}
+        </div>
+      </div>
+
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <button id="words-btn" style="width: 80px; padding: 6px; font-size: 13px; background: inherit; color: inherit; border: 2px solid currentColor; cursor: pointer;">Слова</button>
-        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats && !isExamMode ? 'visible' : 'hidden'};">⏱ ${formatTime(secondsElapsed)}</div>
-        <button id="rules-btn" style="width: 80px; padding: 6px; font-size: 13px; background: inherit; color: inherit; border: 2px solid currentColor; cursor: pointer;">Правила</button>
+        <button id="words-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Слова</button>
+        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
+        <button id="rules-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Правила</button>
       </div>
 
       ${deferredPrompt ? `
         <div style="margin-bottom: 10px;">
-          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid #000; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px;">📲 Установить приложение</button>
+          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 4px); box-shadow: var(--box-shadow, none);">📲 Установить приложение</button>
         </div>
       ` : ''}
 
       ${isAdminUser ? `
         <div style="margin-bottom: 8px; text-align: center;">
-          <button id="admin-panel-btn" style="padding: 4px 10px; background: #1e1e24; color: #c084fc; border: 1px solid #c084fc; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px;">📊 Мониторинг сессий (Админ)</button>
+          <button id="admin-panel-btn" style="padding: 6px 12px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 4px); box-shadow: var(--box-shadow, none);">📊 Админ-панель</button>
         </div>
       ` : ''}
-
-      <div style="text-align: right; font-size: 12px; margin-bottom: 15px;">
-        ${currentUser ? `
-          👤 ${currentUser.displayName || currentUser.email} (Уровень ${currentLevel + 1})
-          <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px; color: inherit;">Выйти</button>
-        ` : `
-          👤 Гость (Уровень ${currentLevel + 1})
-          <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 12px; margin-left: 5px; color: inherit;">Войти</button>
-        `}
-      </div>
     `;
 
     if (!isEnglishToRussian) {
@@ -4195,16 +4585,16 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
-          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px; border-radius: var(--border-radius, 0px);">${currentInput}</div>
-          <div id="feedback-msg" style="height: 24px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor};">${lastFeedback}</div>
+          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">${currentInput}</div>
+          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
         </div>
 
         <div id="keyboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;"></div>
 
         <div style="display: flex; gap: 8px;">
-          <button id="space-btn" style="flex: 3; padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer; border-radius: var(--border-radius, 0px);">пробел</button>
-          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; border-radius: var(--border-radius, 0px);">⌫</button>
-          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 0px);">✓</button>
+          <button id="space-btn" style="flex: 3; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">пробел</button>
+          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">⌫</button>
+          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">✓</button>
         </div>
       `;
 
@@ -4228,29 +4618,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         onOk: async () => {
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
-          
-          if (isCorrect) {
-            if (totalCorrectAnswers >= 2) {
-              lastFeedback = "Правильно";
-              lastFeedbackColor = "#22c55e";
-            }
-            totalCorrectAnswers++;
-          } else {
-            if (totalCorrectAnswers >= 2) {
-              lastFeedback = "Неправильно";
-              lastFeedbackColor = "#ef4444";
-            }
-            totalIncorrectAnswers++;
-          }
-
-          if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
-            loginPromptShown = true;
-            showLoginPromptModal();
-          }
-
-          sessionIndex++;
-          currentInput = "";
-          pickNewTask();
+          handleAnswerResult(isCorrect);
           await saveProgressToFirestore(); 
           renderTrainer();
         }
@@ -4264,10 +4632,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
-          <div id="feedback-msg" style="height: 24px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor};">${lastFeedback}</div>
+          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
           <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
             ${currentTask.options.map(opt => `
-              <button class="option-btn" style="padding: 15px; background: inherit; color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center; border-radius: var(--border-radius, 0px);">${opt}</button>
+              <button class="option-btn" style="padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">${opt}</button>
             `).join('')}
           </div>
         </div>
@@ -4324,28 +4692,7 @@ document.addEventListener('DOMContentLoaded', () => {
     optionButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
         const isCorrect = btn.textContent.trim() === currentTask.correct;
-
-        if (isCorrect) {
-          if (totalCorrectAnswers >= 2) {
-            lastFeedback = "Правильно";
-            lastFeedbackColor = "#22c55e";
-          }
-          totalCorrectAnswers++;
-        } else {
-          if (totalCorrectAnswers >= 2) {
-            lastFeedback = "Неправильно";
-            lastFeedbackColor = "#ef4444";
-          }
-          totalIncorrectAnswers++;
-        }
-
-        if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
-          loginPromptShown = true;
-          showLoginPromptModal();
-        }
-
-        sessionIndex++;
-        pickNewTask();
+        handleAnswerResult(isCorrect);
         await saveProgressToFirestore();
         renderTrainer();
       });

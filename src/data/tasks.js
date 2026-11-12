@@ -1,4 +1,4 @@
-// Базовый словарь для модального окна "Слова"
+// src/data/tasks.js
 export const dictionaryWords = [
   { en: "I", ru: "Я" },
   { en: "You", ru: "Ты" },
@@ -10,108 +10,118 @@ export const dictionaryWords = [
   { en: "Work", ru: "Работать" },
   { en: "Worked", ru: "Работал (прошед. время)" },
   { en: "Will work", ru: "Буду работать (будущ. время)" },
-  { en: "Don't / Doesn't work", ru: "Не работаю(ет) (отрицание — Ур. 2)" },
-  { en: "Didn't work", ru: "Не работал (прошед. отрицание — Ур. 2)" },
-  { en: "Do / Does... work?", ru: "Работаешь/работает ли? (вопрос — Ур. 3)" },
-  { en: "Did... work?", ru: "Работал ли? (прошед. вопрос — Ур. 3)" }
+  { en: "Don't / Doesn't work", ru: "Не работаю(ет) (отрицание)" },
+  { en: "Didn't work", ru: "Не работал (прошед. отрицание)" },
+  { en: "Do / Does... work?", ru: "Работаешь/работает ли? (вопрос)" },
+  { en: "Did... work?", ru: "Работал ли? (прошед. вопрос)" }
 ];
 
-// Полный свод правил для модального окна "Правила" (Уровни 1, 2 и 3)
 export const grammarRules = `
   <h2>Правила (Simple)</h2>
-  
   <h3>1. Утвердительная форма (Уровень 1)</h3>
   <p><b>Будущее:</b> I / You / We / They / He / She / It <b>will work</b>.</p>
   <p><b>Настоящее:</b> I / You / We / They <b>work</b> | He / She / It <b>works</b></p>
   <p><b>Прошедшее:</b> I / You / We / They / He / She / It <b>worked</b></p>
 
   <h3>2. Отрицательная форма (Уровень 2)</h3>
-  <p><b>Настоящее:</b> I / You / We / They <b>don't work</b> — Я / Ты / Мы / Они не работаем</p>
-  <p><b>Настоящее (He/She/It):</b> He / She / It <b>doesn't work</b> — Он / Она / Оно не работает</p>
-  <p><b>Прошедшее:</b> I / You / We / They / He / She / It <b>didn't work</b> — Я / Ты / Мы / Он / Оно не работал(а/или)</p>
+  <p><b>Настоящее:</b> I / You / We / They <b>don't work</b></p>
+  <p><b>Настоящее (He/She/It):</b> He / She / It <b>doesn't work</b></p>
+  <p><b>Прошедшее:</b> <b>didn't work</b></p>
 
   <h3>3. Вопросительная форма (Уровень 3)</h3>
-  <p><b>Настоящее:</b> <b>Do</b> I / you / we / they <b>work?</b> — Я / ты / мы / они работаем?</p>
-  <p><b>Настоящее (He/She/It):</b> <b>Does</b> he / she / it <b>work?</b> — Он / она / оно работает?</p>
-  <p><b>Прошедшее:</b> <b>Did</b> I / you / we / they / he / she / it <b>work?</b> — Я / ты / он работал(а)?</p>
-  <p><b>Будущее:</b> <b>Will</b> I / you / we / they / he / she / it <b>work?</b> — Я / ты / он будет работать?</p>
+  <p><b>Настоящее:</b> <b>Do / Does</b> ... <b>work?</b></p>
+  <p><b>Прошедшее:</b> <b>Did</b> ... <b>work?</b></p>
 `;
 
-// Задачи для Уровня 1 (только утверждения)
+const statementsRuEn = [
+  { ru: "Я работаю", en: "I work", category: "statement" },
+  { ru: "Ты работаешь", en: "You work", category: "statement" },
+  { ru: "Мы работаем", en: "We work", category: "statement" },
+  { ru: "Они работают", en: "They work", category: "statement" },
+  { ru: "Он работает", en: "He works", category: "statement" },
+  { ru: "Она работает", en: "She works", category: "statement" },
+  { ru: "Оно работает", en: "It works", category: "statement" },
+  { ru: "Я работал", en: "I worked", category: "statement" },
+  { ru: "Ты работал", en: "You worked", category: "statement" },
+  { ru: "Мы работали", en: "We worked", category: "statement" },
+  { ru: "Он работал", en: "He worked", category: "statement" },
+  { ru: "Она работала", en: "She worked", category: "statement" },
+  { ru: "Я буду работать", en: "I will work", category: "statement" }
+];
+
+const negativesRuEn = [
+  { ru: "Я не работаю", en: "I don't work", category: "negative" },
+  { ru: "Ты не работаешь", en: "You don't work", category: "negative" },
+  { ru: "Мы не работаем", en: "We don't work", category: "negative" },
+  { ru: "Они не работают", en: "They don't work", category: "negative" },
+  { ru: "Он не работает", en: "He doesn't work", category: "negative" },
+  { ru: "Она не работает", en: "She doesn't work", category: "negative" },
+  { ru: "Оно не работает", en: "It doesn't work", category: "negative" },
+  { ru: "Я не работал", en: "I didn't work", category: "negative" },
+  { ru: "Он не работал", en: "He didn't work", category: "negative" }
+];
+
+const questionsRuEn = [
+  { ru: "Я работаю?", en: "Do I work?", category: "question" },
+  { ru: "Ты работаешь?", en: "Do you work?", category: "question" },
+  { ru: "Мы работаем?", en: "Do we work?", category: "question" },
+  { ru: "Они работают?", en: "Do they work?", category: "question" },
+  { ru: "Он работает?", en: "Does he work?", category: "question" },
+  { ru: "Она работает?", en: "Does she work?", category: "question" },
+  { ru: "Оно работает?", en: "Does it work?", category: "question" },
+  { ru: "Я работал?", en: "Did I work?", category: "question" },
+  { ru: "Ты работал?", en: "Did you work?", category: "question" },
+  { ru: "Он работал?", en: "Did he work?", category: "question" },
+  { ru: "Я буду работать?", en: "Will I work?", category: "question" }
+];
+
+const statementsEnRu = [
+  { en: "I work", options: ["Я работаю", "Ты работаешь", "Мы работаем", "Он работает"], correct: "Я работаю", category: "statement" },
+  { en: "You work", options: ["Ты работаешь", "Они работают", "Оно работает", "Я работаю"], correct: "Ты работаешь", category: "statement" },
+  { en: "We work", options: ["Мы работаем", "Вы работаете", "Они работают", "Я работаю"], correct: "Мы работаем", category: "statement" },
+  { en: "They work", options: ["Они работают", "Мы работаем", "Он работает", "Она работает"], correct: "Они работают", category: "statement" },
+  { en: "He works", options: ["Он работает", "Она работает", "Оно работает", "Я работает"], correct: "Он работает", category: "statement" },
+  { en: "She works", options: ["Она работает", "Он работает", "Мы работаем", "Они работают"], correct: "Она работает", category: "statement" },
+  { en: "I worked", options: ["Я работал", "Ты работал", "Мы работали", "Он работал"], correct: "Я работал", category: "statement" },
+  { en: "I will work", options: ["Я буду работать", "Я работал", "Я работаю", "Он будет работать"], correct: "Я буду работать", category: "statement" }
+];
+
+const negativesEnRu = [
+  { en: "I don't work", options: ["Я не работаю", "Ты не работаешь", "Я работал", "Мы не работаем"], correct: "Я не работаю", category: "negative" },
+  { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работаю"], correct: "Он не работает", category: "negative" },
+  { en: "I didn't work", options: ["Я не работал", "Я не работаю", "Он не работал", "Я работал"], correct: "Я не работал", category: "negative" }
+];
+
+const questionsEnRu = [
+  { en: "Do I work?", options: ["Я работаю?", "Ты работаешь?", "Я работал?", "Мы работаем?"], correct: "Я работаю?", category: "question" },
+  { en: "Does he work?", options: ["Он работает?", "Она работает?", "Он работает", "Он не работает?"], correct: "Он работает?", category: "question" },
+  { en: "Did you work?", options: ["Ты работал?", "Ты работаешь?", "Вы работаете?", "Я работал?"], correct: "Ты работал?", category: "question" },
+  { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?", category: "question" }
+];
+
+// Уровни уроков с учетом пропорций внутри каждого типа (для Ур. 2 и Ур. 3 сохраняем баланс утверждений/отрицаний/вопросов)
 export const level1Tasks = {
-  ruEn: [
-    { ru: "Я работаю", en: "I work" },
-    { ru: "Ты работаешь", en: "You work" },
-    { ru: "Мы работаем", en: "We work" },
-    { ru: "Они работают", en: "They work" },
-    { ru: "Он работает", en: "He works" },
-    { ru: "Она работает", en: "She works" },
-    { ru: "Оно работает", en: "It works" },
-    { ru: "Я работал", en: "I worked" },
-    { ru: "Ты работал", en: "You worked" },
-    { ru: "Мы работали", en: "We worked" },
-    { ru: "Он работал", en: "He worked" },
-    { ru: "Она работала", en: "She worked" },
-    { ru: "Оно работало", en: "It worked" },
-    { ru: "Они работали", en: "They worked" },
-    { ru: "Я буду работать", en: "I will work" }
-  ],
-  enRu: [
-    { en: "I work", options: ["Я работаю", "Ты работаешь", "Мы работаем", "Он работает"], correct: "Я работаю" },
-    { en: "You work", options: ["Ты работаешь", "Они работают", "Оно работает", "Я работаю"], correct: "Ты работаешь" },
-    { en: "We work", options: ["Мы работаем", "Вы работаете", "Они работают", "Я работаю"], correct: "Мы работаем" },
-    { en: "They work", options: ["Они работают", "Мы работаем", "Он работает", "Она работает"], correct: "Они работают" },
-    { en: "He works", options: ["Он работает", "Она работает", "Оно работает", "Я работаю"], correct: "Он работает" },
-    { en: "She works", options: ["Она работает", "Он работает", "Мы работаем", "Они работают"], correct: "Она работает" },
-    { en: "It works", options: ["Оно работает", "Он работает", "Она работает", "Я работаю"], correct: "Оно работает" },
-    { en: "I worked", options: ["Я работал", "Ты работал", "Мы работали", "Он работал"], correct: "Я работал" },
-    { en: "I will work", options: ["Я буду работать", "Я работал", "Я работаю", "Он будет работать"], correct: "Я буду работать" }
-  ]
+  ruEn: statementsRuEn,
+  enRu: statementsEnRu
 };
 
-// Задачи для Уровня 2 (утверждения + отрицания)
 export const level2Tasks = {
-  ruEn: [
-    ...level1Tasks.ruEn,
-    { ru: "Я не работаю", en: "I don't work" },
-    { ru: "Ты не работаешь", en: "You don't work" },
-    { ru: "Мы не работаем", en: "We don't work" },
-    { ru: "Они не работают", en: "They don't work" },
-    { ru: "Он не работает", en: "He doesn't work" },
-    { ru: "Она не работает", en: "She doesn't work" },
-    { ru: "Оно не работает", en: "It doesn't work" },
-    { ru: "Я не работал", en: "I didn't work" },
-    { ru: "Он не работал", en: "He didn't work" }
-  ],
-  enRu: [
-    ...level1Tasks.enRu,
-    { en: "I don't work", options: ["Я не работаю", "Ты не работаешь", "Я работал", "Мы не работаем"], correct: "Я не работаю" },
-    { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работаю"], correct: "Он не работает" },
-    { en: "I didn't work", options: ["Я не работал", "Я не работаю", "Он не работал", "Я работал"], correct: "Я не работал" }
-  ]
+  ruEn: [...statementsRuEn, ...negativesRuEn, ...negativesRuEn], 
+  enRu: [...statementsEnRu, ...negativesEnRu, ...negativesEnRu]
 };
 
-// Задачи для Уровня 3 (утверждения + отрицания + вопросы)
 export const level3Tasks = {
-  ruEn: [
-    ...level2Tasks.ruEn,
-    { ru: "Я работаю?", en: "Do I work?" },
-    { ru: "Ты работаешь?", en: "Do you work?" },
-    { ru: "Мы работаем?", en: "Do we work?" },
-    { ru: "Они работают?", en: "Do they work?" },
-    { ru: "Он работает?", en: "Does he work?" },
-    { ru: "Она работает?", en: "Does she work?" },
-    { ru: "Оно работает?", en: "Does it work?" },
-    { ru: "Я работал?", en: "Did I work?" },
-    { ru: "Ты работал?", en: "Did you work?" },
-    { ru: "Он работал?", en: "Did he work?" },
-    { ru: "Я буду работать?", en: "Will I work?" }
-  ],
-  enRu: [
-    ...level2Tasks.enRu,
-    { en: "Do I work?", options: ["Я работаю?", "Ты работаешь?", "Я работал?", "Мы работаем?"], correct: "Я работаю?" },
-    { en: "Does he work?", options: ["Он работает?", "Она работает?", "Он работает", "Он не работает?"], correct: "Он работает?" },
-    { en: "Did you work?", options: ["Ты работал?", "Ты работаешь?", "Вы работаете?", "Я работал?"], correct: "Ты работал?" },
-    { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?" }
-  ]
+  ruEn: [...statementsRuEn, ...negativesRuEn, ...questionsRuEn, ...questionsRuEn, ...questionsRuEn, ...questionsRuEn],
+  enRu: [...statementsEnRu, ...negativesEnRu, ...questionsEnRu, ...questionsEnRu, ...questionsEnRu, ...questionsEnRu]
 };
+
+// Функция строгого циклического выбора: 7 русско-английских, затем 3 англо-русских
+export function getCyclicTask(sessionIndex, levelTasks) {
+  // Цикл из 10 шагов: индексы 0-6 (7 штук) — русско-английский, индексы 7-9 (3 штуки) — англо-русский
+  const positionInCycle = sessionIndex % 10;
+  const isEnRu = positionInCycle >= 7; 
+
+  const pool = isEnRu ? levelTasks.enRu : levelTasks.ruEn;
+  const task = pool[Math.floor(Math.random() * pool.length)];
+  return { task, isEnglishToRussian: isEnRu };
+}

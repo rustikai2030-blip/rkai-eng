@@ -3,17 +3,18 @@ import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
-import { level1Tasks, level2Tasks, level3Tasks } from './data/tasks.js';
+import { level1Tasks, level2Tasks, level3Tasks, getCyclicTask } from './data/tasks.js';
 import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
-import { calculateLevel } from './config/gameConfig.js';
+import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
 
-  let sessionIndex = 0;          
+  let sessionIndex = 0;          // Общий индекс ответов для поддержания цикла 7/3
+  let currentLevel = 1;          
   let totalCorrectAnswers = 0;   
   let totalIncorrectAnswers = 0;  
   let consecutiveErrors = 0;     
@@ -23,14 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastFeedback = "";        
   let lastFeedbackColor = "";   
   
-  let secondsElapsed = 0;       // Таймер текущей сессии (на экране с 0)
-  let lastSyncedSeconds = 0;    // Для подсчета дельты времени для отправки в базу
+  let secondsElapsed = 0;       
+  let lastSyncedSeconds = 0;    
   let timerInterval = null;
   let currentUser = null;
   let isAdminUser = false;
   let userUnsubscribe = null; 
   let loginPromptShown = false; 
   let deferredPrompt = null; 
+
+  // Состояние режима тестирования
+  let isTestMode = false;
+  let testQuestionsAnswered = 0;
+  let testCorrectCount = 0;
+  let testSecondsLeft = 120;
+  let testTimerInterval = null;
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -44,13 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   });
 
-  // Отправка накопленного времени при закрытии страницы
   window.addEventListener('beforeunload', () => {
     if (currentUser) {
       const deltaSeconds = secondsElapsed - lastSyncedSeconds;
       if (deltaSeconds > 0) {
         const userRef = doc(db, "users", currentUser.uid);
-        // Используем sendBeacon или синхронный/асинхронный вызов обновления
         updateDoc(userRef, {
           totalTimeSpent: increment(deltaSeconds),
           lastActive: serverTimestamp()
@@ -59,28 +65,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  function updateDynamicLevel() {
-    const computedLevel = calculateLevel(totalCorrectAnswers);
-    document.body.setAttribute('data-level', computedLevel.toString());
-    return computedLevel;
+  function updateStyleLevel() {
+    const styleLevel = calculateStyleLevel(totalCorrectAnswers);
+    document.body.setAttribute('data-level', styleLevel.toString());
+    return styleLevel;
   }
 
   function getWrongPhrase(errorsCount) {
     const phrases = getWrongPhrases();
-    const level = Math.min(Math.max(errorsCount, 1), 5);
-    const list = phrases[level] || phrases[1];
-    const randomIndex = Math.floor(Math.random() * list.length);
-    return list[randomIndex];
+    const lvl = Math.min(Math.max(errorsCount, 1), 5);
+    const list = phrases[lvl] || phrases[1];
+    return list[Math.floor(Math.random() * list.length)];
   }
 
   async function saveProgressToFirestore() {
     if (!currentUser) return;
     try {
-      const currentLevel = updateDynamicLevel();
+      updateStyleLevel();
       const userRef = doc(db, "users", currentUser.uid);
-
       const deltaSeconds = secondsElapsed - lastSyncedSeconds;
-      lastSyncedSeconds = secondsElapsed; // сбрасываем дельту
+      lastSyncedSeconds = secondsElapsed; 
 
       await setDoc(userRef, {
         uid: currentUser.uid,
@@ -89,12 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
         photoURL: currentUser.photoURL || "",
         totalCorrect: totalCorrectAnswers,
         totalIncorrect: totalIncorrectAnswers,
-        userLevel: currentLevel,
+        currentLessonLevel: currentLevel,
         totalTimeSpent: increment(deltaSeconds > 0 ? deltaSeconds : 0),
         lastActive: serverTimestamp()
       }, { merge: true });
     } catch (error) {
-      console.error("❌ Ошибка сохранения данных:", error);
+      console.error("Ошибка сохранения данных:", error);
     }
   }
 
@@ -111,10 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
           displayName: user.displayName || "",
           photoURL: user.photoURL || "",
           isAdmin: false,
-          userLevel: 0,
+          currentLessonLevel: 1,
           totalCorrect: 0,
           totalIncorrect: 0,
-          visitCount: 1, // Первый визит
+          visitCount: 1, 
           totalTimeSpent: 0,
           lastLogin: serverTimestamp()
         });
@@ -122,9 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = docSnap.data();
         totalCorrectAnswers = Math.max(data.totalCorrect || 0, totalCorrectAnswers);
         totalIncorrectAnswers = Math.max(data.totalIncorrect || 0, totalIncorrectAnswers);
+        currentLevel = data.currentLessonLevel || 1;
         
-        updateDynamicLevel();
-        // Увеличиваем счетчик визитов на 1 при входе
+        updateStyleLevel();
         await setDoc(userRef, { 
           lastLogin: serverTimestamp(), 
           visitCount: increment(1),
@@ -164,22 +168,17 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   });
 
-  function getCurrentTasks() {
-    const currentLevel = updateDynamicLevel();
-    if (currentLevel >= 6) return level3Tasks;
-    return currentLevel >= 3 ? level2Tasks : level1Tasks;
+  function getCurrentTasksForLevel(lvl) {
+    if (lvl === 3) return level3Tasks;
+    if (lvl === 2) return level2Tasks;
+    return level1Tasks;
   }
 
   function pickNewTask() {
-    let modeIndex = sessionIndex % 10;
-    isEnglishToRussian = modeIndex >= 7; 
-    const tasks = getCurrentTasks();
-
-    if (!isEnglishToRussian) {
-      currentTask = tasks.ruEn[Math.floor(Math.random() * tasks.ruEn.length)];
-    } else {
-      currentTask = tasks.enRu[Math.floor(Math.random() * tasks.enRu.length)];
-    }
+    const tasks = getCurrentTasksForLevel(currentLevel);
+    const result = getCyclicTask(sessionIndex, tasks);
+    currentTask = result.task;
+    isEnglishToRussian = result.isEnglishToRussian;
   }
 
   function formatTime(totalSeconds) {
@@ -193,68 +192,92 @@ document.addEventListener('DOMContentLoaded', () => {
     timerInterval = setInterval(() => {
       secondsElapsed++;
       const timerEl = document.getElementById('timer-display');
-      if (timerEl && totalCorrectAnswers >= 2) {
+      const elementLevel = calculateElementLevel(totalCorrectAnswers);
+      if (timerEl && elementLevel >= 1 && !isTestMode) {
         timerEl.textContent = `${formatTime(secondsElapsed)}`;
       }
     }, 1000);
   }
 
-  function showLoginPromptModal() {
-    let promptModal = document.getElementById('login-prompt-modal');
-    if (!promptModal) {
-      promptModal = document.createElement('div');
-      promptModal.id = 'login-prompt-modal';
-      promptModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 3000; padding: 20px; box-sizing: border-box;';
-      promptModal.innerHTML = `
-        <div style="background: #fff; color: #000; padding: 30px; border-radius: var(--border-radius, 8px); max-width: 400px; width: 100%; text-align: center; border: 2px solid currentColor; box-shadow: var(--box-shadow, none);">
-          <h2 style="margin-top: 0; font-size: 20px; margin-bottom: 15px;">Сохранение результатов</h2>
-          <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.5;">Для сохранения ваших результатов, вам необходимо авторизоваться через Google.</p>
-          <button id="modal-google-login-btn" style="background: var(--btn-bg, #000); color: inherit; border: 2px solid currentColor; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 10px; border-radius: var(--border-radius, 4px);">Войти через Google</button>
-          <button id="modal-close-prompt-btn" style="background: inherit; color: inherit; border: 1px solid currentColor; padding: 8px 15px; font-size: 14px; cursor: pointer; width: 100%; border-radius: var(--border-radius, 4px);">Продолжить без сохранения</button>
-        </div>
-      `;
-      document.body.appendChild(promptModal);
+  function startTestMode() {
+    isTestMode = true;
+    sessionIndex = 0; // сбрасываем индекс для теста, чтобы тест начинался с блока из 7 рус-анг и 3 англ-рус
+    testQuestionsAnswered = 0;
+    testCorrectCount = 0;
+    testSecondsLeft = gameConfig.testTimeSeconds || 120;
+    pickNewTask();
+    renderTrainer();
 
-      document.getElementById('modal-google-login-btn').addEventListener('click', async () => {
-        try {
-          await signInWithPopup(auth, googleProvider);
-          promptModal.style.display = 'none';
-        } catch (error) {
-          alert("Ошибка входа: " + error.message);
-        }
-      });
+    if (testTimerInterval) clearInterval(testTimerInterval);
+    testTimerInterval = setInterval(() => {
+      testSecondsLeft--;
+      const testTimerEl = document.getElementById('test-timer-display');
+      if (testTimerEl) {
+        testTimerEl.textContent = `Осталось времени: ${formatTime(testSecondsLeft)}`;
+      }
 
-      document.getElementById('modal-close-prompt-btn').addEventListener('click', () => {
-        promptModal.style.display = 'none';
-      });
+      if (testSecondsLeft <= 0) {
+        finishTest(false); 
+      }
+    }, 1000);
+  }
+
+  function finishTest(passed) {
+    if (testTimerInterval) clearInterval(testTimerInterval);
+    isTestMode = false;
+    sessionIndex = 0;
+
+    const totalQ = gameConfig.testQuestionCount || 30;
+    const requiredCorrect = Math.ceil(totalQ * 0.9); // порог сдачи (например 90%)
+
+    if (passed && testCorrectCount >= requiredCorrect) {
+      alert(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на уровень ${currentLevel + 1}!`);
+      currentLevel++;
+      saveProgressToFirestore();
     } else {
-      promptModal.style.display = 'flex';
+      alert(`Время вышло или недостаточно правильных ответов (${testCorrectCount}/${totalQ}, нужно >= ${requiredCorrect}). Вы остаетесь на текущем уровне, тренируйтесь дальше!`);
     }
+    pickNewTask();
+    renderTrainer();
   }
 
   function handleAnswerResult(isCorrect) {
-    if (isCorrect) {
-      consecutiveErrors = 0; 
-      if (totalCorrectAnswers >= 2) {
-        lastFeedback = "Правильно";
-        lastFeedbackColor = "#22c55e";
+    if (isTestMode) {
+      testQuestionsAnswered++;
+      if (isCorrect) testCorrectCount++;
+
+      const totalQ = gameConfig.testQuestionCount || 30;
+      const requiredCorrect = Math.ceil(totalQ * 0.9);
+
+      if (testQuestionsAnswered >= totalQ) {
+        if (testCorrectCount >= requiredCorrect) {
+          finishTest(true);
+        } else {
+          finishTest(false);
+        }
+        return;
       }
-      totalCorrectAnswers++;
     } else {
-      consecutiveErrors++; 
-      if (totalCorrectAnswers >= 2) {
-        lastFeedback = getWrongPhrase(consecutiveErrors);
-        lastFeedbackColor = "#ef4444";
+      if (isCorrect) {
+        consecutiveErrors = 0; 
+        const elementLevel = calculateElementLevel(totalCorrectAnswers);
+        if (elementLevel >= 1) {
+          lastFeedback = "Правильно";
+          lastFeedbackColor = "#22c55e";
+        }
+        totalCorrectAnswers++;
+      } else {
+        consecutiveErrors++; 
+        const elementLevel = calculateElementLevel(totalCorrectAnswers);
+        if (elementLevel >= 1) {
+          lastFeedback = getWrongPhrase(consecutiveErrors);
+          lastFeedbackColor = "#ef4444";
+        }
+        totalIncorrectAnswers++;
       }
-      totalIncorrectAnswers++;
     }
 
-    if (!currentUser && totalCorrectAnswers >= 2 && !loginPromptShown) {
-      loginPromptShown = true;
-      showLoginPromptModal();
-    }
-
-    sessionIndex++;
+    sessionIndex++; // инкрементируем для поддержания цикла 7/3
     currentInput = "";
     pickNewTask();
   }
@@ -264,13 +287,14 @@ document.addEventListener('DOMContentLoaded', () => {
       pickNewTask();
     }
 
-    const showStats = totalCorrectAnswers >= 2;
-    const currentLevel = updateDynamicLevel();
+    updateStyleLevel();
+    const elementLevel = calculateElementLevel(totalCorrectAnswers);
+    const showStats = elementLevel >= 1;
 
     app.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 12px;">
         <div>
-          👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} (Уровень ${currentLevel + 1})
+          👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} | Уровень ${currentLevel}
         </div>
         <div>
           ${currentUser ? `
@@ -282,20 +306,31 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <button id="words-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Слова</button>
-        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
-        <button id="rules-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none); transition: all 0.25s ease;">Правила</button>
+        <button id="words-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer;">Слова</button>
+        <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
+        <button id="rules-btn" style="width: 80px; padding: 8px; font-size: 13px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; cursor: pointer;">Правила</button>
       </div>
+
+      ${!isTestMode ? `
+        <div style="margin-bottom: 15px;">
+          <button id="start-test-btn" style="width: 100%; padding: 10px; background: var(--accent, #aa3bff); color: #fff; border: none; font-weight: bold; font-size: 15px; cursor: pointer; border-radius: var(--border-radius, 4px);">Перейти на ${currentLevel + 1} уровень (тест)</button>
+        </div>
+      ` : `
+        <div style="margin-bottom: 15px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 4px;">
+          <div style="font-weight: bold; margin-bottom: 4px;">РЕЖИМ ТЕСТИРОВАНИЯ (${testQuestionsAnswered}/${gameConfig.testQuestionCount})</div>
+          <div id="test-timer-display" style="font-size: 14px; color: #ef4444; font-weight: bold;">Осталось времени: ${formatTime(testSecondsLeft)}</div>
+        </div>
+      `}
 
       ${deferredPrompt ? `
         <div style="margin-bottom: 10px;">
-          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 4px); box-shadow: var(--box-shadow, none);">📲 Установить приложение</button>
+          <button id="install-pwa-btn" style="width: 100%; padding: 10px; background: #22c55e; color: #fff; border: 2px solid currentColor; font-size: 14px; font-weight: bold; cursor: pointer;">📲 Установить приложение</button>
         </div>
       ` : ''}
 
       ${isAdminUser ? `
         <div style="margin-bottom: 8px; text-align: center;">
-          <button id="admin-panel-btn" style="padding: 6px 12px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 4px); box-shadow: var(--box-shadow, none);">📊 Админ-панель</button>
+          <button id="admin-panel-btn" style="padding: 6px 12px; background: var(--btn-bg, #1e1e24); color: #c084fc; border: 1px solid #c084fc; font-size: 12px; font-weight: bold; cursor: pointer;">📊 Админ-панель</button>
         </div>
       ` : ''}
     `;
@@ -304,21 +339,21 @@ document.addEventListener('DOMContentLoaded', () => {
       app.innerHTML += `
         <div style="margin: 20px 0;">
           <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px;">
-            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
             <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.ru}</p>
-            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
-          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">${currentInput}</div>
-          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
+          <div id="answer-display" style="border: 2px solid currentColor; padding: 15px; font-size: 22px; min-height: 30px; margin-bottom: 10px; letter-spacing: 2px;">${currentInput}</div>
+          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
         </div>
 
         <div id="keyboard" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;"></div>
 
         <div style="display: flex; gap: 8px;">
-          <button id="space-btn" style="flex: 3; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">пробел</button>
-          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">⌫</button>
-          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">✓</button>
+          <button id="space-btn" style="flex: 3; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 16px; cursor: pointer;">пробел</button>
+          <button id="backspace-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer;">⌫</button>
+          <button id="ok-btn" style="flex: 1.5; padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; font-weight: bold; cursor: pointer;">✓</button>
         </div>
       `;
 
@@ -343,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         onOk: async () => {
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
           handleAnswerResult(isCorrect);
-          await saveProgressToFirestore(); 
+          if (!isTestMode) await saveProgressToFirestore(); 
           renderTrainer();
         }
       });
@@ -351,15 +386,15 @@ document.addEventListener('DOMContentLoaded', () => {
       app.innerHTML += `
         <div style="margin: 20px 0;">
           <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 20px;">
-            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #22c55e; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
             <p style="font-size: 24px; font-weight: bold; margin: 0;">${currentTask.en}</p>
-            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            <div style="font-size: 24px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
           </div>
 
-          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2;">${lastFeedback}</div>
+          <div id="feedback-msg" style="height: 32px; font-size: 15px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
           <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
             ${currentTask.options.map(opt => `
-              <button class="option-btn" style="padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center; border-radius: var(--border-radius, 0px); box-shadow: var(--box-shadow, none);">${opt}</button>
+              <button class="option-btn" style="padding: 15px; background: var(--btn-bg, inherit); color: inherit; border: 2px solid currentColor; font-size: 18px; cursor: pointer; text-align: center;">${opt}</button>
             `).join('')}
           </div>
         </div>
@@ -369,7 +404,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setupModals();
-    startTimer();
+    if (!isTestMode) startTimer();
+
+    const startTestBtn = document.getElementById('start-test-btn');
+    if (startTestBtn) {
+      startTestBtn.onclick = () => {
+        const testMins = Math.floor((gameConfig.testTimeSeconds || 120) / 60);
+        const testSecs = (gameConfig.testTimeSeconds || 120) % 60;
+        const timeStr = `${testMins > 0 ? testMins + ' мин. ' : ''}${testSecs > 0 ? testSecs + ' сек.' : ''}`;
+
+        if (confirm(`Вы переходите в режим тестирования на уровень ${currentLevel + 1}. Вам нужно ответить на ${gameConfig.testQuestionCount} вопросов за ${timeStr} (по схеме 7 рус-анг / 3 англ-рус). Начать?`)) {
+          startTestMode();
+        }
+      };
+    }
 
     const installBtn = document.getElementById('install-pwa-btn');
     if (installBtn) {
@@ -417,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', async () => {
         const isCorrect = btn.textContent.trim() === currentTask.correct;
         handleAnswerResult(isCorrect);
-        await saveProgressToFirestore();
+        if (!isTestMode) await saveProgressToFirestore();
         renderTrainer();
       });
     });

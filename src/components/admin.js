@@ -135,7 +135,6 @@ function renderPhrasesTab() {
   html += `</div>`;
   contentContainer.innerHTML = html;
 
-  // Обработчики кнопок удаления
   document.querySelectorAll('.delete-phrase-btn').forEach(btn => {
     btn.onclick = () => {
       const lvl = btn.getAttribute('data-level');
@@ -146,7 +145,6 @@ function renderPhrasesTab() {
     };
   });
 
-  // Обработчики кнопок добавления
   document.querySelectorAll('.add-phrase-btn').forEach(btn => {
     btn.onclick = () => {
       const lvl = btn.getAttribute('data-level');
@@ -160,7 +158,6 @@ function renderPhrasesTab() {
     };
   });
 
-  // Автосохранение при изменении текста инпутов
   document.querySelectorAll('.phrase-input-item').forEach(input => {
     input.onchange = () => {
       const lvl = input.getAttribute('data-level');
@@ -173,7 +170,6 @@ function renderPhrasesTab() {
     };
   });
 
-  // Сброс к дефолтным
   document.getElementById('reset-phrases-default').onclick = () => {
     if (confirm("Сбросить все фразы к стандартным значениям?")) {
       saveWrongPhrases(initialWrongPhrases);
@@ -189,11 +185,25 @@ async function renderSettingsTab() {
   contentContainer.innerHTML = `
     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
       <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 10px;">Игровые настройки</h3>
-      <p style="font-size: 14px; color: #64748b; margin-bottom: 20px;">Укажите количество правильных ответов, необходимое для перехода на следующий уровень и смены визуального стиля интерфейса.</p>
       
       <div style="margin-bottom: 15px;">
-        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Шаг ответов для смены уровня:</label>
-        <input type="number" id="setting-step-input" value="${gameConfig.stepPerLevel}" min="1" max="100" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Шаг ответов для смены уровня стиля:</label>
+        <input type="number" id="setting-style-step-input" value="${gameConfig.stepPerStyleLevel}" min="1" max="100" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Шаг ответов для появления элементов интерфейса:</label>
+        <input type="number" id="setting-element-step-input" value="${gameConfig.stepPerElementLevel}" min="1" max="100" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Количество вопросов в тесте:</label>
+        <input type="number" id="setting-test-q-count" value="${gameConfig.testQuestionCount}" min="1" max="200" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 8px;">Время теста (в секундах):</label>
+        <input type="number" id="setting-test-time" value="${gameConfig.testTimeSeconds}" min="10" max="3600" style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #cbd5e1; font-size: 16px; box-sizing: border-box; outline: none;" />
       </div>
 
       <button id="save-settings-btn" style="width: 100%; background: #22c55e; color: #ffffff; border: none; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer;">Сохранить настройки</button>
@@ -201,16 +211,30 @@ async function renderSettingsTab() {
   `;
 
   document.getElementById('save-settings-btn').onclick = async () => {
-    const val = parseInt(document.getElementById('setting-step-input').value, 10);
-    if (isNaN(val) || val < 1) {
-      alert("Введите корректное число (больше 0).");
+    const styleVal = parseInt(document.getElementById('setting-style-step-input').value, 10);
+    const elementVal = parseInt(document.getElementById('setting-element-step-input').value, 10);
+    const testQCountVal = parseInt(document.getElementById('setting-test-q-count').value, 10);
+    const testTimeVal = parseInt(document.getElementById('setting-test-time').value, 10);
+
+    if (isNaN(styleVal) || styleVal < 1 || isNaN(elementVal) || elementVal < 1 || isNaN(testQCountVal) || testQCountVal < 1 || isNaN(testTimeVal) || testTimeVal < 10) {
+      alert("Введите корректные числовые значения.");
       return;
     }
 
     try {
       const settingsRef = doc(db, "settings", "game");
-      await setDoc(settingsRef, { stepPerLevel: val }, { merge: true });
-      gameConfig.stepPerLevel = val;
+      await setDoc(settingsRef, { 
+        stepPerStyleLevel: styleVal, 
+        stepPerElementLevel: elementVal,
+        testQuestionCount: testQCountVal,
+        testTimeSeconds: testTimeVal
+      }, { merge: true });
+      
+      gameConfig.stepPerStyleLevel = styleVal;
+      gameConfig.stepPerElementLevel = elementVal;
+      gameConfig.testQuestionCount = testQCountVal;
+      gameConfig.testTimeSeconds = testTimeVal;
+
       alert("Настройки успешно сохранены!");
     } catch (err) {
       alert("Ошибка сохранения: " + err.message);
