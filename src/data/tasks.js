@@ -88,7 +88,7 @@ const statementsEnRu = [
 
 const negativesEnRu = [
   { en: "I don't work", options: ["Я не работаю", "Ты не работаешь", "Я работал", "Мы не работаем"], correct: "Я не работаю", category: "negative" },
-  { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работаю"], correct: "Он не работает", category: "negative" },
+  { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работает"], correct: "Он не работает", category: "negative" },
   { en: "I didn't work", options: ["Я не работал", "Я не работаю", "Он не работал", "Я работал"], correct: "Я не работал", category: "negative" }
 ];
 
@@ -99,7 +99,6 @@ const questionsEnRu = [
   { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?", category: "question" }
 ];
 
-// Уровни уроков с учетом пропорций внутри каждого типа
 export const level1Tasks = {
   ruEn: statementsRuEn,
   enRu: statementsEnRu
@@ -125,14 +124,33 @@ function shuffleArray(array) {
   return arr;
 }
 
-// Функция строгого циклического выбора: 7 русско-английских, затем 3 англо-русских
+// Очереди для равномерного распределения без повторений подряд
+let shuffledRuEnPool = [];
+let shuffledEnRuPool = [];
+
+function getNextTaskFromPool(poolType, sourcePool) {
+  if (poolType === 'ruEn') {
+    if (shuffledRuEnPool.length === 0) {
+      shuffledRuEnPool = shuffleArray(sourcePool);
+    }
+    return shuffledRuEnPool.pop();
+  } else {
+    if (shuffledEnRuPool.length === 0) {
+      shuffledEnRuPool = shuffleArray(sourcePool);
+    }
+    return shuffledEnRuPool.pop();
+  }
+}
+
+// Функция циклического выбора с равномерным распределением элементов
 export function getCyclicTask(sessionIndex, levelTasks) {
   const positionInCycle = sessionIndex % 10;
   const isEnRu = positionInCycle >= 7; 
 
-  const pool = isEnRu ? levelTasks.enRu : levelTasks.ruEn;
-  const rawTask = pool[Math.floor(Math.random() * pool.length)];
+  const sourcePool = isEnRu ? levelTasks.enRu : levelTasks.ruEn;
+  const poolType = isEnRu ? 'enRu' : 'ruEn';
 
+  const rawTask = getNextTaskFromPool(poolType, sourcePool);
   let task = { ...rawTask };
 
   // Если это задание с вариантами ответа (англ -> рус), рандомизируем порядок кнопок
