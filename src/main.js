@@ -200,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function startTestMode() {
     isTestMode = true;
     sessionIndex = 0; 
+    currentInput = ""; // Очищаем поле ввода при входе в тест
     testQuestionsAnswered = 0;
     testCorrectCount = 0;
     testSecondsLeft = gameConfig.testTimeSeconds || 120;
@@ -224,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (testTimerInterval) clearInterval(testTimerInterval);
     isTestMode = false;
     sessionIndex = 0;
+    currentInput = ""; // Очищаем поле ввода при выходе из теста
 
     const totalQ = gameConfig.testQuestionCount || 30;
     const requiredCorrect = Math.ceil(totalQ * 0.9);
@@ -284,6 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentTask) {
       pickNewTask();
     }
+
+    // Дополнительно гарантируем очистку текста на экране при рендере
+    currentInput = "";
 
     updateStyleLevel();
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
