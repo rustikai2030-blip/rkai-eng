@@ -4,7 +4,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   let rowsData = [];
 
   if (level === 1) {
-    // 1 уровень: 4 ряда букв/функций + 5 ряд (пробел и ввод)
     rowsData = [
       ['w', 'e', 'r', 't'],
       ['y', 'u', 'i', 'o'],
@@ -13,7 +12,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
       ['space', 'ok']
     ];
   } else if (level === 2) {
-    // 2 уровень: 4 ряда букв/функций + 5 ряд (апостроф ', пробел и ввод)
     rowsData = [
       ['w', 'e', 'r', 't'],
       ['y', 'u', 'i', 'o'],
@@ -22,7 +20,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
       ["'", 'space', 'ok']
     ];
   } else {
-    // 3 уровень и выше: вопросительный знак '?' перенесен после буквы 'n'
     rowsData = [
       ['w', 'e', 'r', 't'],
       ['y', 'u', 'i', 'o'],
@@ -36,7 +33,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   if (!kbContainer) return;
   kbContainer.innerHTML = '';
 
-  // Скрываем или показываем старый блок кнопок под клавиатурой в зависимости от уровня
   const oldActionContainer = kbContainer.nextElementSibling;
   if (oldActionContainer && (oldActionContainer.tagName === 'DIV' || oldActionContainer.style)) {
     if (level === 1 || level === 2 || level === 3) {
@@ -69,10 +65,40 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
           };
         } else if (key === 'backspace') {
           btn.textContent = '⌫';
-          btn.onclick = () => onBackspace();
+
+          let backspaceInterval = null;
+          let backspaceTimeout = null;
+
+          const startDeleting = (e) => {
+            e.preventDefault();
+            onBackspace(); // Стираем сразу при нажатии
+
+            // Задержка перед началом непрерывного стирания (500 мс)
+            backspaceTimeout = setTimeout(() => {
+              // Интервал повторного удаления (каждые 100 мс)
+              backspaceInterval = setInterval(() => {
+                onBackspace();
+              }, 100);
+            }, 500);
+          };
+
+          const stopDeleting = () => {
+            clearTimeout(backspaceTimeout);
+            clearInterval(backspaceInterval);
+          };
+
+          // Подключаем события как для мыши, так и для сенсорных экранов
+          btn.addEventListener('mousedown', startDeleting);
+          btn.addEventListener('mouseup', stopDeleting);
+          btn.addEventListener('mouseleave', stopDeleting);
+          
+          btn.addEventListener('touchstart', startDeleting);
+          btn.addEventListener('touchend', stopDeleting);
+          btn.addEventListener('touchcancel', stopDeleting);
+
         } else if (key === 'space') {
           btn.textContent = 'пробел';
-          btn.style.flex = '2'; // Пробел шире остальных
+          btn.style.flex = '2';
           btn.onclick = () => onSpace();
         } else if (key === 'ok') {
           btn.textContent = '✓';
@@ -111,14 +137,4 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   }
 
   renderRows();
-
-  // Для уровней выше сохраняем работу стандартных внешних кнопок (если они есть в разметке)
-  const backspaceBtn = document.getElementById('backspace-btn');
-  if (backspaceBtn) backspaceBtn.onclick = () => onBackspace();
-
-  const spaceBtn = document.getElementById('space-btn');
-  if (spaceBtn) spaceBtn.onclick = () => onSpace();
-
-  const okBtn = document.getElementById('ok-btn');
-  if (okBtn) okBtn.onclick = () => onOk();
 }
