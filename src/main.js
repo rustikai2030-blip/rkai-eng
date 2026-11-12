@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let testSecondsLeft = 120;
   let testTimerInterval = null;
 
-  const MAX_INPUT_LENGTH = 35; // Ограничение символов, чтобы текст гарантированно помещался максимум в 2 строки
+  const MAX_INPUT_LENGTH = 35;
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         totalCorrectAnswers++;
         sessionIndex++; 
-        currentInput = ""; // Очищаем только при правильном ответе для следующего вопроса
+        currentInput = ""; 
         pickNewTask();
       } else {
         consecutiveErrors++; 
@@ -282,7 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
           lastFeedbackColor = "#ef4444";
         }
         totalIncorrectAnswers++;
-        // При ошибке поле ввода НЕ очищаем, чтобы пользователь мог исправить свой ответ
       }
     }
   }
@@ -350,8 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showStats && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
-            <div id="answer-display" style="font-size: 24px; margin-bottom: 10px;">${currentInput}</div>
-            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
+            <input type="text" id="answer-display" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" readonly />
+            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showStats ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
         ` : `
           <div>
@@ -377,29 +376,74 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     if (!isEnglishToRussian) {
+      const inputEl = document.getElementById('answer-display');
+      if (inputEl) {
+        inputEl.focus();
+        inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
+
+        // Синхронизируем currentInput, если пользователь кликнул в инпут, чтобы изменить позицию курсора
+        inputEl.addEventListener('click', () => {
+          currentInput = inputEl.value;
+        });
+        inputEl.addEventListener('keyup', () => {
+          currentInput = inputEl.value;
+        });
+      }
+
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
-          if (currentInput.length < MAX_INPUT_LENGTH) {
-            if (currentInput.length === 0) {
-              currentInput += char.toUpperCase();
-            } else {
-              currentInput += char;
+          if (!inputEl) return;
+          const start = inputEl.selectionStart;
+          const end = inputEl.selectionEnd;
+          const val = inputEl.value;
+
+          if (val.length < MAX_INPUT_LENGTH) {
+            let charToAdd = char;
+            // Автоматически делаем заглавной первую букву, если курсор в самом начале и текст пустой/стал пустым
+            if (start === 0 && val.length === 0) {
+              charToAdd = char.toUpperCase();
             }
-            document.getElementById('answer-display').textContent = currentInput;
+
+            inputEl.value = val.substring(0, start) + charToAdd + val.substring(end);
+            inputEl.selectionStart = inputEl.selectionEnd = start + 1;
+            currentInput = inputEl.value;
+            inputEl.focus();
           }
         },
         onBackspace: () => {
-          currentInput = currentInput.slice(0, -1);
-          document.getElementById('answer-display').textContent = currentInput;
+          if (!inputEl) return;
+          const start = inputEl.selectionStart;
+          const end = inputEl.selectionEnd;
+          const val = inputEl.value;
+
+          if (start !== end) {
+            // Удаляем выделенный фрагмент
+            inputEl.value = val.substring(0, start) + val.substring(end);
+            inputEl.selectionStart = inputEl.selectionEnd = start;
+          } else if (start > 0) {
+            // Удаляем символ перед курсором
+            inputEl.value = val.substring(0, start - 1) + val.substring(start);
+            inputEl.selectionStart = inputEl.selectionEnd = start - 1;
+          }
+          currentInput = inputEl.value;
+          inputEl.focus();
         },
         onSpace: () => {
-          if (currentInput.length < MAX_INPUT_LENGTH) {
-            currentInput += " ";
-            document.getElementById('answer-display').textContent = currentInput;
+          if (!inputEl) return;
+          const start = inputEl.selectionStart;
+          const end = inputEl.selectionEnd;
+          const val = inputEl.value;
+
+          if (val.length < MAX_INPUT_LENGTH) {
+            inputEl.value = val.substring(0, start) + " " + val.substring(end);
+            inputEl.selectionStart = inputEl.selectionEnd = start + 1;
+            currentInput = inputEl.value;
+            inputEl.focus();
           }
         },
         onOk: async () => {
+          if (inputEl) currentInput = inputEl.value;
           const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
           handleAnswerResult(isCorrect);
           if (!isTestMode) await saveProgressToFirestore(); 
