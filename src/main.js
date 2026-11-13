@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const MAX_INPUT_LENGTH = 35;
 
-  // Расчет уровня элементов интерфейса (от 0 до 6)
   function calculateElementLevel(totalCorrect) {
     const step = gameConfig.stepPerElementLevel || 5;
     const level = Math.floor(totalCorrect / step);
@@ -322,7 +321,6 @@ document.addEventListener('DOMContentLoaded', () => {
           lastFeedbackColor = "#22c55e";
         }
 
-        // Если уровень >= 6, подсвечиваем зеленым и делаем задержку 300мс перед переключением задания
         if (elementLevel >= 6 && !isEnglishToRussian) {
           const inputEl = document.getElementById('answer-display');
           if (inputEl) {
@@ -452,7 +450,8 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
-            <input type="text" id="answer-display" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" readonly />
+            <!-- Добавлен inputmode="none" для предотвращения появления системной клавиатуры на мобильных -->
+            <input type="text" id="answer-display" inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" />
             <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showFeedback || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
         ` : `
@@ -490,14 +489,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isEnglishToRussian) {
       const inputEl = document.getElementById('answer-display');
       if (inputEl) {
+        // Дополнительно страхуем через JS атрибут inputmode
+        inputEl.setAttribute('inputmode', 'none');
+        
         inputEl.focus();
         inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
 
-        inputEl.addEventListener('click', () => {
+        inputEl.addEventListener('click', (e) => {
+          e.preventDefault(); // Предотвращаем стандартное поведение фокуса с вызовом клавиатуры ОС
+          inputEl.focus();
           currentInput = inputEl.value;
         });
-        inputEl.addEventListener('keyup', () => {
-          currentInput = inputEl.value;
+
+        inputEl.addEventListener('keydown', (e) => {
+          // Блокируем ввод с физической/сторонней клавиатуры устройства
+          if (e.key !== 'Tab' && e.key !== 'Enter') {
+            e.preventDefault();
+          }
         });
       }
 
