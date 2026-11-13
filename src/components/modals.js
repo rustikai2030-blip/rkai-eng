@@ -19,21 +19,40 @@ export function setupModals() {
   const modal = document.getElementById('modal');
   const modalContent = document.getElementById('modal-content');
 
+  // Функция открытия модального окна с добавлением состояния в историю браузера
+  function openModal(contentHtml) {
+    modalContent.innerHTML = contentHtml;
+    modal.style.display = 'block';
+    
+    // Добавляем запись в историю браузера, чтобы кнопка "Назад" на телефоне работала
+    history.pushState({ modalOpen: true }, '');
+  }
+
+  // Функция закрытия модального окна
+  function closeModalWindow(isBackAction = false) {
+    if (modal.style.display === 'block') {
+      modal.style.display = 'none';
+      // Если закрываем программно по крестику (а не по кнопке Назад), возвращаем историю назад, если нужно
+      if (!isBackAction && history.state && history.state.modalOpen) {
+        history.back();
+      }
+    }
+  }
+
   const wordsBtn = document.getElementById('words-btn');
   if (wordsBtn) {
     wordsBtn.onclick = () => {
-      // Фильтруем слова, оставляя только местоимения и work / worked для первых трех уровней
       const allowedEnWords = ["I", "You", "We", "He", "She", "It", "They", "Work", "Worked"];
       const filteredWords = dictionaryWords.filter(w => allowedEnWords.includes(w.en));
 
-      modalContent.innerHTML = filteredWords.map(w => `
+      const html = filteredWords.map(w => `
         <div style="background: var(--code-bg, #1f2028); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border, #2e303a); font-size: 24px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
           <span style="color: var(--text-h, #f3f4f6);">${w.en}</span>
           <span style="color: var(--text, #9ca3af); font-size: 20px;">${w.ru}</span>
         </div>
       `).join('');
 
-      modal.style.display = 'block';
+      openModal(html);
     };
   }
 
@@ -41,8 +60,7 @@ export function setupModals() {
   if (rulesBtn) {
     rulesBtn.onclick = () => {
       import('../data/tasks.js').then(module => {
-        modalContent.innerHTML = module.grammarRules;
-        modal.style.display = 'block';
+        openModal(module.grammarRules);
       });
     };
   }
@@ -50,7 +68,14 @@ export function setupModals() {
   const closeModal = document.getElementById('close-modal');
   if (closeModal) {
     closeModal.onclick = () => {
-      modal.style.display = 'none';
+      closeModalWindow(false);
     };
   }
+
+  // Перехватываем нажатие системной кнопки "Назад" на телефоне/в браузере
+  window.onpopstate = (event) => {
+    if (modal.style.display === 'block') {
+      closeModalWindow(true);
+    }
+  };
 }
