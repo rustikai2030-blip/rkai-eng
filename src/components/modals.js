@@ -20,17 +20,14 @@ export function setupModals() {
   const modalTitle = document.getElementById('modal-title');
   const modalContent = document.getElementById('modal-content');
 
-  // Функция открытия модального окна с добавлением состояния в историю браузера
   function openModal(titleText, contentHtml) {
     modalTitle.textContent = titleText;
     modalContent.innerHTML = contentHtml;
     modal.style.display = 'block';
     
-    // Добавляем запись в историю браузера, чтобы кнопка "Назад" на телефоне работала
     history.pushState({ modalOpen: true }, '');
   }
 
-  // Функция закрытия модального окна
   function closeModalWindow(isBackAction = false) {
     if (modal.style.display === 'block') {
       modal.style.display = 'none';
@@ -57,7 +54,6 @@ export function setupModals() {
     };
   }
 
-  // Кнопка "Правила" переименована в "Помощь"
   const rulesBtn = document.getElementById('rules-btn');
   if (rulesBtn) {
     rulesBtn.textContent = "Помощь";
@@ -94,7 +90,10 @@ export function setupModals() {
           <p>Вообще английскому языку надо не обучать, а тренировать. Обучать английскому — бесполезное занятие. Вы не сможете на нем разговаривать, пока не доведете до автоматизма применение его правил, как в родном языке. А в этом нам могут помочь только тренажёры.</p>
           <p>Как только мы доведём до автоматизма базу, то возьмём ещё пару правил и охватим до 95-96% языка.</p>
           
-          <p style="font-weight: bold; color: var(--accent, #38bdf8); margin-top: 10px;">Добро пожаловать на самый эффективный курс английского языка. Курс полностью бесплатный.</p>
+          <!-- Яркий блок для финального призыва -->
+          <div style="background: rgba(56, 189, 248, 0.15); border: 2px solid #38bdf8; padding: 18px; border-radius: 12px; text-align: center; margin-top: 10px;">
+            <p style="font-weight: bold; font-size: 22px; color: #38bdf8; margin: 0;">Добро пожаловать на самый эффективный курс английского языка. Курс полностью бесплатный.</p>
+          </div>
         </div>
       `;
       openModal("Помощь", helpHtml);
@@ -108,7 +107,6 @@ export function setupModals() {
     };
   }
 
-  // Перехватываем нажатие системной кнопки "Назад" на телефоне/в браузере
   window.onpopstate = (event) => {
     if (modal.style.display === 'block') {
       closeModalWindow(true);
