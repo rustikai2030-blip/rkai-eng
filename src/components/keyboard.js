@@ -42,6 +42,7 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
     }
   }
 
+  // По умолчанию первая буква заглавная, дальше строчные
   let isUpperCase = true;
 
   function renderRows() {
@@ -59,6 +60,13 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
 
         if (key === 'shift') {
           btn.textContent = '⇧';
+          if (isUpperCase) {
+            btn.style.background = 'var(--accent, #38bdf8)';
+            btn.style.color = '#fff';
+          } else {
+            btn.style.background = '';
+            btn.style.color = '';
+          }
           btn.onclick = () => {
             isUpperCase = !isUpperCase;
             renderRows();
@@ -71,11 +79,9 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
 
           const startDeleting = (e) => {
             e.preventDefault();
-            onBackspace(); // Стираем сразу при нажатии
+            onBackspace();
 
-            // Задержка перед началом непрерывного стирания (500 мс)
             backspaceTimeout = setTimeout(() => {
-              // Интервал повторного удаления (каждые 100 мс)
               backspaceInterval = setInterval(() => {
                 onBackspace();
               }, 100);
@@ -87,7 +93,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
             clearInterval(backspaceInterval);
           };
 
-          // Подключаем события как для мыши, так и для сенсорных экранов
           btn.addEventListener('mousedown', startDeleting);
           btn.addEventListener('mouseup', stopDeleting);
           btn.addEventListener('mouseleave', stopDeleting);
@@ -109,23 +114,17 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
           btn.textContent = key;
           btn.style.flex = '1';
           btn.addEventListener('click', () => onInput(key));
-        } else if (key === 'l' || key === 'n') {
+        } else {
           const char = key;
           btn.textContent = isUpperCase ? char.toUpperCase() : char;
           btn.addEventListener('click', () => {
-            let charToAdd = isUpperCase ? char.toUpperCase() : char;
-            isUpperCase = false;
-            renderRows();
-            onInput(charToAdd);
-          });
-        } else if (key === ',') {
-          btn.textContent = key;
-          btn.addEventListener('click', () => onInput(key));
-        } else {
-          btn.textContent = isUpperCase ? key.toUpperCase() : key;
-          btn.addEventListener('click', () => {
-            let charToAdd = isUpperCase ? key.toUpperCase() : key;
-            isUpperCase = false;
+            const charToAdd = isUpperCase ? char.toUpperCase() : char;
+            
+            // Сбрасываем shift в строчный режим после ввода символа
+            if (isUpperCase) {
+              isUpperCase = false;
+            }
+            
             renderRows();
             onInput(charToAdd);
           });

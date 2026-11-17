@@ -450,7 +450,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
-            <!-- Добавлен inputmode="none" для предотвращения появления системной клавиатуры на мобильных -->
             <input type="text" id="answer-display" inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" />
             <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showFeedback || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
@@ -489,20 +488,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isEnglishToRussian) {
       const inputEl = document.getElementById('answer-display');
       if (inputEl) {
-        // Дополнительно страхуем через JS атрибут inputmode
         inputEl.setAttribute('inputmode', 'none');
         
         inputEl.focus();
         inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
 
         inputEl.addEventListener('click', (e) => {
-          e.preventDefault(); // Предотвращаем стандартное поведение фокуса с вызовом клавиатуры ОС
+          e.preventDefault();
           inputEl.focus();
           currentInput = inputEl.value;
         });
 
         inputEl.addEventListener('keydown', (e) => {
-          // Блокируем ввод с физической/сторонней клавиатуры устройства
           if (e.key !== 'Tab' && e.key !== 'Enter') {
             e.preventDefault();
           }
@@ -518,12 +515,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const val = inputEl.value;
 
           if (val.length < MAX_INPUT_LENGTH) {
+            // Символ принимается ровно в том регистре, который сформировала клавиатура
             let charToAdd = char;
-            if (start === 0 && val.length === 0) {
-              charToAdd = char.toUpperCase();
-            } else {
-              charToAdd = char.toLowerCase();
-            }
 
             inputEl.value = val.substring(0, start) + charToAdd + val.substring(end);
             inputEl.selectionStart = inputEl.selectionEnd = start + 1;
