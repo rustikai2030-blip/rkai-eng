@@ -99,22 +99,23 @@ const questionsEnRu = [
   { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?", category: "question" }
 ];
 
+// Равномерное объединение без дублирования
 export const level1Tasks = {
   ruEn: statementsRuEn,
   enRu: statementsEnRu
 };
 
 export const level2Tasks = {
-  ruEn: [...statementsRuEn, ...negativesRuEn, ...negativesRuEn], 
-  enRu: [...statementsEnRu, ...negativesEnRu, ...negativesEnRu]
+  ruEn: [...statementsRuEn, ...negativesRuEn],
+  enRu: [...statementsEnRu, ...negativesEnRu]
 };
 
 export const level3Tasks = {
-  ruEn: [...statementsRuEn, ...negativesRuEn, ...questionsRuEn, ...questionsRuEn, ...questionsRuEn, ...questionsRuEn],
-  enRu: [...statementsEnRu, ...negativesEnRu, ...questionsEnRu, ...questionsEnRu, ...questionsEnRu, ...questionsEnRu]
+  ruEn: [...statementsRuEn, ...negativesRuEn, ...questionsRuEn],
+  enRu: [...statementsEnRu, ...negativesEnRu, ...questionsEnRu]
 };
 
-// Функция перемешивания массива (алгоритм Фишера — Йетса)
+// Алгоритм Фишера — Йетса
 function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -124,9 +125,14 @@ function shuffleArray(array) {
   return arr;
 }
 
-// Очереди для равномерного распределения без повторений подряд
 let shuffledRuEnPool = [];
 let shuffledEnRuPool = [];
+
+// Сброс очередей при смене уровня или переключении фильтров
+export function resetTaskPools() {
+  shuffledRuEnPool = [];
+  shuffledEnRuPool = [];
+}
 
 function getNextTaskFromPool(poolType, sourcePool) {
   if (poolType === 'ruEn') {
@@ -142,18 +148,24 @@ function getNextTaskFromPool(poolType, sourcePool) {
   }
 }
 
-// Функция циклического выбора с равномерным распределением элементов
-export function getCyclicTask(sessionIndex, levelTasks) {
+export function getCyclicTask(sessionIndex, levelTasks, activeCategories = null) {
   const positionInCycle = sessionIndex % 10;
-  const isEnRu = positionInCycle >= 7; 
+  const isEnRu = positionInCycle >= 7;
 
-  const sourcePool = isEnRu ? levelTasks.enRu : levelTasks.ruEn;
+  let sourcePool = isEnRu ? levelTasks.enRu : levelTasks.ruEn;
+
+  // Фильтруем задания по активным кнопкам
+  if (activeCategories && activeCategories.length > 0) {
+    const filtered = sourcePool.filter(t => activeCategories.includes(t.category));
+    if (filtered.length > 0) {
+      sourcePool = filtered;
+    }
+  }
+
   const poolType = isEnRu ? 'enRu' : 'ruEn';
-
   const rawTask = getNextTaskFromPool(poolType, sourcePool);
   let task = { ...rawTask };
 
-  // Если это задание с вариантами ответа (англ -> рус), рандомизируем порядок кнопок
   if (isEnRu && task.options) {
     task.options = shuffleArray(task.options);
   }

@@ -3,11 +3,12 @@ import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
-import { level1Tasks, level2Tasks, level3Tasks, getCyclicTask } from './data/tasks.js';
+import { level1Tasks, level2Tasks, level3Tasks, getCyclicTask, resetTaskPools } from './data/tasks.js';
 import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
+import { renderCategoryFilters } from './components/categoryFilters.js';
 import { calculateStyleLevel, gameConfig } from './config/gameConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let sessionIndex = 0;          
   let currentLevel = 1;          
+  let activeCategories = ['statement']; // Активные фильтры тем
   let totalCorrectAnswers = 0;   
   let totalIncorrectAnswers = 0;  
   let consecutiveErrors = 0;     
@@ -41,6 +43,36 @@ document.addEventListener('DOMContentLoaded', () => {
   let isSoundEnabled = localStorage.getItem('rkai_sound_enabled') !== 'false';
 
   const MAX_INPUT_LENGTH = 35;
+
+  function getAvailableCategoriesForLevel(lvl) {
+    if (lvl >= 3) return ['question', 'statement', 'negative'];
+    if (lvl === 2) return ['statement', 'negative'];
+    return ['statement'];
+  }
+
+  function syncCategoriesWithLevel(lvl) {
+    activeCategories = getAvailableCategoriesForLevel(lvl);
+    resetTaskPools();
+  }
+
+  function handleToggleCategory(cat) {
+    if (isTestMode) return;
+    const available = getAvailableCategoriesForLevel(currentLevel);
+
+    if (activeCategories.includes(cat)) {
+      const next = activeCategories.filter(c => c !== cat);
+      // Если пользователь выключил последнюю кнопку — включаем обратно все доступные на уровне
+      activeCategories = next.length > 0 ? next : [...available];
+    } else {
+      activeCategories = [...activeCategories, cat];
+    }
+
+    resetTaskPools();
+    currentInput = "";
+    lastFeedback = "";
+    pickNewTask();
+    renderTrainer();
+  }
 
   function calculateElementLevel(totalCorrect) {
     const step = gameConfig.stepPerElementLevel || 5;
@@ -147,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const docSnap = await getDoc(userRef);
 
       if (!docSnap.exists()) {
+        syncCategoriesWithLevel(1);
         await setDoc(userRef, {
           uid: user.uid,
           email: user.email || "anonymous",
@@ -165,6 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
         totalCorrectAnswers = Math.max(data.totalCorrect || 0, totalCorrectAnswers);
         totalIncorrectAnswers = Math.max(data.totalIncorrect || 0, totalIncorrectAnswers);
         currentLevel = data.currentLessonLevel || 1;
+        syncCategoriesWithLevel(currentLevel);
+        pickNewTask();
         
         updateStyleLevel();
         await setDoc(userRef, { 
@@ -202,19 +237,22 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } else {
       isAdminUser = false;
+      syncCategoriesWithLevel(currentLevel);
     }
     renderTrainer();
   });
 
   function getCurrentTasksForLevel(lvl) {
-    if (lvl === 3) return level3Tasks;
+    if (lvl >= 3) return level3Tasks;
     if (lvl === 2) return level2Tasks;
     return level1Tasks;
   }
 
   function pickNewTask() {
     const tasks = getCurrentTasksForLevel(currentLevel);
-    const result = getCyclicTask(sessionIndex, tasks);
+    // В тесте используем все категории уровня, в обычной тренировке — выбранные пользователем
+    const categoriesToUse = isTestMode ? getAvailableCategoriesForLevel(currentLevel) : activeCategories;
+    const result = getCyclicTask(sessionIndex, tasks, categoriesToUse);
     currentTask = result.task;
     isEnglishToRussian = result.isEnglishToRussian;
   }
@@ -244,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     testQuestionsAnswered = 0;
     testCorrectCount = 0;
     testSecondsLeft = gameConfig.testTimeSeconds || 120;
+    resetTaskPools();
     pickNewTask();
     renderTrainer();
 
@@ -273,9 +312,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (passed && testCorrectCount >= requiredCorrect) {
       alert(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на уровень ${currentLevel + 1}!`);
       currentLevel++;
+      syncCategoriesWithLevel(currentLevel);
       saveProgressToFirestore();
     } else {
       alert(`Время вышло или недостаточно правильных ответов (${testCorrectCount}/${totalQ}, нужно >= ${requiredCorrect}). Вы остаетесь на текущем уровне, тренируйтесь дальше!`);
+      resetTaskPools();
     }
     pickNewTask();
     renderTrainer();
@@ -421,6 +462,9 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         ` : ''}
 
+        <!-- Контейнер для кнопок Вопрос / Утверждение / Отрицание -->
+        <div id="category-filters-container"></div>
+
         ${isTestMode ? `
           <div style="margin-bottom: 12px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 8px;">
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">РЕЖИМ ТЕСТИРОВАНИЯ (${testQuestionsAnswered}/${gameConfig.testQuestionCount})</div>
@@ -476,6 +520,15 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
+    // Отрисовываем кнопки фильтров тем
+    renderCategoryFilters({
+      containerId: 'category-filters-container',
+      currentLevel,
+      activeCategories,
+      isTestMode,
+      onToggleCategory: handleToggleCategory
+    });
+
     const soundToggleBtn = document.getElementById('sound-toggle-btn');
     if (soundToggleBtn) {
       soundToggleBtn.onclick = () => {
@@ -515,7 +568,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const val = inputEl.value;
 
           if (val.length < MAX_INPUT_LENGTH) {
-            // Символ принимается ровно в том регистре, который сформировала клавиатура
             let charToAdd = char;
 
             inputEl.value = val.substring(0, start) + charToAdd + val.substring(end);

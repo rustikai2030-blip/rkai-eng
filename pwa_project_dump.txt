@@ -4312,6 +4312,7 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
     }
   }
 
+  // По умолчанию первая буква заглавная, дальше строчные
   let isUpperCase = true;
 
   function renderRows() {
@@ -4329,6 +4330,13 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
 
         if (key === 'shift') {
           btn.textContent = '⇧';
+          if (isUpperCase) {
+            btn.style.background = 'var(--accent, #38bdf8)';
+            btn.style.color = '#fff';
+          } else {
+            btn.style.background = '';
+            btn.style.color = '';
+          }
           btn.onclick = () => {
             isUpperCase = !isUpperCase;
             renderRows();
@@ -4341,11 +4349,9 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
 
           const startDeleting = (e) => {
             e.preventDefault();
-            onBackspace(); // Стираем сразу при нажатии
+            onBackspace();
 
-            // Задержка перед началом непрерывного стирания (500 мс)
             backspaceTimeout = setTimeout(() => {
-              // Интервал повторного удаления (каждые 100 мс)
               backspaceInterval = setInterval(() => {
                 onBackspace();
               }, 100);
@@ -4357,7 +4363,6 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
             clearInterval(backspaceInterval);
           };
 
-          // Подключаем события как для мыши, так и для сенсорных экранов
           btn.addEventListener('mousedown', startDeleting);
           btn.addEventListener('mouseup', stopDeleting);
           btn.addEventListener('mouseleave', stopDeleting);
@@ -4379,23 +4384,17 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
           btn.textContent = key;
           btn.style.flex = '1';
           btn.addEventListener('click', () => onInput(key));
-        } else if (key === 'l' || key === 'n') {
+        } else {
           const char = key;
           btn.textContent = isUpperCase ? char.toUpperCase() : char;
           btn.addEventListener('click', () => {
-            let charToAdd = isUpperCase ? char.toUpperCase() : char;
-            isUpperCase = false;
-            renderRows();
-            onInput(charToAdd);
-          });
-        } else if (key === ',') {
-          btn.textContent = key;
-          btn.addEventListener('click', () => onInput(key));
-        } else {
-          btn.textContent = isUpperCase ? key.toUpperCase() : key;
-          btn.addEventListener('click', () => {
-            let charToAdd = isUpperCase ? key.toUpperCase() : key;
-            isUpperCase = false;
+            const charToAdd = isUpperCase ? char.toUpperCase() : char;
+            
+            // Сбрасываем shift в строчный режим после ввода символа
+            if (isUpperCase) {
+              isUpperCase = false;
+            }
+            
             renderRows();
             onInput(charToAdd);
           });
@@ -5029,7 +5028,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
-            <!-- Добавлен inputmode="none" для предотвращения появления системной клавиатуры на мобильных -->
             <input type="text" id="answer-display" inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" />
             <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showFeedback || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
@@ -5068,20 +5066,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isEnglishToRussian) {
       const inputEl = document.getElementById('answer-display');
       if (inputEl) {
-        // Дополнительно страхуем через JS атрибут inputmode
         inputEl.setAttribute('inputmode', 'none');
         
         inputEl.focus();
         inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
 
         inputEl.addEventListener('click', (e) => {
-          e.preventDefault(); // Предотвращаем стандартное поведение фокуса с вызовом клавиатуры ОС
+          e.preventDefault();
           inputEl.focus();
           currentInput = inputEl.value;
         });
 
         inputEl.addEventListener('keydown', (e) => {
-          // Блокируем ввод с физической/сторонней клавиатуры устройства
           if (e.key !== 'Tab' && e.key !== 'Enter') {
             e.preventDefault();
           }
@@ -5097,12 +5093,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const val = inputEl.value;
 
           if (val.length < MAX_INPUT_LENGTH) {
+            // Символ принимается ровно в том регистре, который сформировала клавиатура
             let charToAdd = char;
-            if (start === 0 && val.length === 0) {
-              charToAdd = char.toUpperCase();
-            } else {
-              charToAdd = char.toLowerCase();
-            }
 
             inputEl.value = val.substring(0, start) + charToAdd + val.substring(end);
             inputEl.selectionStart = inputEl.selectionEnd = start + 1;
