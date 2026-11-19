@@ -1,6 +1,6 @@
 {
-  "name": "eng.rkai.app — Тренажер английского языка",
-  "short_name": "Eng Trainer",
+  "name": "Pareto English — Тренажер английского языка",
+  "short_name": "Pareto",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

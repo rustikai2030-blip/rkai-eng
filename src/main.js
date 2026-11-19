@@ -430,11 +430,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     app.innerHTML = `
       <div class="app-header">
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: var(--ui-gap);">
-          <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} | Уровень ${currentLevel}
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: var(--ui-gap); gap: 6px;">
+          <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+            <span style="font-weight: 800; color: var(--accent); background: var(--accent-bg); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--accent); white-space: nowrap; font-size: 12px;">Pareto English</span>
+            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} · Ур. ${currentLevel}
+            </span>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
             ${showSoundToggle ? `
               <button id="sound-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 15px; padding: 2px;" title="Вкл/Выкл звук">
                 ${isSoundEnabled ? '🔊' : '🔇'}
