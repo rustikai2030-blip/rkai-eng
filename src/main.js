@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let sessionIndex = 0;          
   let currentLevel = 1;          
-  let activeCategories = ['statement']; // Активные фильтры тем
+  let activeCategories = ['statement'];
   let totalCorrectAnswers = 0;   
   let totalIncorrectAnswers = 0;  
   let consecutiveErrors = 0;     
@@ -61,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (activeCategories.includes(cat)) {
       const next = activeCategories.filter(c => c !== cat);
-      // Если пользователь выключил последнюю кнопку — включаем обратно все доступные на уровне
       activeCategories = next.length > 0 ? next : [...available];
     } else {
       activeCategories = [...activeCategories, cat];
@@ -250,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function pickNewTask() {
     const tasks = getCurrentTasksForLevel(currentLevel);
-    // В тесте используем все категории уровня, в обычной тренировке — выбранные пользователем
     const categoriesToUse = isTestMode ? getAvailableCategoriesForLevel(currentLevel) : activeCategories;
     const result = getCyclicTask(sessionIndex, tasks, categoriesToUse);
     currentTask = result.task;
@@ -431,96 +429,94 @@ document.addEventListener('DOMContentLoaded', () => {
     const showSoundToggle = elementLevel >= 5;
 
     app.innerHTML = `
-      <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-bottom: 10px;">
-          <div>
+      <div class="app-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: var(--ui-gap);">
+          <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             👤 ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} | Уровень ${currentLevel}
           </div>
-          <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
             ${showSoundToggle ? `
-              <button id="sound-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 16px;" title="Вкл/Выкл звук">
+              <button id="sound-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 15px; padding: 2px;" title="Вкл/Выкл звук">
                 ${isSoundEnabled ? '🔊' : '🔇'}
               </button>
             ` : ''}
             ${currentUser ? `
-              <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 14px; color: inherit;">Выйти</button>
+              <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit; padding: 2px;">Выйти</button>
             ` : `
-              <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 14px; color: inherit;">Войти</button>
+              <button id="login-trigger-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit; padding: 2px;">Войти</button>
             `}
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <button id="words-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Слова</button>
-          <div id="timer-display" style="font-size: 15px; font-weight: bold; visibility: ${showTimer && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
-          <button id="rules-btn" style="padding: 10px 16px; font-size: 15px; font-weight: 600; cursor: pointer;">Правила</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--ui-gap);">
+          <button id="words-btn" style="padding: clamp(6px, 1.1dvh, 9px) 14px; font-size: 14px; font-weight: 600; cursor: pointer;">Слова</button>
+          <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showTimer && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
+          <button id="rules-btn" style="padding: clamp(6px, 1.1dvh, 9px) 14px; font-size: 14px; font-weight: 600; cursor: pointer;">Правила</button>
         </div>
 
         ${showTestButton && !isTestMode ? `
-          <div style="margin-bottom: 12px;">
-            <button id="start-test-btn" style="width: 100%; padding: 12px; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 8px;">Перейти на ${currentLevel + 1} уровень (тест)</button>
+          <div style="margin-bottom: var(--ui-gap);">
+            <button id="start-test-btn" style="width: 100%; padding: clamp(7px, 1.2dvh, 10px); font-weight: bold; font-size: clamp(13px, 2dvh, 15px); cursor: pointer; border-radius: 8px;">Перейти на ${currentLevel + 1} уровень (тест)</button>
           </div>
         ` : ''}
 
-        <!-- Контейнер для кнопок Вопрос / Утверждение / Отрицание -->
         <div id="category-filters-container"></div>
 
         ${isTestMode ? `
-          <div style="margin-bottom: 12px; background: rgba(170,59,255,0.1); padding: 10px; border: 1px solid var(--accent); border-radius: 8px;">
-            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">РЕЖИМ ТЕСТИРОВАНИЯ (${testQuestionsAnswered}/${gameConfig.testQuestionCount})</div>
-            <div id="test-timer-display" style="font-size: 15px; color: #ef4444; font-weight: bold;">Осталось времени: ${formatTime(testSecondsLeft)}</div>
+          <div style="margin-bottom: var(--ui-gap); background: rgba(170,59,255,0.1); padding: 6px 10px; border: 1px solid var(--accent); border-radius: 8px;">
+            <div style="font-weight: bold; font-size: 13px;">РЕЖИМ ТЕСТИРОВАНИЯ (${testQuestionsAnswered}/${gameConfig.testQuestionCount})</div>
+            <div id="test-timer-display" style="font-size: 14px; color: #ef4444; font-weight: bold;">Осталось времени: ${formatTime(testSecondsLeft)}</div>
           </div>
         ` : ''}
 
         ${deferredPrompt ? `
-          <div style="margin-bottom: 10px;">
-            <button id="install-pwa-btn" style="width: 100%; padding: 12px; font-size: 15px; font-weight: bold; cursor: pointer; border-radius: 8px;">📲 Установить приложение</button>
+          <div style="margin-bottom: var(--ui-gap);">
+            <button id="install-pwa-btn" style="width: 100%; padding: 8px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 8px;">📲 Установить приложение</button>
           </div>
         ` : ''}
 
         ${isAdminUser ? `
-          <div style="margin-bottom: 8px; text-align: center;">
-            <button id="admin-panel-btn" style="padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 6px;">📊 Админ-панель</button>
+          <div style="margin-bottom: var(--ui-gap); text-align: center;">
+            <button id="admin-panel-btn" style="padding: 5px 12px; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 6px;">📊 Админ-панель</button>
           </div>
         ` : ''}
       </div>
 
-      <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; margin: 10px 0;">
+      <div class="app-main">
         ${!isEnglishToRussian ? `
           <div>
-            <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 12px;">
-              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
-              <p style="font-size: 30px; font-weight: bold; margin: 0; line-height: 1.2;">${currentTask.ru}</p>
-              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: var(--ui-gap);">
+              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <p style="font-size: var(--task-font-size); font-weight: bold; margin: 0; line-height: 1.15;">${currentTask.ru}</p>
+              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
             <input type="text" id="answer-display" inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" />
-            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.2; margin-top: 10px; visibility: ${showFeedback || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
+            <div id="feedback-msg" style="min-height: 22px; font-size: clamp(13px, 2dvh, 15px); font-weight: bold; color: ${lastFeedbackColor}; line-height: 1.15; margin-top: clamp(4px, 0.8dvh, 8px); visibility: ${showFeedback || lastFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
           </div>
         ` : `
           <div>
-            <div style="display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 15px;">
-              <div style="font-size: 28px; font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
-              <p style="font-size: 30px; font-weight: bold; margin: 0;">${currentTask.en}</p>
-              <div style="font-size: 28px; font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: var(--ui-gap);">
+              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <p style="font-size: var(--task-font-size); font-weight: bold; margin: 0; line-height: 1.15;">${currentTask.en}</p>
+              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
             </div>
 
-            <div id="feedback-msg" style="height: 32px; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: ${lastFeedbackColor}; line-height: 1.2; visibility: ${showFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
-            <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;">
+            <div id="feedback-msg" style="min-height: 22px; font-size: clamp(13px, 2dvh, 15px); font-weight: bold; margin-bottom: var(--ui-gap); color: ${lastFeedbackColor}; line-height: 1.15; visibility: ${showFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
+            <div id="options-container" style="display: flex; flex-direction: column; gap: clamp(6px, 1dvh, 10px);">
               ${currentTask.options.map(opt => `
-                <button class="option-btn" style="padding: 16px; font-size: 20px; font-weight: 600; cursor: pointer; text-align: center; border-radius: 8px;">${opt}</button>
+                <button class="option-btn" style="font-weight: 600; cursor: pointer; text-align: center; border-radius: 8px;">${opt}</button>
               `).join('')}
             </div>
           </div>
         `}
       </div>
 
-      <div>
-        <div id="keyboard" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;"></div>
+      <div class="app-footer">
+        <div id="keyboard"></div>
       </div>
     `;
 
-    // Отрисовываем кнопки фильтров тем
     renderCategoryFilters({
       containerId: 'category-filters-container',
       currentLevel,
@@ -543,12 +539,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (inputEl) {
         inputEl.setAttribute('inputmode', 'none');
         
-        inputEl.focus();
+        inputEl.focus({ preventScroll: true });
         inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
 
         inputEl.addEventListener('click', (e) => {
           e.preventDefault();
-          inputEl.focus();
+          inputEl.focus({ preventScroll: true });
           currentInput = inputEl.value;
         });
 
@@ -573,7 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.value = val.substring(0, start) + charToAdd + val.substring(end);
             inputEl.selectionStart = inputEl.selectionEnd = start + 1;
             currentInput = inputEl.value;
-            inputEl.focus();
+            inputEl.focus({ preventScroll: true });
           }
         },
         onBackspace: () => {
@@ -590,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.selectionStart = inputEl.selectionEnd = start - 1;
           }
           currentInput = inputEl.value;
-          inputEl.focus();
+          inputEl.focus({ preventScroll: true });
         },
         onSpace: () => {
           if (!inputEl) return;
@@ -602,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.value = val.substring(0, start) + " " + val.substring(end);
             inputEl.selectionStart = inputEl.selectionEnd = start + 1;
             currentInput = inputEl.value;
-            inputEl.focus();
+            inputEl.focus({ preventScroll: true });
           }
         },
         onOk: async () => {

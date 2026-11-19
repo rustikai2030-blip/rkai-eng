@@ -10,16 +10,11 @@ export function renderCategoryFilters({
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // В режиме тестирования фильтры скрываем, чтобы тест проверял все темы уровня честно
   if (isTestMode) {
     container.innerHTML = '';
     return;
   }
 
-  // Порядок кнопок по ТЗ:
-  // Уровень 1: [Утверждение]
-  // Уровень 2: [Утверждение] [Отрицание]
-  // Уровень 3: [Вопрос] [Утверждение] [Отрицание]
   const buttons = [];
 
   if (currentLevel >= 3) {
@@ -33,7 +28,7 @@ export function renderCategoryFilters({
   }
 
   container.innerHTML = `
-    <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 12px;">
+    <div style="display: flex; justify-content: center; gap: 6px; margin-bottom: var(--ui-gap, 8px);">
       ${buttons.map(btn => {
         const isActive = activeCategories.includes(btn.id);
         return `
@@ -42,8 +37,8 @@ export function renderCategoryFilters({
             data-cat="${btn.id}" 
             style="
               flex: 1;
-              padding: 10px 6px;
-              font-size: 14px;
+              padding: clamp(6px, 1.1dvh, 9px) 4px;
+              font-size: clamp(12px, 1.9dvh, 14px);
               font-weight: 700;
               cursor: pointer;
               border-radius: var(--border-radius, 8px);

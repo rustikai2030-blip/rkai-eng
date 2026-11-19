@@ -1,11 +1,16 @@
 /* src/styles/evolution.css */
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   transition: background-color 0.4s ease, color 0.4s ease;
   
   /* Исключаем выделение текста и контекстное меню на уровне всей страницы */
@@ -17,8 +22,13 @@ body {
 #app {
   width: 100%;
   max-width: 480px;
-  min-height: 100dvh;
-  padding: 16px 20px;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  padding-top: max(8px, env(safe-area-inset-top));
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  padding-left: 14px;
+  padding-right: 14px;
   box-sizing: border-box;
   text-align: center;
   display: flex;
@@ -30,11 +40,18 @@ body {
   user-select: none;
 }
 
-/* Базовые размеры и переменные для интерфейса */
+/* Резиновые размеры элементов в зависимости от высоты экрана */
 :root {
-  --key-height: 60px;
-  --key-font-size: 22px;
-  --key-gap: 8px;
+  --key-height: clamp(38px, 6.4dvh, 56px);
+  --key-font-size: clamp(17px, 2.6dvh, 22px);
+  --key-gap: clamp(4px, 0.8dvh, 8px);
+  --ui-gap: clamp(4px, 0.9dvh, 10px);
+  --task-font-size: clamp(22px, 3.6dvh, 30px);
+  --counter-font-size: clamp(20px, 3.2dvh, 28px);
+  --input-height: clamp(40px, 6.2dvh, 50px);
+  --input-font-size: clamp(19px, 3dvh, 24px);
+  --option-padding: clamp(9px, 1.5dvh, 15px);
+  --option-font-size: clamp(16px, 2.4dvh, 20px);
 }
 
 /* Уровень 0: Строгий монохромный минимализм */
@@ -177,7 +194,25 @@ body[data-level="19"] {
   --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.3);
 }
 
-/* Поле ввода ответа (теперь полноценный интерактивный input) */
+/* Секции макета */
+.app-header {
+  flex-shrink: 0;
+}
+
+.app-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: var(--ui-gap) 0;
+}
+
+.app-footer {
+  flex-shrink: 0;
+}
+
+/* Поле ввода ответа */
 #answer-display {
   width: 100%;
   box-sizing: border-box;
@@ -188,10 +223,11 @@ body[data-level="19"] {
   color: inherit;
   transition: all 0.3s ease;
   
-  font-size: 24px;
+  font-size: var(--input-font-size);
   text-align: center;
-  min-height: 50px;
-  padding: 10px 14px;
+  height: var(--input-height);
+  min-height: var(--input-height);
+  padding: 4px 12px;
   outline: none;
 }
 
@@ -216,18 +252,30 @@ button {
   border: 2px solid var(--accent) !important;
 }
 
+/* Варианты ответов (англ -> рус) */
+.option-btn {
+  padding: var(--option-padding) !important;
+  font-size: var(--option-font-size) !important;
+}
+
 /* Стили клавиатуры и кнопок */
+#keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--key-gap);
+}
+
 .kb-row {
   display: flex;
   justify-content: center;
-  gap: var(--key-gap, 8px);
-  margin-bottom: var(--key-gap, 8px);
+  gap: var(--key-gap);
+  margin-bottom: 0;
 }
 
 .kb-btn {
   flex: 1;
-  height: var(--key-height, 60px);
-  font-size: var(--key-font-size, 22px);
+  height: var(--key-height);
+  font-size: var(--key-font-size);
   font-weight: bold;
   background: var(--btn-bg, #fff);
   color: inherit;
@@ -239,7 +287,8 @@ button {
   justify-content: center;
   box-sizing: border-box;
   cursor: pointer;
-  transition: all 0.25s ease;
+  padding: 0;
+  transition: background 0.15s ease, color 0.15s ease;
 
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -250,6 +299,7 @@ button {
   background: var(--accent);
   color: #fff;
 }
+
 /* Анимация встряски при ошибке */
 @keyframes shakeAnimation {
   0%, 100% { transform: translateX(0); }
