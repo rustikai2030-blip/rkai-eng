@@ -13,7 +13,6 @@ html, body {
   align-items: center;
   transition: background-color 0.4s ease, color 0.4s ease;
   
-  /* Исключаем выделение текста и контекстное меню на уровне всей страницы */
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
@@ -25,33 +24,34 @@ html, body {
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
-  padding-top: max(8px, env(safe-area-inset-top));
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
-  padding-left: 14px;
-  padding-right: 14px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+  padding-left: 16px;
+  padding-right: 16px;
   box-sizing: border-box;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: clamp(8px, 1.5dvh, 18px);
 
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
 }
 
-/* Резиновые размеры элементов в зависимости от высоты экрана */
+/* Резиновые размеры элементов с увеличенным потолком для высоких экранов */
 :root {
-  --key-height: clamp(38px, 6.4dvh, 56px);
-  --key-font-size: clamp(17px, 2.6dvh, 22px);
-  --key-gap: clamp(4px, 0.8dvh, 8px);
-  --ui-gap: clamp(4px, 0.9dvh, 10px);
-  --task-font-size: clamp(22px, 3.6dvh, 30px);
-  --counter-font-size: clamp(20px, 3.2dvh, 28px);
-  --input-height: clamp(40px, 6.2dvh, 50px);
-  --input-font-size: clamp(19px, 3dvh, 24px);
-  --option-padding: clamp(9px, 1.5dvh, 15px);
-  --option-font-size: clamp(16px, 2.4dvh, 20px);
+  --key-height: clamp(40px, 7.6dvh, 72px);
+  --key-font-size: clamp(18px, 2.8dvh, 25px);
+  --key-gap: clamp(5px, 1.1dvh, 12px);
+  --ui-gap: clamp(6px, 1.4dvh, 16px);
+  --task-font-size: clamp(24px, 4dvh, 34px);
+  --counter-font-size: clamp(22px, 3.6dvh, 30px);
+  --input-height: clamp(44px, 7dvh, 62px);
+  --input-font-size: clamp(20px, 3.2dvh, 26px);
+  --option-padding: clamp(10px, 1.8dvh, 18px);
+  --option-font-size: clamp(17px, 2.6dvh, 22px);
 }
 
 /* Уровень 0: Строгий монохромный минимализм */
@@ -194,9 +194,12 @@ body[data-level="19"] {
   --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.3);
 }
 
-/* Секции макета */
+/* Равномерное распределение трех главных зон по вертикали */
 .app-header {
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
 }
 
 .app-main {
@@ -205,11 +208,13 @@ body[data-level="19"] {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin: var(--ui-gap) 0;
 }
 
 .app-footer {
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 /* Поле ввода ответа */
@@ -245,11 +250,24 @@ button {
   user-select: none;
 }
 
-/* Кнопка запуска теста */
+/* Кнопки верхней панели и фильтров */
+#words-btn,
+#rules-btn {
+  padding: clamp(8px, 1.4dvh, 13px) 16px !important;
+  font-size: clamp(14px, 2.1dvh, 16px) !important;
+}
+
 #start-test-btn {
   background: var(--accent) !important;
   color: #fff !important;
   border: 2px solid var(--accent) !important;
+  padding: clamp(9px, 1.6dvh, 15px) !important;
+  font-size: clamp(14px, 2.2dvh, 17px) !important;
+}
+
+.cat-filter-btn {
+  padding: clamp(8px, 1.5dvh, 14px) 6px !important;
+  font-size: clamp(13px, 2.1dvh, 16px) !important;
 }
 
 /* Варианты ответов (англ -> рус) */
