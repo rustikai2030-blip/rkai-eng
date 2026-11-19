@@ -2,13 +2,14 @@
 import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
 import { level1Tasks, level2Tasks, level3Tasks, getCyclicTask, resetTaskPools } from './data/tasks.js';
 import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
 import { renderCategoryFilters } from './components/categoryFilters.js';
+import { isIntroHidden, showProjectPresentation } from './components/onboarding.js';
 import { calculateStyleLevel, gameConfig } from './config/gameConfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -33,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isAdminUser = false;
   let userUnsubscribe = null; 
   let deferredPrompt = null; 
+  let hasShownStartupPresentation = false;
 
   let isTestMode = false;
   let testQuestionsAnswered = 0;
@@ -414,6 +416,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function maybeShowStartupPresentation() {
+    if (hasShownStartupPresentation) return;
+    hasShownStartupPresentation = true;
+
+    if (!isIntroHidden()) {
+      showProjectPresentation({
+        onClose: () => {
+          const inputEl = document.getElementById('answer-display');
+          if (inputEl && !isEnglishToRussian) {
+            inputEl.focus({ preventScroll: true });
+          }
+        }
+      });
+    }
+  }
+
   function renderTrainer() {
     if (!currentTask) {
       pickNewTask();
@@ -675,11 +693,12 @@ document.addEventListener('DOMContentLoaded', () => {
         signOut(auth);
       };
     }
+
+    maybeShowStartupPresentation();
   }
 
   function setupOptions() {
     const optionButtons = document.querySelectorAll('.option-btn');
-    optionButtons.buttonListenersAdded = true;
     optionButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
         const isCorrect = btn.textContent.trim() === currentTask.correct;
