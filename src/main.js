@@ -24,13 +24,18 @@ import { applyStyleLevelToBody } from './utils/styleTheme.js';
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
 
+  // Счётчики ТОЛЬКО для текущей сессии (начинаются с 0 при открытии приложения)
+  let sessionCorrectAnswers = 0;
+  let sessionIncorrectAnswers = 0;
+
+  // Накопленные счётчики для уровней эволюции и синхронизации со статистикой/Firestore
   const initialCounters = getLocalCounters(null);
+  let totalCorrectAnswers = initialCounters.correct;
+  let totalIncorrectAnswers = initialCounters.incorrect;
 
   let sessionIndex = 0;          
   let currentLevel = 1;          
   let activeCategories = ['statement'];
-  let totalCorrectAnswers = initialCounters.correct;   
-  let totalIncorrectAnswers = initialCounters.incorrect;  
   let consecutiveErrors = 0;     
   let currentTask = null;        
   let isEnglishToRussian = false; 
@@ -231,9 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       } else {
         const data = docSnap.data();
-        const localCounters = getLocalCounters(user);
-        totalCorrectAnswers = Math.max(Number(data.totalCorrect) || 0, localCounters.correct);
-        totalIncorrectAnswers = Math.max(Number(data.totalIncorrect) || 0, localCounters.incorrect);
+        totalCorrectAnswers = Number(data.totalCorrect) || 0;
+        totalIncorrectAnswers = Number(data.totalIncorrect) || 0;
         saveLocalCounters(user, {
           correct: totalCorrectAnswers,
           incorrect: totalIncorrectAnswers
@@ -373,9 +377,26 @@ document.addEventListener('DOMContentLoaded', () => {
       testQuestionsAnswered++;
       if (isCorrect) {
         testCorrectCount++;
-        await recordDailyProgress({ user: currentUser, tasksDelta: 1, secondsDelta: 0 });
+        sessionCorrectAnswers++;
+        const updatedCounters = await recordAnswerAttempt({
+          user: currentUser,
+          isCorrect: true,
+          countTowardCompletedTasks: true
+        });
+        totalCorrectAnswers = updatedCounters.correct;
+        totalIncorrectAnswers = updatedCounters.incorrect;
+        await syncUserProgressToCloud();
         if (elementLevel >= 5) playSound('success');
       } else {
+        sessionIncorrectAnswers++;
+        const updatedCounters = await recordAnswerAttempt({
+          user: currentUser,
+          isCorrect: false,
+          countTowardCompletedTasks: false
+        });
+        totalCorrectAnswers = updatedCounters.correct;
+        totalIncorrectAnswers = updatedCounters.incorrect;
+        await syncUserProgressToCloud();
         if (elementLevel >= 5) playSound('error');
       }
 
@@ -395,6 +416,12 @@ document.addEventListener('DOMContentLoaded', () => {
       pickNewTask();
       renderTrainer();
       return;
+    }
+
+    if (isCorrect) {
+      sessionCorrectAnswers++;
+    } else {
+      sessionIncorrectAnswers++;
     }
 
     const updatedCounters = await recordAnswerAttempt({
@@ -550,9 +577,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ${!isEnglishToRussian ? `
           <div>
             <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: var(--ui-gap);">
-              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${sessionCorrectAnswers}</div>
               <p style="font-size: var(--task-font-size); font-weight: bold; margin: 0; line-height: 1.15;">${currentTask.ru}</p>
-              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${sessionIncorrectAnswers}</div>
             </div>
 
             <input type="text" id="answer-display" inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${currentInput}" />
@@ -561,9 +588,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ` : `
           <div>
             <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: var(--ui-gap);">
-              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalCorrectAnswers}</div>
+              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #22c55e; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${sessionCorrectAnswers}</div>
               <p style="font-size: var(--task-font-size); font-weight: bold; margin: 0; line-height: 1.15;">${currentTask.en}</p>
-              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${totalIncorrectAnswers}</div>
+              <div style="font-size: var(--counter-font-size); font-weight: bold; color: #ef4444; visibility: ${showCounters && !isTestMode ? 'visible' : 'hidden'};">${sessionIncorrectAnswers}</div>
             </div>
 
             <div id="feedback-msg" style="min-height: 22px; font-size: clamp(13px, 2dvh, 15px); font-weight: bold; margin-bottom: var(--ui-gap); color: ${lastFeedbackColor}; line-height: 1.15; visibility: ${showFeedback ? 'visible' : 'hidden'};">${lastFeedback}</div>
