@@ -9,6 +9,7 @@ import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
 import { renderCategoryFilters } from './components/categoryFilters.js';
+import { renderTimerStatusBar } from './components/timerStatusBar.js';
 import { isIntroHidden, showProjectPresentation } from './components/onboarding.js';
 import { openSettingsModal } from './components/settingsModal.js';
 import { recordDailyProgress } from './utils/statsTracker.js';
@@ -463,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showFeedback = elementLevel >= 1;
     const showCounters = elementLevel >= 2;
-    const showTimer = elementLevel >= 3;
+    const showTimer = elementLevel >= 3 && !isTestMode;
     const showTestButton = elementLevel >= 4;
     const showSoundToggle = elementLevel >= 5;
     const showSettingsButton = Boolean(currentUser) && elementLevel >= 7;
@@ -478,14 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </span>
           </div>
           <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-            ${showSettingsButton ? `
-              <button id="settings-btn" style="background: none; border: none; cursor: pointer; font-size: 16px; padding: 2px; line-height: 1;" title="Настройки">⚙️</button>
-            ` : ''}
-            ${showSoundToggle ? `
-              <button id="sound-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 15px; padding: 2px; line-height: 1;" title="Вкл/Выкл звук">
-                ${isSoundEnabled ? '🔊' : '🔇'}
-              </button>
-            ` : ''}
             ${currentUser ? `
               <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit; padding: 2px;">Выйти</button>
             ` : `
@@ -494,11 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--ui-gap);">
-          <button id="words-btn" style="padding: clamp(6px, 1.1dvh, 9px) 14px; font-size: 14px; font-weight: 600; cursor: pointer;">Слова</button>
-          <div id="timer-display" style="font-size: 14px; font-weight: bold; visibility: ${showTimer && !isTestMode ? 'visible' : 'hidden'};">${formatTime(secondsElapsed)}</div>
-          <button id="rules-btn" style="padding: clamp(6px, 1.1dvh, 9px) 14px; font-size: 14px; font-weight: 600; cursor: pointer;">Правила</button>
-        </div>
+        <div id="timer-status-bar-container"></div>
 
         ${showTestButton && !isTestMode ? `
           <div style="margin-bottom: var(--ui-gap);">
@@ -563,6 +552,26 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
+    renderTimerStatusBar({
+      containerId: 'timer-status-bar-container',
+      formattedTime: formatTime(secondsElapsed),
+      showTimer,
+      showSoundToggle,
+      isSoundEnabled,
+      showSettingsButton,
+      onToggleSound: () => {
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('rkai_sound_enabled', isSoundEnabled);
+        renderTrainer();
+      },
+      onOpenSettings: () => {
+        openSettingsModal({
+          user: currentUser,
+          onBeforeOpen: () => flushSessionTime()
+        });
+      }
+    });
+
     renderCategoryFilters({
       containerId: 'category-filters-container',
       currentLevel,
@@ -570,25 +579,6 @@ document.addEventListener('DOMContentLoaded', () => {
       isTestMode,
       onToggleCategory: handleToggleCategory
     });
-
-    const settingsBtn = document.getElementById('settings-btn');
-    if (settingsBtn) {
-      settingsBtn.onclick = () => {
-        openSettingsModal({
-          user: currentUser,
-          onBeforeOpen: () => flushSessionTime()
-        });
-      };
-    }
-
-    const soundToggleBtn = document.getElementById('sound-toggle-btn');
-    if (soundToggleBtn) {
-      soundToggleBtn.onclick = () => {
-        isSoundEnabled = !isSoundEnabled;
-        localStorage.setItem('rkai_sound_enabled', isSoundEnabled);
-        renderTrainer();
-      };
-    }
 
     if (!isEnglishToRussian) {
       const inputEl = document.getElementById('answer-display');
