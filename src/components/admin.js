@@ -1,7 +1,7 @@
 // src/components/admin.js
-import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, setDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { db, auth } from "../firebase.js";
-import { gameConfig } from "../config/gameConfig.js";
+import { gameConfig, saveGameSettings } from "../config/gameConfig.js";
 import { getWrongPhrases, saveWrongPhrases, initialWrongPhrases } from "../data/wrongPhrases.js";
 
 let allUsers = [];
@@ -222,18 +222,12 @@ async function renderSettingsTab() {
     }
 
     try {
-      const settingsRef = doc(db, "settings", "game");
-      await setDoc(settingsRef, { 
-        stepPerStyleLevel: styleVal, 
+      await saveGameSettings({
+        stepPerStyleLevel: styleVal,
         stepPerElementLevel: elementVal,
         testQuestionCount: testQCountVal,
         testTimeSeconds: testTimeVal
-      }, { merge: true });
-      
-      gameConfig.stepPerStyleLevel = styleVal;
-      gameConfig.stepPerElementLevel = elementVal;
-      gameConfig.testQuestionCount = testQCountVal;
-      gameConfig.testTimeSeconds = testTimeVal;
+      });
 
       alert("Настройки успешно сохранены!");
     } catch (err) {

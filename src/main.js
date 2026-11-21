@@ -12,7 +12,7 @@ import { renderCategoryFilters } from './components/categoryFilters.js';
 import { isIntroHidden, showProjectPresentation } from './components/onboarding.js';
 import { openSettingsModal } from './components/settingsModal.js';
 import { recordDailyProgress } from './utils/statsTracker.js';
-import { calculateStyleLevel, gameConfig } from './config/gameConfig.js';
+import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isTestMode = false;
   let testQuestionsAnswered = 0;
   let testCorrectCount = 0;
-  let testSecondsLeft = 120;
+  let testSecondsLeft = gameConfig.testTimeSeconds;
   let testTimerInterval = null;
 
   let isSoundEnabled = localStorage.getItem('rkai_sound_enabled') !== 'false';
@@ -76,12 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
     lastFeedback = "";
     pickNewTask();
     renderTrainer();
-  }
-
-  function calculateElementLevel(totalCorrect) {
-    const step = gameConfig.stepPerElementLevel || 5;
-    const level = Math.floor(totalCorrect / step);
-    return Math.min(level, 6); 
   }
 
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -307,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentInput = ""; 
     testQuestionsAnswered = 0;
     testCorrectCount = 0;
-    testSecondsLeft = gameConfig.testTimeSeconds || 120;
+    testSecondsLeft = gameConfig.testTimeSeconds;
     resetTaskPools();
     pickNewTask();
     renderTrainer();
@@ -332,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionIndex = 0;
     currentInput = "";
 
-    const totalQ = gameConfig.testQuestionCount || 30;
+    const totalQ = gameConfig.testQuestionCount;
     const requiredCorrect = Math.ceil(totalQ * 0.9);
 
     if (passed && testCorrectCount >= requiredCorrect) {
@@ -361,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elementLevel >= 5) playSound('error');
       }
 
-      const totalQ = gameConfig.testQuestionCount || 30;
+      const totalQ = gameConfig.testQuestionCount;
       const requiredCorrect = Math.ceil(totalQ * 0.9);
 
       if (testQuestionsAnswered >= totalQ) {
@@ -472,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const showTimer = elementLevel >= 3;
     const showTestButton = elementLevel >= 4;
     const showSoundToggle = elementLevel >= 5;
+    const showSettingsButton = Boolean(currentUser) && elementLevel >= 7;
 
     app.innerHTML = `
       <div class="app-header">
@@ -483,7 +478,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </span>
           </div>
           <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-            <button id="settings-btn" style="background: none; border: none; cursor: pointer; font-size: 16px; padding: 2px; line-height: 1;" title="Настройки">⚙️</button>
+            ${showSettingsButton ? `
+              <button id="settings-btn" style="background: none; border: none; cursor: pointer; font-size: 16px; padding: 2px; line-height: 1;" title="Настройки">⚙️</button>
+            ` : ''}
             ${showSoundToggle ? `
               <button id="sound-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 15px; padding: 2px; line-height: 1;" title="Вкл/Выкл звук">
                 ${isSoundEnabled ? '🔊' : '🔇'}
@@ -684,8 +681,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const startTestBtn = document.getElementById('start-test-btn');
     if (startTestBtn) {
       startTestBtn.onclick = () => {
-        const testMins = Math.floor((gameConfig.testTimeSeconds || 120) / 60);
-        const testSecs = (gameConfig.testTimeSeconds || 120) % 60;
+        const testMins = Math.floor(gameConfig.testTimeSeconds / 60);
+        const testSecs = gameConfig.testTimeSeconds % 60;
         const timeStr = `${testMins > 0 ? testMins + ' мин. ' : ''}${testSecs > 0 ? testSecs + ' сек.' : ''}`;
 
         if (confirm(`Вы переходите в режим тестирования на уровень ${currentLevel + 1}. Вам нужно ответить на ${gameConfig.testQuestionCount} вопросов за ${timeStr} (по схеме 7 рус-анг / 3 англ-рус). Начать?`)) {
