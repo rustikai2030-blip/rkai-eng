@@ -1,6 +1,7 @@
 // src/components/modals.js
 import { dictionaryWords } from '../data/tasks.js';
 import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
+import { openSimpleHint, closeSimpleHint, isSimpleHintOpen } from './simpleHint.js';
 
 let isPopstateBound = false;
 
@@ -64,15 +65,7 @@ export function setupModals() {
   if (rulesBtn) {
     rulesBtn.textContent = "Помощь";
     rulesBtn.onclick = () => {
-      openModal("Помощь", helpGuideHtml);
-
-      const reopenIntroBtn = document.getElementById('reopen-intro-btn');
-      if (reopenIntroBtn) {
-        reopenIntroBtn.onclick = () => {
-          closeModalWindow(false);
-          showProjectPresentation();
-        };
-      }
+      openSimpleHint(1);
     };
   }
 
@@ -86,9 +79,33 @@ export function setupModals() {
   if (!isPopstateBound) {
     isPopstateBound = true;
     window.addEventListener('popstate', () => {
+      if (isSimpleHintOpen()) {
+        closeSimpleHint();
+        return;
+      }
       if (modal && modal.style.display === 'block') {
         closeModalWindow(true);
       }
     });
+  }
+}
+
+export function openHelpGuideModal() {
+  setupModals();
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalContent = document.getElementById('modal-content');
+
+  modalTitle.textContent = "Помощь";
+  modalContent.innerHTML = helpGuideHtml;
+  modal.style.display = 'block';
+  modal.scrollTop = 0;
+
+  const reopenIntroBtn = document.getElementById('reopen-intro-btn');
+  if (reopenIntroBtn) {
+    reopenIntroBtn.onclick = () => {
+      modal.style.display = 'none';
+      showProjectPresentation();
+    };
   }
 }

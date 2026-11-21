@@ -1,4 +1,5 @@
 // src/components/onboarding.js
+import { openSimpleHint } from './simpleHint.js';
 
 const HIDE_INTRO_STORAGE_KEY = 'rkai_hide_intro';
 
@@ -54,6 +55,10 @@ export const projectPresentationHtml = `
 
 export const helpGuideHtml = `
   <div style="font-size: 20px; color: #e5e7eb; display: flex; flex-direction: column; gap: 18px; line-height: 1.6;">
+    <button id="open-simple-scheme-btn" style="width: 100%; padding: 14px 18px; background: #3b82f6; color: #ffffff; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer;">
+      Открыть схему форм Simple
+    </button>
+
     <div style="background: var(--code-bg, #1f2028); padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border, #2e303a);">
       <h3 style="color: #ffffff; font-size: 22px; margin: 0 0 10px 0;">Как устроен тренажёр</h3>
       <p style="margin: 0 0 10px 0;">Задания идут циклами: <b style="color: #ffffff;">7 переводов с русского на английский</b> (набор на встроенной клавиатуре) и <b style="color: #ffffff;">3 с английского на русский</b> (выбор варианта).</p>
@@ -77,6 +82,18 @@ export const helpGuideHtml = `
     </button>
   </div>
 `;
+
+export function bindHelpGuideActions(onRequestCloseParentModal) {
+  const schemeBtn = document.getElementById('open-simple-scheme-btn');
+  if (schemeBtn) {
+    schemeBtn.onclick = () => {
+      if (typeof onRequestCloseParentModal === 'function') {
+        onRequestCloseParentModal();
+      }
+      openSimpleHint(1);
+    };
+  }
+}
 
 export function isIntroHidden() {
   return localStorage.getItem(HIDE_INTRO_STORAGE_KEY) === 'true';
