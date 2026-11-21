@@ -3500,144 +3500,144 @@ html, body {
   --option-font-size: clamp(17px, 2.6dvh, 22px);
 }
 
-/* Уровень 0: Строгий монохромный минимализм */
+/* Уровень 0: Чистый лист — строгий монохромный минимализм */
 body[data-level="0"] {
-  background-color: #ffffff; color: #000000; font-family: monospace, sans-serif;
-  --border-radius: 0px; --box-shadow: none; --btn-bg: #fff; --btn-border: #000;
-  --accent: #000000; --accent-bg: rgba(0, 0, 0, 0.05);
+  background-color: #ffffff; color: #000000; font-family: ui-monospace, Consolas, monospace;
+  --border-radius: 0px; --box-shadow: none; --btn-bg: #ffffff; --btn-border: #000000;
+  --accent: #000000; --accent-bg: rgba(0, 0, 0, 0.06);
 }
 
-/* Уровень 1 */
+/* Уровень 1: Первые штрихи — тонкая рамка и спокойный синий */
 body[data-level="1"] {
-  background-color: #fefefe; color: #080808; font-family: sans-serif;
-  --border-radius: 2px; --box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01); --btn-bg: #fff; --btn-border: #e8ecef;
-  --accent: #2563eb; --accent-bg: rgba(37, 99, 235, 0.08);
+  background-color: #f8fafc; color: #0f172a; font-family: system-ui, sans-serif;
+  --border-radius: 2px; --box-shadow: none; --btn-bg: #ffffff; --btn-border: #94a3b8;
+  --accent: #2563eb; --accent-bg: rgba(37, 99, 235, 0.1);
 }
 
-/* Уровень 2 */
+/* Уровень 2: Лёгкий рельеф — микро-тень и небесно-голубой акцент */
 body[data-level="2"] {
-  background-color: #fbfbfb; color: #111111; font-family: sans-serif;
-  --border-radius: 4px; --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); --btn-bg: #fff; --btn-border: #e2e8f0;
-  --accent: #0284c7; --accent-bg: rgba(2, 132, 199, 0.08);
+  background-color: #f0f9ff; color: #0c4a6e; font-family: system-ui, sans-serif;
+  --border-radius: 3px; --box-shadow: 0 1px 2px rgba(2, 132, 199, 0.12); --btn-bg: #ffffff; --btn-border: #7dd3fc;
+  --accent: #0284c7; --accent-bg: rgba(2, 132, 199, 0.12);
 }
 
-/* Уровень 3 */
+/* Уровень 3: Тёплая бумага — кремовый фон и изумрудный акцент */
 body[data-level="3"] {
-  background-color: #faebd7; color: #141414; font-family: sans-serif;
-  --border-radius: 6px; --box-shadow: 0 3px 5px rgba(0, 0, 0, 0.03); --btn-bg: #fff; --btn-border: #d8dee4;
-  --accent: #0d9488; --accent-bg: rgba(13, 148, 136, 0.08);
+  background-color: #fefce8; color: #1c1917; font-family: system-ui, sans-serif;
+  --border-radius: 4px; --box-shadow: 0 2px 4px rgba(28, 25, 23, 0.06); --btn-bg: #fffdf5; --btn-border: #d6d3d1;
+  --accent: #0d9488; --accent-bg: rgba(13, 148, 136, 0.12);
 }
 
-/* Уровень 4 */
+/* Уровень 4: Свежий мятный — прохладный светлый фон и зелёный акцент */
 body[data-level="4"] {
-  background-color: #f8fafc; color: #111111; font-family: sans-serif;
-  --border-radius: 8px; --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04); --btn-bg: #fff; --btn-border: #cbd5e1;
-  --accent: #16a34a; --accent-bg: rgba(22, 163, 74, 0.08);
+  background-color: #f0fdf4; color: #14532d; font-family: system-ui, sans-serif;
+  --border-radius: 4px; --box-shadow: 0 2px 5px rgba(22, 163, 74, 0.1); --btn-bg: #ffffff; --btn-border: #86efac;
+  --accent: #16a34a; --accent-bg: rgba(22, 163, 74, 0.12);
 }
 
-/* Уровень 5 */
+/* Уровень 5: Тёплый песок — выраженные рамки и янтарный акцент */
 body[data-level="5"] {
-  background-color: #f6f8fa; color: #101318; font-family: sans-serif;
-  --border-radius: 8px; --box-shadow: 0 4px 7px rgba(0, 0, 0, 0.045); --btn-bg: #f8fafc; --btn-border: #b8c5d6;
-  --accent: #ca8a04; --accent-bg: rgba(202, 138, 4, 0.08);
+  background-color: #fffbeb; color: #292524; font-family: system-ui, sans-serif;
+  --border-radius: 5px; --box-shadow: 0 3px 6px rgba(180, 83, 9, 0.1); --btn-bg: #ffffff; --btn-border: #fcd34d;
+  --accent: #d97706; --accent-bg: rgba(217, 119, 6, 0.12);
 }
 
-/* Уровень 6 */
+/* Уровень 6: Персиковый рассвет — мягкое тепло и оранжевый акцент */
 body[data-level="6"] {
-  background-color: #f1f5f9; color: #0f172a; font-family: sans-serif;
-  --border-radius: 10px; --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); --btn-bg: #f8fafc; --btn-border: #94a3b8;
-  --accent: #ea580c; --accent-bg: rgba(234, 88, 12, 0.08);
+  background-color: #fff7ed; color: #431407; font-family: system-ui, sans-serif;
+  --border-radius: 5px; --box-shadow: 0 3px 7px rgba(234, 88, 12, 0.12); --btn-bg: #ffffff; --btn-border: #fdba74;
+  --accent: #ea580c; --accent-bg: rgba(234, 88, 12, 0.12);
 }
 
-/* Уровень 7 */
+/* Уровень 7: Коралловый акцент — плотная обводка и чёткие тени */
 body[data-level="7"] {
-  background-color: #edf2f7; color: #0f172a; font-family: sans-serif;
-  --border-radius: 10px; --box-shadow: 0 5px 10px rgba(0, 0, 0, 0.06); --btn-bg: #fdfdfd; --btn-border: #7c90a8;
-  --accent: #dc2626; --accent-bg: rgba(220, 38, 38, 0.08);
+  background-color: #fef2f2; color: #450a0a; font-family: system-ui, sans-serif;
+  --border-radius: 6px; --box-shadow: 0 4px 8px rgba(220, 38, 38, 0.12); --btn-bg: #ffffff; --btn-border: #fca5a5;
+  --accent: #dc2626; --accent-bg: rgba(220, 38, 38, 0.12);
 }
 
-/* Уровень 8 */
+/* Уровень 8: Ягодный штрих — живой розовый акцент */
 body[data-level="8"] {
-  background-color: #e2e8f0; color: #0f172a; font-family: sans-serif;
-  --border-radius: 12px; --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.07); --btn-bg: #ffffff; --btn-border: #64748b;
-  --accent: #db2777; --accent-bg: rgba(219, 39, 119, 0.08);
+  background-color: #fdf2f8; color: #500724; font-family: system-ui, sans-serif;
+  --border-radius: 6px; --box-shadow: 0 4px 9px rgba(219, 39, 119, 0.13); --btn-bg: #ffffff; --btn-border: #f9a8d4;
+  --accent: #db2777; --accent-bg: rgba(219, 39, 119, 0.12);
 }
 
-/* Уровень 9 */
+/* Уровень 9: Лавандовый свет — мягкий сиренево-серый фон и фиолетовый акцент */
 body[data-level="9"] {
-  background-color: #d8e2ec; color: #0f172a; font-family: sans-serif;
-  --border-radius: 12px; --box-shadow: 0 7px 14px rgba(0, 0, 0, 0.08); --btn-bg: #f5f7fa; --btn-border: #55667c;
-  --accent: #9333ea; --accent-bg: rgba(147, 51, 234, 0.08);
+  background-color: #faf5ff; color: #3b0764; font-family: system-ui, sans-serif;
+  --border-radius: 7px; --box-shadow: 0 5px 10px rgba(147, 51, 234, 0.13); --btn-bg: #ffffff; --btn-border: #d8b4fe;
+  --accent: #9333ea; --accent-bg: rgba(147, 51, 234, 0.13);
 }
 
-/* Уровень 10 */
+/* Уровень 10: Индиго-классика — глубокий сине-фиолетовый акцент */
 body[data-level="10"] {
-  background-color: #cbd5e1; color: #0f172a; font-family: sans-serif;
-  --border-radius: 14px; --box-shadow: 0 8px 16px rgba(0, 0, 0, 0.09); --btn-bg: #f1f5f9; --btn-border: #475569;
-  --accent: #7c3aed; --accent-bg: rgba(124, 58, 237, 0.08);
+  background-color: #eef2ff; color: #1e1b4b; font-family: system-ui, sans-serif;
+  --border-radius: 7px; --box-shadow: 0 5px 12px rgba(79, 70, 229, 0.14); --btn-bg: #ffffff; --btn-border: #a5b4fc;
+  --accent: #4f46e5; --accent-bg: rgba(79, 70, 229, 0.14);
 }
 
-/* Уровень 11 */
+/* Уровень 11: Сумерки — переход к тёмному фону и контрастным кнопкам */
 body[data-level="11"] {
-  background-color: #b8c9dc; color: #0f172a; font-family: system-ui, sans-serif;
-  --border-radius: 14px; --box-shadow: 0 9px 18px rgba(0, 0, 0, 0.14); --btn-bg: #2a3b52; --btn-border: #526581;
-  --accent: #6366f1; --accent-bg: rgba(99, 102, 241, 0.15);
+  background-color: #cbd5e1; color: #0f172a; font-family: system-ui, sans-serif;
+  --border-radius: 8px; --box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18); --btn-bg: #1e293b; --btn-border: #64748b;
+  --accent: #0284c7; --accent-bg: rgba(2, 132, 199, 0.16);
 }
 
-/* Уровень 12: Темная тема (Старт) */
+/* Уровень 12: Тёмная тема — старт ночного режима и голубой неон */
 body[data-level="12"] {
-  background-color: #334155; color: #f8fafc; font-family: system-ui, sans-serif;
-  --border-radius: 14px; --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); --btn-bg: #1e293b; --btn-border: #64748b;
-  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.15);
-}
-
-/* Уровень 13 */
-body[data-level="13"] {
-  background-color: #29374c; color: #f8fafc; font-family: system-ui, sans-serif;
-  --border-radius: 16px; --box-shadow: 0 11px 22px rgba(56, 189, 248, 0.12); --btn-bg: #192333; --btn-border: #4a90e2;
-  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.15);
-}
-
-/* Уровень 14 */
-body[data-level="14"] {
   background-color: #1e293b; color: #f8fafc; font-family: system-ui, sans-serif;
-  --border-radius: 16px; --box-shadow: 0 12px 24px rgba(56, 189, 248, 0.15); --btn-bg: #0f172a; --btn-border: #38bdf8;
-  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.15);
+  --border-radius: 8px; --box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35); --btn-bg: #0f172a; --btn-border: #475569;
+  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.16);
 }
 
-/* Уровень 15 */
-body[data-level="15"] {
-  background-color: #162030; color: #fcfdfe; font-family: system-ui, sans-serif;
-  --border-radius: 18px; --box-shadow: 0 13px 26px rgba(56, 189, 248, 0.18); --btn-bg: #0b111a; --btn-border: #30a5db;
+/* Уровень 13: Глубокий сланец — усиление контраста и лёгкое свечение */
+body[data-level="13"] {
+  background-color: #172033; color: #f8fafc; font-family: system-ui, sans-serif;
+  --border-radius: 8px; --box-shadow: 0 0 12px rgba(56, 189, 248, 0.16); --btn-bg: #0d1424; --btn-border: #38bdf8;
   --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.18);
 }
 
-/* Уровень 16 */
-body[data-level="16"] {
+/* Уровень 14: Бирюзовая ночь — свежий неоново-мятный акцент в темноте */
+body[data-level="14"] {
+  background-color: #111c24; color: #f0fdfa; font-family: system-ui, sans-serif;
+  --border-radius: 9px; --box-shadow: 0 0 14px rgba(45, 212, 191, 0.18); --btn-bg: #091117; --btn-border: #2dd4bf;
+  --accent: #2dd4bf; --accent-bg: rgba(45, 212, 191, 0.18);
+}
+
+/* Уровень 15: Полночный графит — насыщенный тёмный фон и яркий голубой */
+body[data-level="15"] {
   background-color: #0f172a; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 18px; --box-shadow: 0 14px 28px rgba(56, 189, 248, 0.22); --btn-bg: #1e293b; --btn-border: #38bdf8;
-  --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.2);
+  --border-radius: 9px; --box-shadow: 0 0 16px rgba(56, 189, 248, 0.22); --btn-bg: #1e293b; --btn-border: #60a5fa;
+  --accent: #60a5fa; --accent-bg: rgba(96, 165, 250, 0.2);
 }
 
-/* Уровень 17 */
+/* Уровень 16: Неоновый индиго — глубина и выразительный ореол */
+body[data-level="16"] {
+  background-color: #0c1326; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 9px; --box-shadow: 0 0 18px rgba(129, 140, 248, 0.24); --btn-bg: #151f38; --btn-border: #818cf8;
+  --accent: #818cf8; --accent-bg: rgba(129, 140, 248, 0.22);
+}
+
+/* Уровень 17: Фиолетовый импульс — переход к сиренево-фиолетовому неону */
 body[data-level="17"] {
-  background-color: #0b1120; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 20px; --box-shadow: 0 16px 32px rgba(192, 132, 252, 0.25); --btn-bg: #141b2d; --btn-border: #9b51e0;
-  --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.2);
+  background-color: #120d24; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 10px; --box-shadow: 0 0 18px rgba(192, 132, 252, 0.24); --btn-bg: #1b1436; --btn-border: #c084fc;
+  --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.22);
 }
 
-/* Уровень 18 */
+/* Уровень 18: Кибер-пурпур — яркий акцент и плотный ночной контраст */
 body[data-level="18"] {
-  background-color: #080c18; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 22px; --box-shadow: 0 18px 36px rgba(192, 132, 252, 0.3); --btn-bg: #0f172a; --btn-border: #b06efc;
-  --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.25);
+  background-color: #0b0818; color: #ffffff; font-family: system-ui, sans-serif;
+  --border-radius: 10px; --box-shadow: 0 0 20px rgba(217, 70, 239, 0.25); --btn-bg: #15102b; --btn-border: #e879f9;
+  --accent: #e879f9; --accent-bg: rgba(232, 121, 249, 0.24);
 }
 
-/* Уровень 19: Премиальный фиолетово-неоновый кибер-стиль (Максимум) */
+/* Уровень 19: Максимум — глубокий тёмный стиль с умеренным неоновым свечением */
 body[data-level="19"] {
   background-color: #050811; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 24px; --box-shadow: 0 20px 40px rgba(192, 132, 252, 0.35); --btn-bg: #0f172a; --btn-border: #c084fc;
-  --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.3);
+  --border-radius: 10px; --box-shadow: 0 0 22px rgba(192, 132, 252, 0.32); --btn-bg: #0f172a; --btn-border: #c084fc;
+  --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.28);
 }
 
 /* Равномерное распределение трех главных зон по вертикали */
@@ -4555,8 +4555,377 @@ export function renderCategoryFilters({
   });
 }
 
+=== FILE: ./src/components/simpleHint.js ===
+// src/components/simpleHint.js
+
+const HINT_MODAL_ID = 'simple-hint-modal';
+const HINT_STYLE_ID = 'simple-hint-styles';
+
+function ensureHintStyles() {
+  if (document.getElementById(HINT_STYLE_ID)) return;
+
+  const style = document.createElement('style');
+  style.id = HINT_STYLE_ID;
+  style.textContent = `
+    #${HINT_MODAL_ID} {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100dvh;
+      max-height: 100dvh;
+      z-index: 2500;
+      background: #0f172a;
+      color: #f1f5f9;
+      flex-direction: column;
+      overflow: hidden;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    #${HINT_MODAL_ID}.open {
+      display: flex;
+    }
+
+    #${HINT_MODAL_ID} * {
+      box-sizing: border-box;
+    }
+
+    .sh-floating-close {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 8px);
+      right: 10px;
+      z-index: 2600;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid #475569;
+      background: rgba(15, 23, 42, 0.88);
+      color: #f8fafc;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    .sh-floating-close:active {
+      transform: scale(0.94);
+      background: #1e293b;
+    }
+
+    .sh-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 8px 50px 8px 10px;
+      background: #111827;
+      border-bottom: 1px solid #1e293b;
+      flex-shrink: 0;
+    }
+
+    .sh-tabs button {
+      padding: clamp(6px, 0.9dvh, 9px) 4px;
+      font-size: clamp(12px, 1.8dvh, 14px);
+      font-weight: 700;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #cbd5e1;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .sh-tabs button.active {
+      background: #3b82f6;
+      color: #ffffff;
+      border-color: #3b82f6;
+    }
+
+    .sh-scroll-area {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .sh-scroll-area::-webkit-scrollbar {
+      display: none;
+    }
+
+    .sh-col {
+      flex: 0 0 100%;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2px 10px 4px;
+    }
+
+    .sh-tense {
+      padding: clamp(3px, 0.5dvh, 6px) 10px;
+      font-size: clamp(12px, 1.85dvh, 15px);
+      font-weight: 800;
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      line-height: 1.15;
+      flex-shrink: 0;
+    }
+
+    .sh-row {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: clamp(2px, 0.45dvh, 6px) 4px;
+      border-bottom: 1px dashed #263349;
+    }
+
+    .sh-row:last-child {
+      border-bottom: none;
+    }
+
+    .sh-pronouns {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      font-size: clamp(12px, 1.85dvh, 15px);
+      font-weight: 700;
+      line-height: 1.18;
+      color: #f1f5f9;
+    }
+
+    .sh-brace {
+      align-self: stretch;
+      max-height: 92%;
+      width: 10px;
+      flex-shrink: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 100' preserveAspectRatio='none'%3E%3Cpath d='M2 2 C8 2, 7 10, 7 22 L7 42 C7 47, 10 50, 13 50 C10 50, 7 53, 7 58 L7 78 C7 90, 8 98, 2 98' fill='none' stroke='%2360a5fa' stroke-width='2.4'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+    }
+
+    .sh-brace-l {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 100' preserveAspectRatio='none'%3E%3Cpath d='M12 2 C6 2, 7 10, 7 22 L7 42 C7 47, 4 50, 1 50 C4 50, 7 53, 7 58 L7 78 C7 90, 6 98, 12 98' fill='none' stroke='%2360a5fa' stroke-width='2.4'/%3E%3C/svg%3E");
+    }
+
+    .sh-aux {
+      font-size: clamp(14px, 2.2dvh, 18px);
+      font-weight: 800;
+      color: #60a5fa;
+      line-height: 1.1;
+    }
+
+    .sh-en {
+      font-size: clamp(15px, 2.35dvh, 19px);
+      font-weight: 800;
+      color: #f8fafc;
+      line-height: 1.15;
+    }
+
+    .sh-en b {
+      color: #60a5fa;
+    }
+
+    .sh-ru {
+      font-size: clamp(11px, 1.7dvh, 14px);
+      color: #94a3b8;
+      margin-top: 2px;
+      line-height: 1.15;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function getSimpleHintModalElement() {
+  ensureHintStyles();
+
+  let modal = document.getElementById(HINT_MODAL_ID);
+  if (modal) return modal;
+
+  modal = document.createElement('div');
+  modal.id = HINT_MODAL_ID;
+  modal.innerHTML = `
+    <button type="button" class="sh-floating-close" id="sh-close-btn" aria-label="Закрыть подсказку">✕</button>
+
+    <div class="sh-tabs" id="sh-tabs">
+      <button type="button" data-col="0">Вопрос</button>
+      <button type="button" data-col="1" class="active">Утверждение</button>
+      <button type="button" data-col="2">Отрицание</button>
+    </div>
+
+    <div class="sh-scroll-area" id="sh-scroll">
+      <!-- 0: Вопрос -->
+      <div class="sh-col">
+        <div class="sh-tense">Будущее время</div>
+        <div class="sh-row">
+          <span class="sh-aux">Will</span><span class="sh-brace sh-brace-l"></span>
+          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en">work?</div><div class="sh-ru">буду работать?</div></div>
+        </div>
+        <div class="sh-tense">Настоящее время</div>
+        <div class="sh-row">
+          <span class="sh-aux">Do</span><span class="sh-brace sh-brace-l"></span>
+          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en">work?</div><div class="sh-ru">работаю? / работают?</div></div>
+        </div>
+        <div class="sh-row">
+          <span class="sh-aux">Does</span><span class="sh-brace sh-brace-l"></span>
+          <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en">work?</div><div class="sh-ru">работает?</div></div>
+        </div>
+        <div class="sh-tense">Прошедшее время</div>
+        <div class="sh-row">
+          <span class="sh-aux">Did</span><span class="sh-brace sh-brace-l"></span>
+          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en">work?</div><div class="sh-ru">работал(а/и)?</div></div>
+        </div>
+      </div>
+
+      <!-- 1: Утверждение -->
+      <div class="sh-col">
+        <div class="sh-tense">Будущее время</div>
+        <div class="sh-row">
+          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en"><b>will</b> work</div><div class="sh-ru">буду работать</div></div>
+        </div>
+        <div class="sh-tense">Настоящее время</div>
+        <div class="sh-row">
+          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en">work</div><div class="sh-ru">работаю / работают</div></div>
+        </div>
+        <div class="sh-row">
+          <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en">work<b>s</b></div><div class="sh-ru">работает</div></div>
+        </div>
+        <div class="sh-tense">Прошедшее время</div>
+        <div class="sh-row">
+          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en">work<b>ed</b></div><div class="sh-ru">работал / работала / работали</div></div>
+        </div>
+      </div>
+
+      <!-- 2: Отрицание (сокращённая форма) -->
+      <div class="sh-col">
+        <div class="sh-tense">Будущее время</div>
+        <div class="sh-row">
+          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en"><b>won't</b> work</div><div class="sh-ru">не буду работать</div></div>
+        </div>
+        <div class="sh-tense">Настоящее время</div>
+        <div class="sh-row">
+          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en"><b>don't</b> work</div><div class="sh-ru">не работаю / не работают</div></div>
+        </div>
+        <div class="sh-row">
+          <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en"><b>doesn't</b> work</div><div class="sh-ru">не работает</div></div>
+        </div>
+        <div class="sh-tense">Прошедшее время</div>
+        <div class="sh-row">
+          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+          <span class="sh-brace"></span>
+          <div><div class="sh-en"><b>didn't</b> work</div><div class="sh-ru">не работал(а/и)</div></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const closeBtn = modal.querySelector('#sh-close-btn');
+  const scrollArea = modal.querySelector('#sh-scroll');
+  const tabButtons = modal.querySelectorAll('#sh-tabs button');
+
+  function setActiveTab(index) {
+    tabButtons.forEach((btn, idx) => {
+      btn.classList.toggle('active', idx === index);
+    });
+  }
+
+  closeBtn.addEventListener('click', () => {
+    closeSimpleHint();
+  });
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const colIndex = Number(btn.getAttribute('data-col'));
+      scrollArea.scrollTo({
+        left: colIndex * scrollArea.clientWidth,
+        behavior: 'smooth'
+      });
+      setActiveTab(colIndex);
+    });
+  });
+
+  scrollArea.addEventListener('scroll', () => {
+    if (!scrollArea.clientWidth) return;
+    const index = Math.round(scrollArea.scrollLeft / scrollArea.clientWidth);
+    setActiveTab(index);
+  });
+
+  return modal;
+}
+
+export function openSimpleHint(initialCol = 1) {
+  const modal = getSimpleHintModalElement();
+  const scrollArea = modal.querySelector('#sh-scroll');
+  const tabButtons = modal.querySelectorAll('#sh-tabs button');
+
+  modal.classList.add('open');
+
+  requestAnimationFrame(() => {
+    const clampedCol = Math.max(0, Math.min(2, initialCol));
+    scrollArea.scrollLeft = clampedCol * scrollArea.clientWidth;
+    tabButtons.forEach((btn, idx) => {
+      btn.classList.toggle('active', idx === clampedCol);
+    });
+  });
+}
+
+export function closeSimpleHint() {
+  const modal = document.getElementById(HINT_MODAL_ID);
+  if (modal) {
+    modal.classList.remove('open');
+  }
+}
+
+export function isSimpleHintOpen() {
+  const modal = document.getElementById(HINT_MODAL_ID);
+  return Boolean(modal && modal.classList.contains('open'));
+}
+
 === FILE: ./src/components/onboarding.js ===
 // src/components/onboarding.js
+import { openSimpleHint } from './simpleHint.js';
 
 const HIDE_INTRO_STORAGE_KEY = 'rkai_hide_intro';
 
@@ -4612,6 +4981,10 @@ export const projectPresentationHtml = `
 
 export const helpGuideHtml = `
   <div style="font-size: 20px; color: #e5e7eb; display: flex; flex-direction: column; gap: 18px; line-height: 1.6;">
+    <button id="open-simple-scheme-btn" style="width: 100%; padding: 14px 18px; background: #3b82f6; color: #ffffff; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer;">
+      Открыть схему форм Simple
+    </button>
+
     <div style="background: var(--code-bg, #1f2028); padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border, #2e303a);">
       <h3 style="color: #ffffff; font-size: 22px; margin: 0 0 10px 0;">Как устроен тренажёр</h3>
       <p style="margin: 0 0 10px 0;">Задания идут циклами: <b style="color: #ffffff;">7 переводов с русского на английский</b> (набор на встроенной клавиатуре) и <b style="color: #ffffff;">3 с английского на русский</b> (выбор варианта).</p>
@@ -4635,6 +5008,18 @@ export const helpGuideHtml = `
     </button>
   </div>
 `;
+
+export function bindHelpGuideActions(onRequestCloseParentModal) {
+  const schemeBtn = document.getElementById('open-simple-scheme-btn');
+  if (schemeBtn) {
+    schemeBtn.onclick = () => {
+      if (typeof onRequestCloseParentModal === 'function') {
+        onRequestCloseParentModal();
+      }
+      openSimpleHint(1);
+    };
+  }
+}
 
 export function isIntroHidden() {
   return localStorage.getItem(HIDE_INTRO_STORAGE_KEY) === 'true';
@@ -4724,6 +5109,7 @@ export function showProjectPresentation({ onClose } = {}) {
 // src/components/modals.js
 import { dictionaryWords } from '../data/tasks.js';
 import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
+import { openSimpleHint, closeSimpleHint, isSimpleHintOpen } from './simpleHint.js';
 
 let isPopstateBound = false;
 
@@ -4787,15 +5173,7 @@ export function setupModals() {
   if (rulesBtn) {
     rulesBtn.textContent = "Помощь";
     rulesBtn.onclick = () => {
-      openModal("Помощь", helpGuideHtml);
-
-      const reopenIntroBtn = document.getElementById('reopen-intro-btn');
-      if (reopenIntroBtn) {
-        reopenIntroBtn.onclick = () => {
-          closeModalWindow(false);
-          showProjectPresentation();
-        };
-      }
+      openSimpleHint(1);
     };
   }
 
@@ -4809,6 +5187,10 @@ export function setupModals() {
   if (!isPopstateBound) {
     isPopstateBound = true;
     window.addEventListener('popstate', () => {
+      if (isSimpleHintOpen()) {
+        closeSimpleHint();
+        return;
+      }
       if (modal && modal.style.display === 'block') {
         closeModalWindow(true);
       }
@@ -4816,9 +5198,29 @@ export function setupModals() {
   }
 }
 
+export function openHelpGuideModal() {
+  setupModals();
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalContent = document.getElementById('modal-content');
+
+  modalTitle.textContent = "Помощь";
+  modalContent.innerHTML = helpGuideHtml;
+  modal.style.display = 'block';
+  modal.scrollTop = 0;
+
+  const reopenIntroBtn = document.getElementById('reopen-intro-btn');
+  if (reopenIntroBtn) {
+    reopenIntroBtn.onclick = () => {
+      modal.style.display = 'none';
+      showProjectPresentation();
+    };
+  }
+}
+
 === FILE: ./src/config/gameConfig.js ===
 // src/config/gameConfig.js
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 
 export const gameConfig = {
@@ -4856,8 +5258,7 @@ loadGameSettings();
 
 export function calculateStyleLevel(totalCorrect) {
   const step = gameConfig.stepPerStyleLevel || 5;
-  const level = Math.floor(totalCorrect / step);
-  return Math.min(level, 19); 
+  return Math.max(0, Math.floor(totalCorrect / step));
 }
 
 export function calculateElementLevel(totalCorrect) {
@@ -4880,6 +5281,7 @@ import { openAdminPanel } from './components/admin.js';
 import { renderCategoryFilters } from './components/categoryFilters.js';
 import { isIntroHidden, showProjectPresentation } from './components/onboarding.js';
 import { calculateStyleLevel, gameConfig } from './config/gameConfig.js';
+import { applyStyleLevelToBody } from './utils/styleTheme.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -5007,7 +5409,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateStyleLevel() {
     const styleLevel = calculateStyleLevel(totalCorrectAnswers);
-    document.body.setAttribute('data-level', styleLevel.toString());
+    applyStyleLevelToBody(styleLevel);
     return styleLevel;
   }
 
@@ -5576,6 +5978,85 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+=== FILE: ./src/utils/styleTheme.js ===
+// src/utils/styleTheme.js
+
+const GOLDEN_ANGLE = 137.508;
+const BASE_HUE = 205; // Стартовый оттенок после 19-го уровня
+
+function normalizeHue(hue) {
+  return ((hue % 360) + 360) % 360;
+}
+
+/**
+ * Генерирует мягкую светлую пастельную тему с высоким контрастом текста
+ * для уровней стиля начиная с 20-го (и выше).
+ */
+export function getPastelThemeForLevel(styleLevel) {
+  const stepIndex = Math.max(0, styleLevel - 20);
+  const hue = Math.round(normalizeHue(BASE_HUE + stepIndex * GOLDEN_ANGLE));
+
+  // Приглушённая насыщенность и высокая светлота — пастель без режущих глаз цветов
+  const saturation = 28;
+  const bgLightness = 94;
+  const btnLightness = 88;
+  const borderLightness = 72;
+  const accentLightness = 38;
+  const accentSat = 46;
+
+  const radiusPx = Math.min(10, 8 + Math.floor(stepIndex / 3));
+
+  return {
+    hue,
+    backgroundColor: `hsl(${hue}, ${saturation}%, ${bgLightness}%)`,
+    color: '#0f172a',
+    btnBg: `hsl(${hue}, ${saturation}%, ${btnLightness}%)`,
+    btnBorder: `hsl(${hue}, ${Math.min(42, saturation + 10)}%, ${borderLightness}%)`,
+    accent: `hsl(${hue}, ${accentSat}%, ${accentLightness}%)`,
+    accentBg: `hsla(${hue}, ${accentSat}%, ${accentLightness}%, 0.14)`,
+    boxShadow: `0 3px 8px hsla(${hue}, 35%, 25%, 0.08)`,
+    borderRadius: `${radiusPx}px`
+  };
+}
+
+/**
+ * Применяет уровень стиля к document.body:
+ * 0..19 — стили из evolution.css (витрина эволюции)
+ * 20+   — бесконечная светлая пастельная палитра по золотому углу
+ */
+export function applyStyleLevelToBody(styleLevel) {
+  const body = document.body;
+  if (!body) return;
+
+  body.setAttribute('data-level', String(styleLevel));
+
+  const pastelVars = [
+    'background-color',
+    'color',
+    '--border-radius',
+    '--box-shadow',
+    '--btn-bg',
+    '--btn-border',
+    '--accent',
+    '--accent-bg'
+  ];
+
+  if (styleLevel < 20) {
+    pastelVars.forEach((prop) => body.style.removeProperty(prop));
+    return;
+  }
+
+  const theme = getPastelThemeForLevel(styleLevel);
+  body.style.setProperty('background-color', theme.backgroundColor);
+  body.style.setProperty('color', theme.color);
+  body.style.setProperty('--border-radius', theme.borderRadius);
+  body.style.setProperty('--box-shadow', theme.boxShadow);
+  body.style.setProperty('--btn-bg', theme.btnBg);
+  body.style.setProperty('--btn-border', theme.btnBorder);
+  body.style.setProperty('--accent', theme.accent);
+  body.style.setProperty('--accent-bg', theme.accentBg);
+}
 
 === FILE: ./src/counter.js ===
 export function setupCounter(element) {

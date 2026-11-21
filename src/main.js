@@ -10,6 +10,8 @@ import { setupModals } from './components/modals.js';
 import { openAdminPanel } from './components/admin.js';
 import { renderCategoryFilters } from './components/categoryFilters.js';
 import { isIntroHidden, showProjectPresentation } from './components/onboarding.js';
+import { openSettingsModal } from './components/settingsModal.js';
+import { recordDailyProgress } from './utils/statsTracker.js';
 import { calculateStyleLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 
@@ -124,16 +126,30 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   });
 
-  window.addEventListener('beforeunload', () => {
+  function flushSessionTime() {
+    const deltaSeconds = secondsElapsed - lastSyncedSeconds;
+    if (deltaSeconds <= 0) return 0;
+    lastSyncedSeconds = secondsElapsed;
+
+    recordDailyProgress({ user: currentUser, secondsDelta: deltaSeconds });
+
     if (currentUser) {
-      const deltaSeconds = secondsElapsed - lastSyncedSeconds;
-      if (deltaSeconds > 0) {
-        const userRef = doc(db, "users", currentUser.uid);
-        updateDoc(userRef, {
-          totalTimeSpent: increment(deltaSeconds),
-          lastActive: serverTimestamp()
-        }).catch(() => {});
-      }
+      const userRef = doc(db, "users", currentUser.uid);
+      updateDoc(userRef, {
+        totalTimeSpent: increment(deltaSeconds),
+        lastActive: serverTimestamp()
+      }).catch(() => {});
+    }
+    return deltaSeconds;
+  }
+
+  window.addEventListener('beforeunload', () => {
+    flushSessionTime();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      flushSessionTime();
     }
   });
 
@@ -150,13 +166,22 @@ document.addEventListener('DOMContentLoaded', () => {
     return list[Math.floor(Math.random() * list.length)];
   }
 
-  async function saveProgressToFirestore() {
+  async function saveProgressToFirestore(tasksDelta = 0) {
+    updateStyleLevel();
+    const deltaSeconds = secondsElapsed - lastSyncedSeconds;
+    if (deltaSeconds > 0) {
+      lastSyncedSeconds = secondsElapsed;
+    }
+
+    await recordDailyProgress({
+      user: currentUser,
+      tasksDelta,
+      secondsDelta: deltaSeconds > 0 ? deltaSeconds : 0
+    });
+
     if (!currentUser) return;
     try {
-      updateStyleLevel();
       const userRef = doc(db, "users", currentUser.uid);
-      const deltaSeconds = secondsElapsed - lastSyncedSeconds;
-      lastSyncedSeconds = secondsElapsed; 
 
       await setDoc(userRef, {
         uid: currentUser.uid,
@@ -314,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на уровень ${currentLevel + 1}!`);
       currentLevel++;
       syncCategoriesWithLevel(currentLevel);
-      saveProgressToFirestore();
+      saveProgressToFirestore(0);
     } else {
       alert(`Время вышло или недостаточно правильных ответов (${testCorrectCount}/${totalQ}, нужно >= ${requiredCorrect}). Вы остаетесь на текущем уровне, тренируйтесь дальше!`);
       resetTaskPools();
@@ -330,6 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
       testQuestionsAnswered++;
       if (isCorrect) {
         testCorrectCount++;
+        await recordDailyProgress({ user: currentUser, tasksDelta: 1 });
         if (elementLevel >= 5) playSound('success');
       } else {
         if (elementLevel >= 5) playSound('error');
@@ -378,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderTrainer();
           }, 300);
           
-          await saveProgressToFirestore();
+          await saveProgressToFirestore(1);
           return;
         }
 
@@ -386,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionIndex++; 
         currentInput = ""; 
         pickNewTask();
-        await saveProgressToFirestore();
+        await saveProgressToFirestore(1);
         renderTrainer();
 
       } else {
@@ -456,9 +482,10 @@ document.addEventListener('DOMContentLoaded', () => {
               ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} · Ур. ${currentLevel}
             </span>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            <button id="settings-btn" style="background: none; border: none; cursor: pointer; font-size: 16px; padding: 2px; line-height: 1;" title="Настройки">⚙️</button>
             ${showSoundToggle ? `
-              <button id="sound-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 15px; padding: 2px;" title="Вкл/Выкл звук">
+              <button id="sound-toggle-btn" style="background: none; border: none; cursor: pointer; font-size: 15px; padding: 2px; line-height: 1;" title="Вкл/Выкл звук">
                 ${isSoundEnabled ? '🔊' : '🔇'}
               </button>
             ` : ''}
@@ -546,6 +573,16 @@ document.addEventListener('DOMContentLoaded', () => {
       isTestMode,
       onToggleCategory: handleToggleCategory
     });
+
+    const settingsBtn = document.getElementById('settings-btn');
+    if (settingsBtn) {
+      settingsBtn.onclick = () => {
+        openSettingsModal({
+          user: currentUser,
+          onBeforeOpen: () => flushSessionTime()
+        });
+      };
+    }
 
     const soundToggleBtn = document.getElementById('sound-toggle-btn');
     if (soundToggleBtn) {
@@ -690,6 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.onclick = async () => {
+        flushSessionTime();
         if (userUnsubscribe) userUnsubscribe();
         signOut(auth);
       };
