@@ -18,6 +18,7 @@ import {
   getLocalCounters,
   saveLocalCounters
 } from './utils/statsTracker.js';
+import { speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
 import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 
@@ -61,6 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let isSoundEnabled = localStorage.getItem('rkai_sound_enabled') !== 'false';
 
   const MAX_INPUT_LENGTH = 35;
+
+  // Прогреваем список голосов браузера, если он подгружается асинхронно
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+  }
 
   function getAvailableCategoriesForLevel(lvl) {
     if (lvl >= 3) return ['question', 'statement', 'negative'];
@@ -151,11 +160,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('beforeunload', () => {
+    stopErrorSpeech();
     flushSessionTime();
   });
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
+      stopErrorSpeech();
       flushSessionTime();
     }
   });
@@ -376,6 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isTestMode) {
       testQuestionsAnswered++;
       if (isCorrect) {
+        stopErrorSpeech();
         testCorrectCount++;
         sessionCorrectAnswers++;
         const updatedCounters = await recordAnswerAttempt({
@@ -419,6 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (isCorrect) {
+      stopErrorSpeech();
       sessionCorrectAnswers++;
     } else {
       sessionIncorrectAnswers++;
@@ -475,8 +488,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (elementLevel >= 1) {
-        lastFeedback = getWrongPhrase(consecutiveErrors);
+        const phrase = getWrongPhrase(consecutiveErrors);
+        lastFeedback = phrase;
         lastFeedbackColor = "#ef4444";
+
+        // Озвучиваем шуточное сообщение при повторной ошибке (больше 1 раза подряд)
+        if (consecutiveErrors > 1) {
+          speakErrorMessage(phrase, { enabled: isSoundEnabled });
+        }
       }
 
       if (elementLevel >= 6 && !isEnglishToRussian) {
@@ -618,9 +637,13 @@ document.addEventListener('DOMContentLoaded', () => {
       onToggleSound: () => {
         isSoundEnabled = !isSoundEnabled;
         localStorage.setItem('rkai_sound_enabled', isSoundEnabled);
+        if (!isSoundEnabled) {
+          stopErrorSpeech();
+        }
         renderTrainer();
       },
       onOpenSettings: () => {
+        stopErrorSpeech();
         openSettingsModal({
           user: currentUser,
           onBeforeOpen: () => flushSessionTime()
@@ -770,6 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.onclick = async () => {
+        stopErrorSpeech();
         flushSessionTime();
         if (userUnsubscribe) userUnsubscribe();
         signOut(auth);
