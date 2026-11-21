@@ -12,18 +12,25 @@ import { renderCategoryFilters } from './components/categoryFilters.js';
 import { renderTimerStatusBar } from './components/timerStatusBar.js';
 import { isIntroHidden, showProjectPresentation } from './components/onboarding.js';
 import { openSettingsModal } from './components/settingsModal.js';
-import { recordDailyProgress } from './utils/statsTracker.js';
+import {
+  recordDailyProgress,
+  recordAnswerAttempt,
+  getLocalCounters,
+  saveLocalCounters
+} from './utils/statsTracker.js';
 import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
 
+  const initialCounters = getLocalCounters(null);
+
   let sessionIndex = 0;          
   let currentLevel = 1;          
   let activeCategories = ['statement'];
-  let totalCorrectAnswers = 0;   
-  let totalIncorrectAnswers = 0;  
+  let totalCorrectAnswers = initialCounters.correct;   
+  let totalIncorrectAnswers = initialCounters.incorrect;  
   let consecutiveErrors = 0;     
   let currentTask = null;        
   let isEnglishToRussian = false; 
@@ -161,18 +168,22 @@ document.addEventListener('DOMContentLoaded', () => {
     return list[Math.floor(Math.random() * list.length)];
   }
 
-  async function saveProgressToFirestore(tasksDelta = 0) {
+  async function syncUserProgressToCloud() {
     updateStyleLevel();
+    saveLocalCounters(currentUser, {
+      correct: totalCorrectAnswers,
+      incorrect: totalIncorrectAnswers
+    });
+
     const deltaSeconds = secondsElapsed - lastSyncedSeconds;
     if (deltaSeconds > 0) {
       lastSyncedSeconds = secondsElapsed;
+      await recordDailyProgress({
+        user: currentUser,
+        tasksDelta: 0,
+        secondsDelta: deltaSeconds
+      });
     }
-
-    await recordDailyProgress({
-      user: currentUser,
-      tasksDelta,
-      secondsDelta: deltaSeconds > 0 ? deltaSeconds : 0
-    });
 
     if (!currentUser) return;
     try {
@@ -201,6 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const docSnap = await getDoc(userRef);
 
       if (!docSnap.exists()) {
+        const localCounters = getLocalCounters(user);
+        totalCorrectAnswers = localCounters.correct;
+        totalIncorrectAnswers = localCounters.incorrect;
         syncCategoriesWithLevel(1);
         await setDoc(userRef, {
           uid: user.uid,
@@ -209,16 +223,22 @@ document.addEventListener('DOMContentLoaded', () => {
           photoURL: user.photoURL || "",
           isAdmin: false,
           currentLessonLevel: 1,
-          totalCorrect: 0,
-          totalIncorrect: 0,
+          totalCorrect: totalCorrectAnswers,
+          totalIncorrect: totalIncorrectAnswers,
           visitCount: 1, 
           totalTimeSpent: 0,
           lastLogin: serverTimestamp()
         });
       } else {
         const data = docSnap.data();
-        totalCorrectAnswers = Math.max(data.totalCorrect || 0, totalCorrectAnswers);
-        totalIncorrectAnswers = Math.max(data.totalIncorrect || 0, totalIncorrectAnswers);
+        const localCounters = getLocalCounters(user);
+        totalCorrectAnswers = Math.max(Number(data.totalCorrect) || 0, localCounters.correct);
+        totalIncorrectAnswers = Math.max(Number(data.totalIncorrect) || 0, localCounters.incorrect);
+        saveLocalCounters(user, {
+          correct: totalCorrectAnswers,
+          incorrect: totalIncorrectAnswers
+        });
+
         currentLevel = data.currentLessonLevel || 1;
         syncCategoriesWithLevel(currentLevel);
         pickNewTask();
@@ -259,6 +279,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } else {
       isAdminUser = false;
+      const guestCounters = getLocalCounters(null);
+      totalCorrectAnswers = guestCounters.correct;
+      totalIncorrectAnswers = guestCounters.incorrect;
       syncCategoriesWithLevel(currentLevel);
     }
     renderTrainer();
@@ -334,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на уровень ${currentLevel + 1}!`);
       currentLevel++;
       syncCategoriesWithLevel(currentLevel);
-      saveProgressToFirestore(0);
+      syncUserProgressToCloud();
     } else {
       alert(`Время вышло или недостаточно правильных ответов (${testCorrectCount}/${totalQ}, нужно >= ${requiredCorrect}). Вы остаетесь на текущем уровне, тренируйтесь дальше!`);
       resetTaskPools();
@@ -350,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
       testQuestionsAnswered++;
       if (isCorrect) {
         testCorrectCount++;
-        await recordDailyProgress({ user: currentUser, tasksDelta: 1 });
+        await recordDailyProgress({ user: currentUser, tasksDelta: 1, secondsDelta: 0 });
         if (elementLevel >= 5) playSound('success');
       } else {
         if (elementLevel >= 5) playSound('error');
@@ -371,70 +394,76 @@ document.addEventListener('DOMContentLoaded', () => {
       currentInput = "";
       pickNewTask();
       renderTrainer();
-    } else {
-      if (isCorrect) {
-        consecutiveErrors = 0; 
-        
-        if (elementLevel >= 5) {
-          playSound('success');
-        }
+      return;
+    }
 
-        if (elementLevel >= 1) {
-          lastFeedback = "Правильно";
-          lastFeedbackColor = "#22c55e";
-        }
+    const updatedCounters = await recordAnswerAttempt({
+      user: currentUser,
+      isCorrect,
+      countTowardCompletedTasks: true
+    });
+    totalCorrectAnswers = updatedCounters.correct;
+    totalIncorrectAnswers = updatedCounters.incorrect;
 
-        if (elementLevel >= 6 && !isEnglishToRussian) {
-          const inputEl = document.getElementById('answer-display');
-          if (inputEl) {
-            inputEl.classList.add('success-flash');
-          }
-          
-          totalCorrectAnswers++;
-          sessionIndex++;
-          currentInput = "";
-
-          setTimeout(() => {
-            pickNewTask();
-            renderTrainer();
-          }, 300);
-          
-          await saveProgressToFirestore(1);
-          return;
-        }
-
-        totalCorrectAnswers++;
-        sessionIndex++; 
-        currentInput = ""; 
-        pickNewTask();
-        await saveProgressToFirestore(1);
-        renderTrainer();
-
-      } else {
-        consecutiveErrors++; 
-        
-        if (elementLevel >= 5) {
-          playSound('error');
-        }
-
-        if (elementLevel >= 1) {
-          lastFeedback = getWrongPhrase(consecutiveErrors);
-          lastFeedbackColor = "#ef4444";
-        }
-
-        if (elementLevel >= 6 && !isEnglishToRussian) {
-          const inputEl = document.getElementById('answer-display');
-          if (inputEl) {
-            inputEl.classList.add('shake-effect');
-            setTimeout(() => {
-              inputEl.classList.remove('shake-effect');
-            }, 400);
-          }
-        }
-
-        totalIncorrectAnswers++;
-        renderTrainer();
+    if (isCorrect) {
+      consecutiveErrors = 0; 
+      
+      if (elementLevel >= 5) {
+        playSound('success');
       }
+
+      if (elementLevel >= 1) {
+        lastFeedback = "Правильно";
+        lastFeedbackColor = "#22c55e";
+      }
+
+      if (elementLevel >= 6 && !isEnglishToRussian) {
+        const inputEl = document.getElementById('answer-display');
+        if (inputEl) {
+          inputEl.classList.add('success-flash');
+        }
+        
+        sessionIndex++;
+        currentInput = "";
+
+        setTimeout(() => {
+          pickNewTask();
+          renderTrainer();
+        }, 300);
+        
+        await syncUserProgressToCloud();
+        return;
+      }
+
+      sessionIndex++; 
+      currentInput = ""; 
+      pickNewTask();
+      await syncUserProgressToCloud();
+      renderTrainer();
+    } else {
+      consecutiveErrors++; 
+      
+      if (elementLevel >= 5) {
+        playSound('error');
+      }
+
+      if (elementLevel >= 1) {
+        lastFeedback = getWrongPhrase(consecutiveErrors);
+        lastFeedbackColor = "#ef4444";
+      }
+
+      if (elementLevel >= 6 && !isEnglishToRussian) {
+        const inputEl = document.getElementById('answer-display');
+        if (inputEl) {
+          inputEl.classList.add('shake-effect');
+          setTimeout(() => {
+            inputEl.classList.remove('shake-effect');
+          }, 400);
+        }
+      }
+
+      await syncUserProgressToCloud();
+      renderTrainer();
     }
   }
 

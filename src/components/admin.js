@@ -3,6 +3,7 @@ import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy 
 import { db, auth } from "../firebase.js";
 import { gameConfig, saveGameSettings } from "../config/gameConfig.js";
 import { getWrongPhrases, saveWrongPhrases, initialWrongPhrases } from "../data/wrongPhrases.js";
+import { resetUserStatsAndCounters } from "../utils/statsTracker.js";
 
 let allUsers = [];
 let currentActiveTab = 'users';
@@ -397,7 +398,8 @@ async function openUserProfileView(uid) {
       if (confirm("Вы действительно хотите обнулить счётчик пройденных заданий и сбросить уровень?")) {
         try {
           await updateDoc(userDocRef, { totalCorrect: 0, totalIncorrect: 0, userLevel: 0, secondsElapsed: 0 });
-          alert("Прогресс сброшен!");
+          await resetUserStatsAndCounters(uid);
+          alert("Прогресс и статистика сброшены!");
           openUserProfileView(uid);
         } catch (err) {
           alert("Ошибка обнуления: " + err.message);
@@ -408,6 +410,7 @@ async function openUserProfileView(uid) {
     document.getElementById('delete-user-data-btn').onclick = async () => {
       if (confirm("Вы уверены, что хотите полностью удалить этого пользователя из базы?")) {
         try {
+          await resetUserStatsAndCounters(uid);
           await deleteDoc(userDocRef);
           alert("Пользователь успешно удален.");
           renderAdminMainView();
