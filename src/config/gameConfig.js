@@ -1,5 +1,5 @@
 // src/config/gameConfig.js
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 
 export const gameConfig = {
@@ -37,8 +37,7 @@ loadGameSettings();
 
 export function calculateStyleLevel(totalCorrect) {
   const step = gameConfig.stepPerStyleLevel || 5;
-  const level = Math.floor(totalCorrect / step);
-  return Math.min(level, 19); 
+  return Math.max(0, Math.floor(totalCorrect / step));
 }
 
 export function calculateElementLevel(totalCorrect) {

@@ -11,6 +11,7 @@ import { openAdminPanel } from './components/admin.js';
 import { renderCategoryFilters } from './components/categoryFilters.js';
 import { isIntroHidden, showProjectPresentation } from './components/onboarding.js';
 import { calculateStyleLevel, gameConfig } from './config/gameConfig.js';
+import { applyStyleLevelToBody } from './utils/styleTheme.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -138,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateStyleLevel() {
     const styleLevel = calculateStyleLevel(totalCorrectAnswers);
-    document.body.setAttribute('data-level', styleLevel.toString());
+    applyStyleLevelToBody(styleLevel);
     return styleLevel;
   }
 
