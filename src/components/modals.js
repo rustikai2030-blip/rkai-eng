@@ -12,14 +12,49 @@ export function setupModals({ currentLevel = 1 } = {}) {
   if (!document.getElementById('modal')) {
     const modalDiv = document.createElement('div');
     modalDiv.id = 'modal';
-    modalDiv.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #16171d; color: #f3f4f6; padding: 20px; box-sizing: border-box; overflow-y: auto; text-align: left; z-index: 1000;';
+    modalDiv.style.cssText = [
+      'display: none;',
+      'position: fixed;',
+      'inset: 0;',
+      'width: 100%;',
+      'height: 100dvh;',
+      'background: #0f172a;',
+      'color: #f1f5f9;',
+      'padding: calc(env(safe-area-inset-top, 0px) + 12px) 14px calc(env(safe-area-inset-bottom, 0px) + 16px);',
+      'box-sizing: border-box;',
+      'overflow-y: auto;',
+      'text-align: left;',
+      'z-index: 1000;',
+      'font-family: system-ui, -apple-system, sans-serif;'
+    ].join(' ');
+
     modalDiv.innerHTML = `
       <div style="max-width: 680px; margin: 0 auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px;">
-          <h2 id="modal-title" style="margin: 0; font-size: 26px;">Словарь</h2>
-          <button id="close-modal" style="padding: 10px 18px; background: var(--accent, #38bdf8); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">✕ Закрыть</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid #1e293b; gap: 12px;">
+          <h2 id="modal-title" style="margin: 0; font-size: 22px; font-weight: 800; color: #f8fafc;">Словарь</h2>
+          <button
+            id="close-modal"
+            aria-label="Закрыть"
+            style="
+              width: 34px;
+              height: 34px;
+              border-radius: 999px;
+              border: 1px solid #475569;
+              background: rgba(15, 23, 42, 0.88);
+              color: #f8fafc;
+              font-size: 16px;
+              font-weight: 700;
+              line-height: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              flex-shrink: 0;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+            "
+          >✕</button>
         </div>
-        <div id="modal-content" style="display: flex; flex-direction: column; gap: 16px; line-height: 1.5;"></div>
+        <div id="modal-content" style="display: flex; flex-direction: column; gap: 10px; line-height: 1.4;"></div>
       </div>
     `;
     document.body.appendChild(modalDiv);
@@ -54,9 +89,18 @@ export function setupModals({ currentLevel = 1 } = {}) {
       const filteredWords = dictionaryWords.filter(w => allowedEnWords.includes(w.en));
 
       const html = filteredWords.map(w => `
-        <div style="background: var(--code-bg, #1f2028); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border, #2e303a); font-size: 24px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: var(--text-h, #f3f4f6);">${w.en}</span>
-          <span style="color: var(--text, #9ca3af); font-size: 20px;">${w.ru}</span>
+        <div style="
+          background: #1e293b;
+          padding: 13px 16px;
+          border-radius: 8px;
+          border: 1px solid #334155;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+        ">
+          <span style="color: #60a5fa; font-size: 20px; font-weight: 800;">${w.en}</span>
+          <span style="color: #94a3b8; font-size: 17px; font-weight: 600; text-align: right;">${w.ru}</span>
         </div>
       `).join('');
 
