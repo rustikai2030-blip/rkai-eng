@@ -21,6 +21,16 @@ import {
 import { speakEnglishWord, speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
 import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
+import {
+  checkAndApplyRemoteVersion,
+  startRemoteVersionWatcher
+} from './utils/appUpdate.js';
+import {
+  shareProjectContent,
+  buildProjectShareText,
+  buildLevelUpShareText,
+  SHARE_APP_URL
+} from './utils/share.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -142,10 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /**
-   * Озвучивает правильный английский ответ и вызывает onDone после завершения
-   * (или по безопасному таймауту, если браузер не прислал событие окончания).
-   */
   function speakCorrectAnswerAndWait(spokenText, onDone) {
     let finished = false;
     const finishOnce = () => {
@@ -165,7 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Защитный таймаут на случай, если speechSynthesis не вызовет onend на мобильном устройстве
     const estimatedMs = Math.min(3500, Math.max(1400, spokenText.length * 95 + 600));
     advanceTimeoutId = setTimeout(finishOnce, estimatedMs);
 
@@ -173,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
       rate: 0.92,
       pitch: 1.0,
       onEnd: () => {
-        // Небольшая пауза в 180 мс, чтобы глазу было комфортно завершить считывание
         setTimeout(finishOnce, 180);
       }
     });
@@ -184,6 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
   }
+
+  // Проверка принудительного обновления PWA при старте и при возврате в приложение
+  checkAndApplyRemoteVersion(true);
+  startRemoteVersionWatcher();
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -219,6 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
       clearPendingAdvance();
       stopErrorSpeech();
       flushSessionTime();
+    } else if (document.visibilityState === 'visible') {
+      checkAndApplyRemoteVersion(true);
     }
   });
 
@@ -424,10 +434,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const requiredCorrect = Math.ceil(totalQ * 0.9);
 
     if (passed && testCorrectCount >= requiredCorrect) {
-      alert(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на уровень ${currentLevel + 1}!`);
-      currentLevel++;
+      const unlockedLevel = currentLevel + 1;
+      currentLevel = unlockedLevel;
       syncCategoriesWithLevel(currentLevel);
       syncUserProgressToCloud();
+
+      if (confirm(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на Уровень ${unlockedLevel}!\n\nПоделиться результатом с друзьями?`)) {
+        shareProjectContent({
+          title: `Уровень ${unlockedLevel} в Pareto English`,
+          text: buildLevelUpShareText(unlockedLevel),
+          url: SHARE_APP_URL
+        });
+      }
     } else {
       alert(`Время вышло или недостаточно правильных ответов (${testCorrectCount}/${totalQ}, нужно >= ${requiredCorrect}). Вы остаетесь на текущем уровне, тренируйтесь дальше!`);
       resetTaskPools();
@@ -574,7 +592,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lastFeedback = phrase;
         lastFeedbackColor = "#ef4444";
 
-        // Озвучиваем шуточное сообщение при повторной ошибке (больше 1 раза подряд)
         if (consecutiveErrors > 1) {
           speakErrorMessage(phrase, { enabled: isSoundEnabled });
         }
@@ -635,7 +652,10 @@ document.addEventListener('DOMContentLoaded', () => {
               ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} · Ур. ${currentLevel}
             </span>
           </div>
-          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            ${!isTestMode ? `
+              <button id="share-top-btn" title="Поделиться" aria-label="Поделиться" style="background: none; border: none; cursor: pointer; font-size: 14px; color: inherit; padding: 2px; line-height: 1;">📤</button>
+            ` : ''}
             ${currentUser ? `
               <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit; padding: 2px;">Выйти</button>
             ` : `
@@ -836,6 +856,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupModals({ currentLevel });
     if (!isTestMode) startTimer();
+
+    const shareTopBtn = document.getElementById('share-top-btn');
+    if (shareTopBtn) {
+      shareTopBtn.onclick = () => {
+        shareProjectContent({
+          title: "Pareto English — Тренажёр английского языка",
+          text: buildProjectShareText(),
+          url: SHARE_APP_URL
+        });
+      };
+    }
 
     const startTestBtn = document.getElementById('start-test-btn');
     if (startTestBtn) {

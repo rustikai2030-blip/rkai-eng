@@ -3807,6 +3807,7 @@ export const db = getFirestore(app);
 === FILE: ./src/components/settingsModal.js ===
 // src/components/settingsModal.js
 import { loadFullUserStats, formatStatsDuration, getLocalDateKey } from '../utils/statsTracker.js';
+import { showProjectPresentation } from './onboarding.js';
 
 const SETTINGS_MODAL_ID = 'settings-modal';
 const SETTINGS_STYLE_ID = 'settings-modal-styles';
@@ -3836,8 +3837,8 @@ function ensureSettingsStyles() {
       inset: 0;
       width: 100%;
       height: 100dvh;
-      background: #16171d;
-      color: #f3f4f6;
+      background: #f8fafc;
+      color: #0f172a;
       z-index: 2200;
       overflow-y: auto;
       padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)) 16px;
@@ -3861,7 +3862,7 @@ function ensureSettingsStyles() {
       align-items: center;
       padding-bottom: 14px;
       margin-bottom: 16px;
-      border-bottom: 1px solid #2e303a;
+      border-bottom: 1px solid #cbd5e1;
       gap: 10px;
     }
 
@@ -3869,18 +3870,19 @@ function ensureSettingsStyles() {
       margin: 0;
       font-size: 22px;
       font-weight: 700;
-      color: #ffffff;
+      color: #0f172a;
     }
 
     .st-btn-icon {
       padding: 8px 14px;
-      background: #272935;
-      color: #f3f4f6;
-      border: 1px solid #3f4254;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
     }
 
     .st-menu-item {
@@ -3889,29 +3891,30 @@ function ensureSettingsStyles() {
       justify-content: space-between;
       align-items: center;
       padding: 16px 18px;
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 14px;
-      color: #ffffff;
+      color: #0f172a;
       font-size: 17px;
       font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
       transition: border-color 0.2s ease, background 0.2s ease;
     }
 
     .st-menu-item:active {
-      background: #272935;
-      border-color: #38bdf8;
+      background: #f1f5f9;
+      border-color: #0284c7;
     }
 
     .st-tabs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
-      background: #1f2028;
+      background: #e2e8f0;
       padding: 5px;
       border-radius: 12px;
-      border: 1px solid #2e303a;
+      border: 1px solid #cbd5e1;
       margin-bottom: 14px;
     }
 
@@ -3920,7 +3923,7 @@ function ensureSettingsStyles() {
       border: none;
       border-radius: 9px;
       background: transparent;
-      color: #9ca3af;
+      color: #475569;
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
@@ -3928,25 +3931,26 @@ function ensureSettingsStyles() {
     }
 
     .st-tab-btn.active {
-      background: #38bdf8;
-      color: #081018;
+      background: #0284c7;
+      color: #ffffff;
     }
 
     .st-nav-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 12px;
       padding: 8px 12px;
       margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     }
 
     .st-nav-arrow {
-      background: #272935;
-      border: 1px solid #3f4254;
-      color: #ffffff;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
       width: 34px;
       height: 34px;
       border-radius: 8px;
@@ -3961,7 +3965,7 @@ function ensureSettingsStyles() {
     .st-nav-label {
       font-size: 16px;
       font-weight: 700;
-      color: #ffffff;
+      color: #0f172a;
     }
 
     .st-summary-card {
@@ -3972,23 +3976,24 @@ function ensureSettingsStyles() {
     }
 
     .st-summary-box {
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 12px;
       padding: 12px;
       text-align: center;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     }
 
     .st-summary-val {
       font-size: 22px;
       font-weight: 800;
-      color: #38bdf8;
+      color: #0284c7;
       line-height: 1.2;
     }
 
     .st-summary-lbl {
       font-size: 12px;
-      color: #9ca3af;
+      color: #475569;
       margin-top: 4px;
     }
 
@@ -4000,7 +4005,7 @@ function ensureSettingsStyles() {
       text-align: center;
       font-size: 12px;
       font-weight: 700;
-      color: #9ca3af;
+      color: #475569;
     }
 
     .st-days-grid {
@@ -4010,8 +4015,8 @@ function ensureSettingsStyles() {
     }
 
     .st-day-cell {
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
       padding: 5px 2px;
       min-height: 62px;
@@ -4028,17 +4033,17 @@ function ensureSettingsStyles() {
     }
 
     .st-day-cell.has-activity {
-      border-color: rgba(56, 189, 248, 0.55);
-      background: rgba(56, 189, 248, 0.08);
+      border-color: #38bdf8;
+      background: #f0f9ff;
     }
 
     .st-day-cell.today {
-      border: 2px solid #22c55e;
+      border: 2px solid #16a34a;
     }
 
     .st-day-num {
       font-size: 10px;
-      color: #9ca3af;
+      color: #64748b;
       align-self: flex-end;
       padding-right: 4px;
       line-height: 1;
@@ -4047,18 +4052,18 @@ function ensureSettingsStyles() {
     .st-day-tasks {
       font-size: 17px;
       font-weight: 800;
-      color: #ffffff;
+      color: #0f172a;
       line-height: 1.1;
     }
 
     .st-day-cell.no-activity .st-day-tasks {
-      color: #4b5563;
+      color: #94a3b8;
       font-weight: 600;
     }
 
     .st-day-time {
       font-size: 10px;
-      color: #38bdf8;
+      color: #0284c7;
       line-height: 1.1;
       text-align: center;
       white-space: nowrap;
@@ -4068,7 +4073,7 @@ function ensureSettingsStyles() {
     }
 
     .st-day-cell.no-activity .st-day-time {
-      color: #4b5563;
+      color: #94a3b8;
     }
 
     .st-list {
@@ -4078,24 +4083,26 @@ function ensureSettingsStyles() {
     }
 
     .st-list-card {
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 12px;
       padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
 
     .st-list-card.has-activity {
-      border-color: rgba(56, 189, 248, 0.45);
+      border-color: #38bdf8;
+      background: #f0f9ff;
     }
 
     .st-list-title {
       font-size: 16px;
       font-weight: 700;
-      color: #f3f4f6;
+      color: #0f172a;
     }
 
     .st-list-metrics {
@@ -4105,13 +4112,13 @@ function ensureSettingsStyles() {
     .st-list-tasks {
       font-size: 20px;
       font-weight: 800;
-      color: #ffffff;
+      color: #0f172a;
       line-height: 1.15;
     }
 
     .st-list-time {
       font-size: 12px;
-      color: #38bdf8;
+      color: #0284c7;
       margin-top: 2px;
     }
   `;
@@ -4176,18 +4183,32 @@ function renderSettingsMenu(user) {
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button type="button" id="st-open-about-btn" class="st-menu-item">
+          <span style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">ℹ️</span>
+            <span>О проекте</span>
+          </span>
+          <span style="color: #64748b; font-size: 18px;">→</span>
+        </button>
+
         <button type="button" id="st-open-stats-btn" class="st-menu-item">
           <span style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 20px;">📊</span>
             <span>Статистика</span>
           </span>
-          <span style="color: #9ca3af; font-size: 18px;">→</span>
+          <span style="color: #64748b; font-size: 18px;">→</span>
         </button>
       </div>
     </div>
   `;
 
   modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+
+  modal.querySelector('#st-open-about-btn').onclick = () => {
+    closeSettingsModal(false);
+    showProjectPresentation();
+  };
+
   modal.querySelector('#st-open-stats-btn').onclick = async () => {
     const now = new Date();
     selectedYear = now.getFullYear();
@@ -4201,7 +4222,7 @@ function renderSettingsMenu(user) {
           <h2 class="st-title">Статистика</h2>
           <button type="button" id="st-close-btn" class="st-btn-icon">✕</button>
         </div>
-        <p style="text-align: center; color: #9ca3af; margin-top: 30px;">Загрузка статистики...</p>
+        <p style="text-align: center; color: #475569; margin-top: 30px;">Загрузка статистики...</p>
       </div>
     `;
     modal.querySelector('#st-back-menu-btn').onclick = () => renderSettingsMenu(user);
@@ -6242,7 +6263,7 @@ import {
   getLocalCounters,
   saveLocalCounters
 } from './utils/statsTracker.js';
-import { speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
+import { speakEnglishWord, speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
 import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 
@@ -6258,23 +6279,25 @@ document.addEventListener('DOMContentLoaded', () => {
   let totalCorrectAnswers = initialCounters.correct;
   let totalIncorrectAnswers = initialCounters.incorrect;
 
-  let sessionIndex = 0;          
-  let currentLevel = 1;          
+  let sessionIndex = 0;
+  let currentLevel = 1;
   let activeCategories = ['statement'];
-  let consecutiveErrors = 0;     
-  let currentTask = null;        
-  let isEnglishToRussian = false; 
+  let consecutiveErrors = 0;
+  let currentTask = null;
+  let isEnglishToRussian = false;
   let currentInput = "";
-  let lastFeedback = "";        
-  let lastFeedbackColor = "";   
-  
-  let secondsElapsed = 0;       
-  let lastSyncedSeconds = 0;    
+  let lastFeedback = "";
+  let lastFeedbackColor = "";
+  let isAdvancingAfterSpeech = false;
+  let advanceTimeoutId = null;
+
+  let secondsElapsed = 0;
+  let lastSyncedSeconds = 0;
   let timerInterval = null;
   let currentUser = null;
   let isAdminUser = false;
-  let userUnsubscribe = null; 
-  let deferredPrompt = null; 
+  let userUnsubscribe = null;
+  let deferredPrompt = null;
   let hasShownStartupPresentation = false;
 
   let isTestMode = false;
@@ -6295,6 +6318,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  function clearPendingAdvance() {
+    if (advanceTimeoutId) {
+      clearTimeout(advanceTimeoutId);
+      advanceTimeoutId = null;
+    }
+    isAdvancingAfterSpeech = false;
+  }
+
   function getAvailableCategoriesForLevel(lvl) {
     if (lvl >= 3) return ['question', 'statement', 'negative'];
     if (lvl === 2) return ['statement', 'negative'];
@@ -6308,6 +6339,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleToggleCategory(cat) {
     if (isTestMode) return;
+    clearPendingAdvance();
+    stopErrorSpeech();
     const available = getAvailableCategoriesForLevel(currentLevel);
 
     if (activeCategories.includes(cat)) {
@@ -6354,6 +6387,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /**
+   * Озвучивает правильный английский ответ и вызывает onDone после завершения
+   * (или по безопасному таймауту, если браузер не прислал событие окончания).
+   */
+  function speakCorrectAnswerAndWait(spokenText, onDone) {
+    let finished = false;
+    const finishOnce = () => {
+      if (finished) return;
+      finished = true;
+      if (advanceTimeoutId) {
+        clearTimeout(advanceTimeoutId);
+        advanceTimeoutId = null;
+      }
+      if (typeof onDone === 'function') {
+        onDone();
+      }
+    };
+
+    if (!isSoundEnabled || !spokenText || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      advanceTimeoutId = setTimeout(finishOnce, 300);
+      return;
+    }
+
+    // Защитный таймаут на случай, если speechSynthesis не вызовет onend на мобильном устройстве
+    const estimatedMs = Math.min(3500, Math.max(1400, spokenText.length * 95 + 600));
+    advanceTimeoutId = setTimeout(finishOnce, estimatedMs);
+
+    speakEnglishWord(spokenText, {
+      rate: 0.92,
+      pitch: 1.0,
+      onEnd: () => {
+        // Небольшая пауза в 180 мс, чтобы глазу было комфортно завершить считывание
+        setTimeout(finishOnce, 180);
+      }
+    });
+  }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -6384,12 +6454,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('beforeunload', () => {
+    clearPendingAdvance();
     stopErrorSpeech();
     flushSessionTime();
   });
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
+      clearPendingAdvance();
       stopErrorSpeech();
       flushSessionTime();
     }
@@ -6465,7 +6537,7 @@ document.addEventListener('DOMContentLoaded', () => {
           currentLessonLevel: 1,
           totalCorrect: totalCorrectAnswers,
           totalIncorrect: totalIncorrectAnswers,
-          visitCount: 1, 
+          visitCount: 1,
           totalTimeSpent: 0,
           lastLogin: serverTimestamp()
         });
@@ -6481,13 +6553,13 @@ document.addEventListener('DOMContentLoaded', () => {
         currentLevel = data.currentLessonLevel || 1;
         syncCategoriesWithLevel(currentLevel);
         pickNewTask();
-        
+
         updateStyleLevel();
-        await setDoc(userRef, { 
-          lastLogin: serverTimestamp(), 
+        await setDoc(userRef, {
+          lastLogin: serverTimestamp(),
           visitCount: increment(1),
-          totalCorrect: totalCorrectAnswers, 
-          totalIncorrect: totalIncorrectAnswers 
+          totalCorrect: totalCorrectAnswers,
+          totalIncorrect: totalIncorrectAnswers
         }, { merge: true });
       }
     } catch (error) {
@@ -6559,9 +6631,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startTestMode() {
+    clearPendingAdvance();
+    stopErrorSpeech();
     isTestMode = true;
-    sessionIndex = 0; 
-    currentInput = ""; 
+    sessionIndex = 0;
+    currentInput = "";
     testQuestionsAnswered = 0;
     testCorrectCount = 0;
     testSecondsLeft = gameConfig.testTimeSeconds;
@@ -6578,12 +6652,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (testSecondsLeft <= 0) {
-        finishTest(false); 
+        finishTest(false);
       }
     }, 1000);
   }
 
   function finishTest(passed) {
+    clearPendingAdvance();
+    stopErrorSpeech();
     if (testTimerInterval) clearInterval(testTimerInterval);
     isTestMode = false;
     sessionIndex = 0;
@@ -6605,7 +6681,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   }
 
-  async function handleAnswerResult(isCorrect) {
+  async function handleAnswerResult(isCorrect, spokenEnglishText = "") {
+    if (isAdvancingAfterSpeech) return;
+
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
 
     if (isTestMode) {
@@ -6670,15 +6748,40 @@ document.addEventListener('DOMContentLoaded', () => {
     totalIncorrectAnswers = updatedCounters.incorrect;
 
     if (isCorrect) {
-      consecutiveErrors = 0; 
-      
-      if (elementLevel >= 5) {
-        playSound('success');
-      }
+      consecutiveErrors = 0;
 
       if (elementLevel >= 1) {
         lastFeedback = "Правильно";
         lastFeedbackColor = "#22c55e";
+      }
+
+      const shouldSpeakEnglish = elementLevel >= 5 && !isEnglishToRussian && Boolean(spokenEnglishText);
+
+      if (shouldSpeakEnglish) {
+        isAdvancingAfterSpeech = true;
+        renderTrainer();
+
+        if (elementLevel >= 6) {
+          const inputEl = document.getElementById('answer-display');
+          if (inputEl) {
+            inputEl.classList.add('success-flash');
+          }
+        }
+
+        await syncUserProgressToCloud();
+
+        speakCorrectAnswerAndWait(spokenEnglishText, () => {
+          isAdvancingAfterSpeech = false;
+          sessionIndex++;
+          currentInput = "";
+          pickNewTask();
+          renderTrainer();
+        });
+        return;
+      }
+
+      if (elementLevel >= 5) {
+        playSound('success');
       }
 
       if (elementLevel >= 6 && !isEnglishToRussian) {
@@ -6686,7 +6789,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inputEl) {
           inputEl.classList.add('success-flash');
         }
-        
+
         sessionIndex++;
         currentInput = "";
 
@@ -6694,19 +6797,19 @@ document.addEventListener('DOMContentLoaded', () => {
           pickNewTask();
           renderTrainer();
         }, 300);
-        
+
         await syncUserProgressToCloud();
         return;
       }
 
-      sessionIndex++; 
-      currentInput = ""; 
+      sessionIndex++;
+      currentInput = "";
       pickNewTask();
       await syncUserProgressToCloud();
       renderTrainer();
     } else {
-      consecutiveErrors++; 
-      
+      consecutiveErrors++;
+
       if (elementLevel >= 5) {
         playSound('error');
       }
@@ -6862,11 +6965,13 @@ document.addEventListener('DOMContentLoaded', () => {
         isSoundEnabled = !isSoundEnabled;
         localStorage.setItem('rkai_sound_enabled', isSoundEnabled);
         if (!isSoundEnabled) {
+          clearPendingAdvance();
           stopErrorSpeech();
         }
         renderTrainer();
       },
       onOpenSettings: () => {
+        clearPendingAdvance();
         stopErrorSpeech();
         openSettingsModal({
           user: currentUser,
@@ -6887,14 +6992,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const inputEl = document.getElementById('answer-display');
       if (inputEl) {
         inputEl.setAttribute('inputmode', 'none');
-        
-        inputEl.focus({ preventScroll: true });
-        inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
+
+        if (!isAdvancingAfterSpeech) {
+          inputEl.focus({ preventScroll: true });
+          inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
+        }
 
         inputEl.addEventListener('click', (e) => {
           e.preventDefault();
-          inputEl.focus({ preventScroll: true });
-          currentInput = inputEl.value;
+          if (!isAdvancingAfterSpeech) {
+            inputEl.focus({ preventScroll: true });
+            currentInput = inputEl.value;
+          }
         });
 
         inputEl.addEventListener('keydown', (e) => {
@@ -6907,7 +7016,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
-          if (!inputEl) return;
+          if (isAdvancingAfterSpeech || !inputEl) return;
           const start = inputEl.selectionStart;
           const end = inputEl.selectionEnd;
           const val = inputEl.value;
@@ -6922,7 +7031,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         },
         onBackspace: () => {
-          if (!inputEl) return;
+          if (isAdvancingAfterSpeech || !inputEl) return;
           const start = inputEl.selectionStart;
           const end = inputEl.selectionEnd;
           const val = inputEl.value;
@@ -6938,7 +7047,7 @@ document.addEventListener('DOMContentLoaded', () => {
           inputEl.focus({ preventScroll: true });
         },
         onSpace: () => {
-          if (!inputEl) return;
+          if (isAdvancingAfterSpeech || !inputEl) return;
           const start = inputEl.selectionStart;
           const end = inputEl.selectionEnd;
           const val = inputEl.value;
@@ -6951,17 +7060,19 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         },
         onOk: async () => {
+          if (isAdvancingAfterSpeech) return;
           if (inputEl) currentInput = inputEl.value;
+          const trimmedInput = currentInput.trim();
 
-          if (!currentInput.trim()) {
+          if (!trimmedInput) {
             lastFeedback = "Сначала введите перевод";
             lastFeedbackColor = "#eab308";
             renderTrainer();
             return;
           }
 
-          const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
-          await handleAnswerResult(isCorrect);
+          const isCorrect = trimmedInput.toLowerCase() === currentTask.en.toLowerCase();
+          await handleAnswerResult(isCorrect, isCorrect ? trimmedInput : "");
         }
       });
     } else {
@@ -7017,6 +7128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.onclick = async () => {
+        clearPendingAdvance();
         stopErrorSpeech();
         flushSessionTime();
         if (userUnsubscribe) userUnsubscribe();
@@ -7031,6 +7143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const optionButtons = document.querySelectorAll('.option-btn');
     optionButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (isAdvancingAfterSpeech) return;
         const isCorrect = btn.textContent.trim() === currentTask.correct;
         await handleAnswerResult(isCorrect);
       });

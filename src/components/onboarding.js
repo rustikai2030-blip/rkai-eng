@@ -1,5 +1,6 @@
 // src/components/onboarding.js
 import { openSimpleHint } from './simpleHint.js';
+import { shareProjectContent, buildProjectShareText, SHARE_APP_URL } from '../utils/share.js';
 
 const HIDE_INTRO_STORAGE_KEY = 'rkai_hide_intro';
 
@@ -140,6 +141,10 @@ export function showProjectPresentation({ onClose } = {}) {
             <span>Не показывать при следующем входе</span>
           </label>
 
+          <button id="intro-share-btn" style="width: 100%; padding: 13px 18px; background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 2px solid #38bdf8; border-radius: 10px; font-size: 17px; font-weight: 700; cursor: pointer;">
+            📤 Поделиться тренажёром
+          </button>
+
           <button id="intro-continue-btn" style="width: 100%; padding: 14px 18px; background: #38bdf8; color: #081018; border: none; border-radius: 10px; font-size: 18px; font-weight: 700; cursor: pointer;">
             Перейти к тренажёру
           </button>
@@ -169,9 +174,19 @@ export function showProjectPresentation({ onClose } = {}) {
   };
 
   const closeTopBtn = document.getElementById('intro-close-top-btn');
+  const shareBtn = document.getElementById('intro-share-btn');
   const continueBtn = document.getElementById('intro-continue-btn');
 
   if (closeTopBtn) closeTopBtn.onclick = closeIntro;
+  if (shareBtn) {
+    shareBtn.onclick = () => {
+      shareProjectContent({
+        title: "Pareto English — Тренажёр английского языка",
+        text: buildProjectShareText(),
+        url: SHARE_APP_URL
+      });
+    };
+  }
   if (continueBtn) continueBtn.onclick = closeIntro;
 
   introModal.style.display = 'flex';

@@ -4,6 +4,11 @@ import { db, auth } from "../firebase.js";
 import { gameConfig, saveGameSettings } from "../config/gameConfig.js";
 import { getWrongPhrases, saveWrongPhrases, initialWrongPhrases } from "../data/wrongPhrases.js";
 import { resetUserStatsAndCounters } from "../utils/statsTracker.js";
+import {
+  getLocalAppliedVersion,
+  triggerForceAppUpdateForAllUsers,
+  performHardPwaRefresh
+} from "../utils/appUpdate.js";
 
 let allUsers = [];
 let currentActiveTab = 'users';
@@ -183,7 +188,20 @@ async function renderSettingsTab() {
   const contentContainer = document.getElementById('admin-tab-content');
   if (!contentContainer) return;
 
+  const activeVer = getLocalAppliedVersion();
+
   contentContainer.innerHTML = `
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 16px;">
+      <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 8px;">Обновление PWA на устройствах</h3>
+      <p style="font-size: 13px; color: #475569; margin: 0 0 12px 0; line-height: 1.45;">
+        Текущая версия сборки на этом устройстве: <b>v${activeVer}</b>.<br>
+        Нажмите кнопку после публикации нового релиза, чтобы сбросить кэши и принудительно обновить файлы у пользователей.
+      </p>
+      <button id="force-update-all-btn" style="width: 100%; background: #0284c7; color: #ffffff; border: none; padding: 13px; border-radius: 25px; font-size: 15px; font-weight: 700; cursor: pointer;">
+        🔄 Обновить приложение у всех пользователей
+      </button>
+    </div>
+
     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
       <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 10px;">Игровые настройки</h3>
       
@@ -210,6 +228,19 @@ async function renderSettingsTab() {
       <button id="save-settings-btn" style="width: 100%; background: #22c55e; color: #ffffff; border: none; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer;">Сохранить настройки</button>
     </div>
   `;
+
+  document.getElementById('force-update-all-btn').onclick = async () => {
+    if (!confirm("Выпустить новое принудительное обновление для всех пользователей и очистить кэш?")) {
+      return;
+    }
+    try {
+      const nextVersion = await triggerForceAppUpdateForAllUsers();
+      alert(`Выпущена версия v${nextVersion}. Сейчас устройство обновит кэш и перезагрузится.`);
+      await performHardPwaRefresh(nextVersion);
+    } catch (err) {
+      alert("Ошибка запуска обновления: " + err.message);
+    }
+  };
 
   document.getElementById('save-settings-btn').onclick = async () => {
     const styleVal = parseInt(document.getElementById('setting-style-step-input').value, 10);
