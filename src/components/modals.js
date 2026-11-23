@@ -7,6 +7,41 @@ import { speakEnglishWord, stopErrorSpeech } from '../utils/speechFeedback.js';
 let isPopstateBound = false;
 let activeLessonLevel = 1;
 
+function renderDictionaryWordRow(wordItem) {
+  const noteHtml = wordItem.note
+    ? `<span style="font-size: 12px; font-weight: 500; color: #93c5fd; background: rgba(59, 130, 246, 0.14); border: 1px solid rgba(96, 165, 250, 0.35); padding: 2px 8px; border-radius: 999px; white-space: nowrap;">${wordItem.note}</span>`
+    : '';
+
+  return `
+    <div
+      class="dict-word-row"
+      data-en="${wordItem.en}"
+      role="button"
+      tabindex="0"
+      style="
+        background: #1e293b;
+        padding: 13px 16px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px 12px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
+      "
+    >
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0;">
+        <span style="font-size: 16px; opacity: 0.85;">🔊</span>
+        <span style="color: #60a5fa; font-size: 20px; font-weight: 800;">${wordItem.en}</span>
+        ${noteHtml}
+      </div>
+      <span style="color: #94a3b8; font-size: 17px; font-weight: 600; text-align: right; margin-left: auto;">${wordItem.ru}</span>
+    </div>
+  `;
+}
+
 export function setupModals({ currentLevel = 1 } = {}) {
   activeLessonLevel = Math.max(1, Number(currentLevel) || 1);
 
@@ -94,32 +129,7 @@ export function setupModals({ currentLevel = 1 } = {}) {
         <div style="font-size: 13px; color: #94a3b8; margin-bottom: 2px;">
           Нажмите на слово, чтобы прослушать произношение
         </div>
-        ${filteredWords.map(w => `
-          <div
-            class="dict-word-row"
-            data-en="${w.en}"
-            role="button"
-            tabindex="0"
-            style="
-              background: #1e293b;
-              padding: 13px 16px;
-              border-radius: 8px;
-              border: 1px solid #334155;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              gap: 12px;
-              cursor: pointer;
-              transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
-            "
-          >
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 16px; opacity: 0.85;">🔊</span>
-              <span style="color: #60a5fa; font-size: 20px; font-weight: 800;">${w.en}</span>
-            </div>
-            <span style="color: #94a3b8; font-size: 17px; font-weight: 600; text-align: right;">${w.ru}</span>
-          </div>
-        `).join('')}
+        ${filteredWords.map(w => renderDictionaryWordRow(w)).join('')}
       `;
 
       openModal("Словарь", html);

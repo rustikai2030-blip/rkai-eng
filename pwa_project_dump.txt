@@ -2760,25 +2760,28 @@
 }
 
 === FILE: ./public/sw.js ===
-const CACHE_NAME = 'eng-rkai-cache-v1';
-const urlsToCache = [
+const CACHE_NAME = 'eng-rkai-cache-v2';
+const PRECACHE_URLS = [
   '/',
   '/index.html',
-  '/src/main.js',
-  '/src/styles/evolution.css',
   '/manifest.json'
 ];
 
-// Установка сервис-воркера и кэширование файлов
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
+      return cache.addAll(PRECACHE_URLS).catch(() => {});
     })
   );
+  self.skipWaiting();
 });
 
-// Активация и очистка старых кэшей
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -2787,17 +2790,49 @@ self.addEventListener('activate', (event) => {
           if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
+          return Promise.resolve();
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
-// Перехват сетевых запросов
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
+  const isHtmlRequest =
+    event.request.mode === 'navigate' ||
+    (event.request.headers.get('accept') || '').includes('text/html');
+
+  if (isHtmlRequest) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request).then((res) => res || caches.match('/index.html')))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
+          }
+          return networkResponse;
+        })
+        .catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
@@ -4511,6 +4546,11 @@ import { db, auth } from "../firebase.js";
 import { gameConfig, saveGameSettings } from "../config/gameConfig.js";
 import { getWrongPhrases, saveWrongPhrases, initialWrongPhrases } from "../data/wrongPhrases.js";
 import { resetUserStatsAndCounters } from "../utils/statsTracker.js";
+import {
+  getLocalAppliedVersion,
+  triggerForceAppUpdateForAllUsers,
+  performHardPwaRefresh
+} from "../utils/appUpdate.js";
 
 let allUsers = [];
 let currentActiveTab = 'users';
@@ -4690,7 +4730,20 @@ async function renderSettingsTab() {
   const contentContainer = document.getElementById('admin-tab-content');
   if (!contentContainer) return;
 
+  const activeVer = getLocalAppliedVersion();
+
   contentContainer.innerHTML = `
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 16px;">
+      <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 8px;">Обновление PWA на устройствах</h3>
+      <p style="font-size: 13px; color: #475569; margin: 0 0 12px 0; line-height: 1.45;">
+        Текущая версия сборки на этом устройстве: <b>v${activeVer}</b>.<br>
+        Нажмите кнопку после публикации нового релиза, чтобы сбросить кэши и принудительно обновить файлы у пользователей.
+      </p>
+      <button id="force-update-all-btn" style="width: 100%; background: #0284c7; color: #ffffff; border: none; padding: 13px; border-radius: 25px; font-size: 15px; font-weight: 700; cursor: pointer;">
+        🔄 Обновить приложение у всех пользователей
+      </button>
+    </div>
+
     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
       <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 10px;">Игровые настройки</h3>
       
@@ -4717,6 +4770,19 @@ async function renderSettingsTab() {
       <button id="save-settings-btn" style="width: 100%; background: #22c55e; color: #ffffff; border: none; padding: 14px; border-radius: 25px; font-size: 16px; font-weight: 700; cursor: pointer;">Сохранить настройки</button>
     </div>
   `;
+
+  document.getElementById('force-update-all-btn').onclick = async () => {
+    if (!confirm("Выпустить новое принудительное обновление для всех пользователей и очистить кэш?")) {
+      return;
+    }
+    try {
+      const nextVersion = await triggerForceAppUpdateForAllUsers();
+      alert(`Выпущена версия v${nextVersion}. Сейчас устройство обновит кэш и перезагрузится.`);
+      await performHardPwaRefresh(nextVersion);
+    } catch (err) {
+      alert("Ошибка запуска обновления: " + err.message);
+    }
+  };
 
   document.getElementById('save-settings-btn').onclick = async () => {
     const styleVal = parseInt(document.getElementById('setting-style-step-input').value, 10);
@@ -5748,6 +5814,7 @@ export function renderTimerStatusBar({
 === FILE: ./src/components/onboarding.js ===
 // src/components/onboarding.js
 import { openSimpleHint } from './simpleHint.js';
+import { shareProjectContent, buildProjectShareText, SHARE_APP_URL } from '../utils/share.js';
 
 const HIDE_INTRO_STORAGE_KEY = 'rkai_hide_intro';
 
@@ -5873,24 +5940,23 @@ export function showProjectPresentation({ onClose } = {}) {
 
     introModal.innerHTML = `
       <div style="max-width: 680px; width: 100%; height: 100%; margin: 0 auto; display: flex; flex-direction: column; padding: 18px 20px; box-sizing: border-box;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #2e303a; flex-shrink: 0;">
-          <h2 id="intro-modal-title" style="margin: 0; font-size: 25px; font-weight: 700; color: #ffffff;">О проекте "Pareto English"</h2>
-          <button id="intro-close-top-btn" style="padding: 9px 15px; background: #272935; color: #f3f4f6; border: 1px solid #3f4254; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">✕</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid #2e303a; flex-shrink: 0;">
+          <h2 id="intro-modal-title" style="margin: 0; font-size: 22px; font-weight: 700; color: #ffffff; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">О проекте "Pareto English"</h2>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <button id="intro-share-btn" title="Поделиться" aria-label="Поделиться" style="background: none; border: none; cursor: pointer; font-size: 16px; color: inherit; padding: 4px 6px; line-height: 1;">📤</button>
+            <button id="intro-close-top-btn" style="padding: 9px 15px; background: #272935; color: #f3f4f6; border: 1px solid #3f4254; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">✕</button>
+          </div>
         </div>
 
         <div id="intro-modal-body" style="flex: 1 1 auto; overflow-y: auto; padding: 18px 2px; text-align: left;">
           ${projectPresentationHtml}
         </div>
 
-        <div style="flex-shrink: 0; padding-top: 14px; border-top: 1px solid #2e303a; display: flex; flex-direction: column; gap: 12px; background: #16171d;">
+        <div style="flex-shrink: 0; padding-top: 12px; border-top: 1px solid #2e303a; display: flex; flex-direction: column; gap: 10px; background: #16171d;">
           <label style="display: flex; align-items: center; gap: 10px; font-size: 17px; color: #e2e8f0; cursor: pointer; user-select: none;">
             <input type="checkbox" id="dont-show-intro-checkbox" style="width: 20px; height: 20px; accent-color: #38bdf8; cursor: pointer;" />
             <span>Не показывать при следующем входе</span>
           </label>
-
-          <button id="intro-continue-btn" style="width: 100%; padding: 14px 18px; background: #38bdf8; color: #081018; border: none; border-radius: 10px; font-size: 18px; font-weight: 700; cursor: pointer;">
-            Перейти к тренажёру
-          </button>
         </div>
       </div>
     `;
@@ -5917,10 +5983,18 @@ export function showProjectPresentation({ onClose } = {}) {
   };
 
   const closeTopBtn = document.getElementById('intro-close-top-btn');
-  const continueBtn = document.getElementById('intro-continue-btn');
+  const shareBtn = document.getElementById('intro-share-btn');
 
   if (closeTopBtn) closeTopBtn.onclick = closeIntro;
-  if (continueBtn) continueBtn.onclick = closeIntro;
+  if (shareBtn) {
+    shareBtn.onclick = () => {
+      shareProjectContent({
+        title: "Pareto English — Тренажёр английского языка",
+        text: buildProjectShareText(),
+        url: SHARE_APP_URL
+      });
+    };
+  }
 
   introModal.style.display = 'flex';
   const bodyEl = document.getElementById('intro-modal-body');
@@ -6266,6 +6340,16 @@ import {
 import { speakEnglishWord, speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
 import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
+import {
+  checkAndApplyRemoteVersion,
+  startRemoteVersionWatcher
+} from './utils/appUpdate.js';
+import {
+  shareProjectContent,
+  buildProjectShareText,
+  buildLevelUpShareText,
+  SHARE_APP_URL
+} from './utils/share.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -6387,10 +6471,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /**
-   * Озвучивает правильный английский ответ и вызывает onDone после завершения
-   * (или по безопасному таймауту, если браузер не прислал событие окончания).
-   */
   function speakCorrectAnswerAndWait(spokenText, onDone) {
     let finished = false;
     const finishOnce = () => {
@@ -6410,7 +6490,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Защитный таймаут на случай, если speechSynthesis не вызовет onend на мобильном устройстве
     const estimatedMs = Math.min(3500, Math.max(1400, spokenText.length * 95 + 600));
     advanceTimeoutId = setTimeout(finishOnce, estimatedMs);
 
@@ -6418,7 +6497,6 @@ document.addEventListener('DOMContentLoaded', () => {
       rate: 0.92,
       pitch: 1.0,
       onEnd: () => {
-        // Небольшая пауза в 180 мс, чтобы глазу было комфортно завершить считывание
         setTimeout(finishOnce, 180);
       }
     });
@@ -6429,6 +6507,10 @@ document.addEventListener('DOMContentLoaded', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
   }
+
+  // Проверка принудительного обновления PWA при старте и при возврате в приложение
+  checkAndApplyRemoteVersion(true);
+  startRemoteVersionWatcher();
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -6464,6 +6546,8 @@ document.addEventListener('DOMContentLoaded', () => {
       clearPendingAdvance();
       stopErrorSpeech();
       flushSessionTime();
+    } else if (document.visibilityState === 'visible') {
+      checkAndApplyRemoteVersion(true);
     }
   });
 
@@ -6669,10 +6753,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const requiredCorrect = Math.ceil(totalQ * 0.9);
 
     if (passed && testCorrectCount >= requiredCorrect) {
-      alert(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на уровень ${currentLevel + 1}!`);
-      currentLevel++;
+      const unlockedLevel = currentLevel + 1;
+      currentLevel = unlockedLevel;
       syncCategoriesWithLevel(currentLevel);
       syncUserProgressToCloud();
+
+      if (confirm(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на Уровень ${unlockedLevel}!\n\nПоделиться результатом с друзьями?`)) {
+        shareProjectContent({
+          title: `Уровень ${unlockedLevel} в Pareto English`,
+          text: buildLevelUpShareText(unlockedLevel),
+          url: SHARE_APP_URL
+        });
+      }
     } else {
       alert(`Время вышло или недостаточно правильных ответов (${testCorrectCount}/${totalQ}, нужно >= ${requiredCorrect}). Вы остаетесь на текущем уровне, тренируйтесь дальше!`);
       resetTaskPools();
@@ -6819,7 +6911,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lastFeedback = phrase;
         lastFeedbackColor = "#ef4444";
 
-        // Озвучиваем шуточное сообщение при повторной ошибке (больше 1 раза подряд)
         if (consecutiveErrors > 1) {
           speakErrorMessage(phrase, { enabled: isSoundEnabled });
         }
@@ -6866,6 +6957,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showFeedback = elementLevel >= 1;
     const showCounters = elementLevel >= 2;
+    const showShareButton = !isTestMode && showCounters;
     const showTimer = elementLevel >= 3 && !isTestMode;
     const showTestButton = elementLevel >= 4;
     const showSoundToggle = elementLevel >= 5;
@@ -6880,7 +6972,10 @@ document.addEventListener('DOMContentLoaded', () => {
               ${currentUser ? (currentUser.displayName || currentUser.email) : 'Гость'} · Ур. ${currentLevel}
             </span>
           </div>
-          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            ${showShareButton ? `
+              <button id="share-top-btn" title="Поделиться" aria-label="Поделиться" style="background: none; border: none; cursor: pointer; font-size: 14px; color: inherit; padding: 2px; line-height: 1;">📤</button>
+            ` : ''}
             ${currentUser ? `
               <button id="logout-btn" style="background: none; border: none; text-decoration: underline; cursor: pointer; font-size: 13px; color: inherit; padding: 2px;">Выйти</button>
             ` : `
@@ -7081,6 +7176,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupModals({ currentLevel });
     if (!isTestMode) startTimer();
+
+    const shareTopBtn = document.getElementById('share-top-btn');
+    if (shareTopBtn) {
+      shareTopBtn.onclick = () => {
+        shareProjectContent({
+          title: "Pareto English — самый эффективный тренажёр английского",
+          text: buildProjectShareText(),
+          url: SHARE_APP_URL
+        });
+      };
+    }
 
     const startTestBtn = document.getElementById('start-test-btn');
     if (startTestBtn) {
@@ -7548,6 +7654,237 @@ export function applyStyleLevelToBody(styleLevel) {
   body.style.setProperty('--btn-border', theme.btnBorder);
   body.style.setProperty('--accent', theme.accent);
   body.style.setProperty('--accent-bg', theme.accentBg);
+}
+
+=== FILE: ./src/utils/appUpdate.js ===
+// src/utils/appUpdate.js
+import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase.js";
+
+const SETTINGS_DOC_PATH = ["settings", "game"];
+const LOCAL_APPLIED_VERSION_KEY = "rkai_applied_app_version";
+const RELOAD_GUARD_KEY = "rkai_force_update_reloaded_ver";
+
+let isForceUpdating = false;
+let unsubscribeVersionListener = null;
+
+export function getLocalAppliedVersion() {
+  const raw = localStorage.getItem(LOCAL_APPLIED_VERSION_KEY);
+  const num = Number(raw);
+  return Number.isFinite(num) && num > 0 ? Math.floor(num) : 1;
+}
+
+export function setLocalAppliedVersion(version) {
+  const safeVer = Math.max(1, Math.floor(Number(version) || 1));
+  localStorage.setItem(LOCAL_APPLIED_VERSION_KEY, String(safeVer));
+}
+
+export async function fetchRemoteAppVersion() {
+  try {
+    const ref = doc(db, ...SETTINGS_DOC_PATH);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const ver = Number(snap.data().appVersion);
+      if (Number.isFinite(ver) && ver > 0) {
+        return Math.floor(ver);
+      }
+    }
+  } catch (err) {
+    console.warn("Не удалось получить версию приложения из Firestore:", err.message);
+  }
+  return getLocalAppliedVersion();
+}
+
+/**
+ * Админ-действие: повышает версию приложения в Firestore,
+ * чтобы все устройства пользователей принудительно обновили файлы и кэш.
+ */
+export async function triggerForceAppUpdateForAllUsers() {
+  const currentRemote = await fetchRemoteAppVersion();
+  const currentLocal = getLocalAppliedVersion();
+  const nextVersion = Math.max(currentRemote, currentLocal) + 1;
+
+  const ref = doc(db, ...SETTINGS_DOC_PATH);
+  await setDoc(
+    ref,
+    {
+      appVersion: nextVersion,
+      forceUpdateAt: Date.now()
+    },
+    { merge: true }
+  );
+
+  setLocalAppliedVersion(nextVersion);
+  return nextVersion;
+}
+
+/**
+ * Очищает все кэши Cache Storage, обновляет Service Worker
+ * и перезагружает страницу для загрузки свежих файлов.
+ */
+export async function performHardPwaRefresh(targetVersion) {
+  if (isForceUpdating) return;
+  isForceUpdating = true;
+
+  const safeVer = Math.max(1, Math.floor(Number(targetVersion) || getLocalAppliedVersion()));
+  setLocalAppliedVersion(safeVer);
+
+  try {
+    if ("caches" in window) {
+      const cacheKeys = await caches.keys();
+      await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+    }
+  } catch (err) {
+    console.warn("Ошибка очистки Cache Storage:", err);
+  }
+
+  try {
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        await reg.update();
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Ошибка обновления Service Worker:", err);
+  }
+
+  // Защита от зацикливания перезагрузки на одной и той же версии
+  if (sessionStorage.getItem(RELOAD_GUARD_KEY) !== String(safeVer)) {
+    sessionStorage.setItem(RELOAD_GUARD_KEY, String(safeVer));
+    const url = new URL(window.location.href);
+    url.searchParams.set("_v", String(safeVer));
+    window.location.replace(url.toString());
+  } else {
+    isForceUpdating = false;
+  }
+}
+
+/**
+ * Проверяет, не вышла ли новая версия приложения в Firestore.
+ */
+export async function checkAndApplyRemoteVersion(forceCheck = false) {
+  if (isForceUpdating) return false;
+  if (!forceCheck && document.visibilityState === "hidden") return false;
+
+  const remoteVersion = await fetchRemoteAppVersion();
+  const localVersion = getLocalAppliedVersion();
+
+  if (remoteVersion > localVersion) {
+    await performHardPwaRefresh(remoteVersion);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Подписывается на изменения версии в реальном времени,
+ * пока вкладка открыта.
+ */
+export function startRemoteVersionWatcher() {
+  if (unsubscribeVersionListener) return;
+
+  try {
+    const ref = doc(db, ...SETTINGS_DOC_PATH);
+    unsubscribeVersionListener = onSnapshot(ref, (snap) => {
+      if (!snap.exists() || isForceUpdating) return;
+      const remoteVersion = Number(snap.data().appVersion);
+      if (!Number.isFinite(remoteVersion) || remoteVersion <= 0) return;
+
+      const localVersion = getLocalAppliedVersion();
+      if (remoteVersion > localVersion) {
+        performHardPwaRefresh(remoteVersion);
+      }
+    });
+  } catch (err) {
+    console.warn("Ошибка подписки на версию приложения:", err);
+  }
+}
+
+=== FILE: ./src/utils/share.js ===
+// src/utils/share.js
+
+export const SHARE_APP_URL = "https://eng.rkai.app";
+
+export function buildProjectShareText() {
+  return "Надоело забрасывать английский на старте? Pareto English — самый эффективный тренажёр английского: упрощает начальное изучение английского языка в 28 раз и доводит базу до автоматизма. Бесплатно:";
+}
+
+export function buildLevelUpShareText(nextLevel) {
+  const safeLevel = Math.max(2, Number(nextLevel) || 2);
+  return `Я прошёл тест и перешёл на Уровень ${safeLevel} в Pareto English — самом эффективном тренажёре английского! Упрощает начальное изучение английского языка в 28 раз и доводит базу до автоматизма. Бесплатно:`;
+}
+
+function formatShareMessage(text, url) {
+  const cleanText = String(text || "").trim();
+  const cleanUrl = String(url || "").trim();
+  if (!cleanUrl) return cleanText;
+  if (cleanText.includes(cleanUrl)) return cleanText;
+  return cleanText ? `${cleanText}\n${cleanUrl}` : cleanUrl;
+}
+
+async function copyTextFallback(text) {
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch (_) {
+    copied = false;
+  }
+
+  document.body.removeChild(textarea);
+  return copied;
+}
+
+/**
+ * Открывает нативное меню «Поделиться» на устройстве,
+ * а при его недоступности копирует текст со ссылкой в буфер обмена.
+ */
+export async function shareProjectContent({
+  title = "Pareto English — самый эффективный тренажёр английского",
+  text = buildProjectShareText(),
+  url = SHARE_APP_URL
+} = {}) {
+  const fullShareMessage = formatShareMessage(text, url);
+
+  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+    try {
+      await navigator.share({
+        title,
+        text,
+        url
+      });
+      return { status: "shared" };
+    } catch (err) {
+      if (err && err.name === "AbortError") {
+        return { status: "cancelled" };
+      }
+    }
+  }
+
+  const copied = await copyTextFallback(fullShareMessage);
+  if (copied) {
+    alert(`Текст и ссылка скопированы в буфер обмена:\n\n${fullShareMessage}`);
+    return { status: "copied" };
+  }
+
+  alert(`Скопируйте ссылку вручную:\n${url}`);
+  return { status: "manual" };
 }
 
 === FILE: ./src/counter.js ===

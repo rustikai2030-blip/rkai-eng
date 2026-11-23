@@ -1,6 +1,6 @@
 // src/data/tasks.js
 export const dictionaryWords = [
-  { en: "I", ru: "Я" },
+  { en: "I", ru: "Я", note: "всегда с большой буквы" },
   { en: "You", ru: "Ты" },
   { en: "We", ru: "Мы" },
   { en: "He", ru: "Он" },
