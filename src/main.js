@@ -766,6 +766,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!isEnglishToRussian) {
       const inputEl = document.getElementById('answer-display');
+      let refreshShift = () => {};
+
       if (inputEl) {
         inputEl.setAttribute('inputmode', 'none');
 
@@ -774,12 +776,23 @@ document.addEventListener('DOMContentLoaded', () => {
           inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
         }
 
+        const handleCursorMove = () => {
+          if (!isAdvancingAfterSpeech) {
+            currentInput = inputEl.value;
+            refreshShift();
+          }
+        };
+
         inputEl.addEventListener('click', (e) => {
           e.preventDefault();
           if (!isAdvancingAfterSpeech) {
             inputEl.focus({ preventScroll: true });
-            currentInput = inputEl.value;
+            handleCursorMove();
           }
+        });
+
+        inputEl.addEventListener('touchend', () => {
+          requestAnimationFrame(handleCursorMove);
         });
 
         inputEl.addEventListener('keydown', (e) => {
@@ -789,8 +802,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      setupKeyboard({
+      const kbApi = setupKeyboard({
         level: currentLevel,
+        getInputState: () => {
+          if (!inputEl) {
+            return { value: currentInput, selectionStart: currentInput.length, selectionEnd: currentInput.length };
+          }
+          return {
+            value: inputEl.value,
+            selectionStart: inputEl.selectionStart,
+            selectionEnd: inputEl.selectionEnd
+          };
+        },
         onInput: (char) => {
           if (isAdvancingAfterSpeech || !inputEl) return;
           const start = inputEl.selectionStart;
@@ -851,6 +874,11 @@ document.addEventListener('DOMContentLoaded', () => {
           await handleAnswerResult(isCorrect, isCorrect ? trimmedInput : "");
         }
       });
+
+      if (kbApi && typeof kbApi.refreshShiftState === 'function') {
+        refreshShift = kbApi.refreshShiftState;
+        refreshShift();
+      }
     } else {
       setupOptions();
     }

@@ -1,6 +1,37 @@
 // src/components/keyboard.js
 
-export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }) {
+/**
+ * Определяет, должен ли следующий символ по умолчанию быть заглавным
+ * исходя из текста поля ввода и позиции курсора.
+ */
+function shouldAutoCapitalize(getInputState) {
+  if (typeof getInputState !== 'function') {
+    return true;
+  }
+
+  const state = getInputState();
+  if (!state) return true;
+
+  const value = String(state.value ?? '');
+  const start = typeof state.selectionStart === 'number' ? state.selectionStart : value.length;
+  const end = typeof state.selectionEnd === 'number' ? state.selectionEnd : start;
+
+  // Если выделен фрагмент — не навязываем авто-капитализацию
+  if (start !== end) {
+    return false;
+  }
+
+  // Самое начало строки
+  if (start === 0) {
+    return true;
+  }
+
+  // Начало после знака завершения предложения и пробела (на случай многословных фраз)
+  const textBeforeCursor = value.slice(0, start);
+  return /[.!?]\s+$/.test(textBeforeCursor);
+}
+
+export function setupKeyboard({ level = 1, getInputState, onInput, onBackspace, onSpace, onOk }) {
   let rowsData = [];
 
   if (level === 1) {
@@ -30,7 +61,9 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   }
 
   const kbContainer = document.getElementById('keyboard');
-  if (!kbContainer) return;
+  if (!kbContainer) {
+    return { refreshShiftState: () => {} };
+  }
   kbContainer.innerHTML = '';
 
   const oldActionContainer = kbContainer.nextElementSibling;
@@ -42,11 +75,46 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
     }
   }
 
-  // По умолчанию первая буква заглавная, дальше строчные
-  let isUpperCase = true;
+  // Ручное переключение Shift пользователем; null — режим авто-определения по курсору
+  let manualShiftOverride = null;
+
+  function isUpperCaseActive() {
+    if (manualShiftOverride !== null) {
+      return manualShiftOverride;
+    }
+    return shouldAutoCapitalize(getInputState);
+  }
+
+  function syncShiftVisual(shiftBtn) {
+    if (!shiftBtn) return;
+    const upper = isUpperCaseActive();
+    if (upper) {
+      shiftBtn.style.background = 'var(--accent, #38bdf8)';
+      shiftBtn.style.color = '#fff';
+    } else {
+      shiftBtn.style.background = '';
+      shiftBtn.style.color = '';
+    }
+  }
+
+  let shiftButtonRef = null;
+
+  function refreshShiftState() {
+    if (manualShiftOverride !== null && shouldAutoCapitalize(getInputState) && (!getInputState || getInputState().value === '')) {
+      manualShiftOverride = null;
+    }
+    syncShiftVisual(shiftButtonRef);
+    kbContainer.querySelectorAll('.kb-letter-btn').forEach((btn) => {
+      const baseChar = btn.getAttribute('data-key');
+      if (baseChar) {
+        btn.textContent = isUpperCaseActive() ? baseChar.toUpperCase() : baseChar;
+      }
+    });
+  }
 
   function renderRows() {
     kbContainer.innerHTML = '';
+    shiftButtonRef = null;
 
     rowsData.forEach(rowKeys => {
       if (rowKeys.length === 0) return;
@@ -60,16 +128,11 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
 
         if (key === 'shift') {
           btn.textContent = '⇧';
-          if (isUpperCase) {
-            btn.style.background = 'var(--accent, #38bdf8)';
-            btn.style.color = '#fff';
-          } else {
-            btn.style.background = '';
-            btn.style.color = '';
-          }
+          shiftButtonRef = btn;
+          syncShiftVisual(btn);
           btn.onclick = () => {
-            isUpperCase = !isUpperCase;
-            renderRows();
+            manualShiftOverride = !isUpperCaseActive();
+            refreshShiftState();
           };
         } else if (key === 'backspace') {
           btn.textContent = '⌫';
@@ -77,13 +140,19 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
           let backspaceInterval = null;
           let backspaceTimeout = null;
 
+          const runBackspace = () => {
+            onBackspace();
+            manualShiftOverride = null;
+            refreshShiftState();
+          };
+
           const startDeleting = (e) => {
             e.preventDefault();
-            onBackspace();
+            runBackspace();
 
             backspaceTimeout = setTimeout(() => {
               backspaceInterval = setInterval(() => {
-                onBackspace();
+                runBackspace();
               }, 100);
             }, 500);
           };
@@ -96,15 +165,18 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
           btn.addEventListener('mousedown', startDeleting);
           btn.addEventListener('mouseup', stopDeleting);
           btn.addEventListener('mouseleave', stopDeleting);
-          
+
           btn.addEventListener('touchstart', startDeleting);
           btn.addEventListener('touchend', stopDeleting);
           btn.addEventListener('touchcancel', stopDeleting);
-
         } else if (key === 'space') {
           btn.textContent = 'пробел';
           btn.style.flex = '2';
-          btn.onclick = () => onSpace();
+          btn.onclick = () => {
+            onSpace();
+            manualShiftOverride = null;
+            refreshShiftState();
+          };
         } else if (key === 'ok') {
           btn.textContent = '✓';
           btn.style.flex = '1';
@@ -113,20 +185,21 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
         } else if (key === "'" || key === '?') {
           btn.textContent = key;
           btn.style.flex = '1';
-          btn.addEventListener('click', () => onInput(key));
+          btn.addEventListener('click', () => {
+            onInput(key);
+            manualShiftOverride = null;
+            refreshShiftState();
+          });
         } else {
           const char = key;
-          btn.textContent = isUpperCase ? char.toUpperCase() : char;
+          btn.classList.add('kb-letter-btn');
+          btn.setAttribute('data-key', char);
+          btn.textContent = isUpperCaseActive() ? char.toUpperCase() : char;
           btn.addEventListener('click', () => {
-            const charToAdd = isUpperCase ? char.toUpperCase() : char;
-            
-            // Сбрасываем shift в строчный режим после ввода символа
-            if (isUpperCase) {
-              isUpperCase = false;
-            }
-            
-            renderRows();
+            const charToAdd = isUpperCaseActive() ? char.toUpperCase() : char;
             onInput(charToAdd);
+            manualShiftOverride = null;
+            refreshShiftState();
           });
         }
         rowDiv.appendChild(btn);
@@ -136,4 +209,8 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   }
 
   renderRows();
+
+  return {
+    refreshShiftState
+  };
 }
