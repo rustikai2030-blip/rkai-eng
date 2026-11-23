@@ -2,6 +2,7 @@
 import { dictionaryWords } from '../data/tasks.js';
 import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
 import { openSimpleHint, closeSimpleHint, isSimpleHintOpen } from './simpleHint.js';
+import { speakEnglishWord, stopErrorSpeech } from '../utils/speechFeedback.js';
 
 let isPopstateBound = false;
 let activeLessonLevel = 1;
@@ -74,6 +75,7 @@ export function setupModals({ currentLevel = 1 } = {}) {
   }
 
   function closeModalWindow(isBackAction = false) {
+    stopErrorSpeech();
     if (modal.style.display === 'block') {
       modal.style.display = 'none';
       if (!isBackAction && history.state && history.state.modalOpen) {
@@ -88,23 +90,71 @@ export function setupModals({ currentLevel = 1 } = {}) {
       const allowedEnWords = ["I", "You", "We", "He", "She", "It", "They", "Work", "Worked"];
       const filteredWords = dictionaryWords.filter(w => allowedEnWords.includes(w.en));
 
-      const html = filteredWords.map(w => `
-        <div style="
-          background: #1e293b;
-          padding: 13px 16px;
-          border-radius: 8px;
-          border: 1px solid #334155;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-        ">
-          <span style="color: #60a5fa; font-size: 20px; font-weight: 800;">${w.en}</span>
-          <span style="color: #94a3b8; font-size: 17px; font-weight: 600; text-align: right;">${w.ru}</span>
+      const html = `
+        <div style="font-size: 13px; color: #94a3b8; margin-bottom: 2px;">
+          Нажмите на слово, чтобы прослушать произношение
         </div>
-      `).join('');
+        ${filteredWords.map(w => `
+          <div
+            class="dict-word-row"
+            data-en="${w.en}"
+            role="button"
+            tabindex="0"
+            style="
+              background: #1e293b;
+              padding: 13px 16px;
+              border-radius: 8px;
+              border: 1px solid #334155;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 12px;
+              cursor: pointer;
+              transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
+            "
+          >
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 16px; opacity: 0.85;">🔊</span>
+              <span style="color: #60a5fa; font-size: 20px; font-weight: 800;">${w.en}</span>
+            </div>
+            <span style="color: #94a3b8; font-size: 17px; font-weight: 600; text-align: right;">${w.ru}</span>
+          </div>
+        `).join('')}
+      `;
 
       openModal("Словарь", html);
+
+      const wordRows = modalContent.querySelectorAll('.dict-word-row');
+      wordRows.forEach((row) => {
+        const triggerSpeak = () => {
+          const wordToSpeak = row.getAttribute('data-en');
+
+          // Сбрасываем подсветку со всех карточек
+          wordRows.forEach((r) => {
+            r.style.borderColor = '#334155';
+            r.style.backgroundColor = '#1e293b';
+          });
+
+          // Подсвечиваем текущую карточку во время озвучки
+          row.style.borderColor = '#60a5fa';
+          row.style.backgroundColor = '#263349';
+
+          speakEnglishWord(wordToSpeak, {
+            onEnd: () => {
+              row.style.borderColor = '#334155';
+              row.style.backgroundColor = '#1e293b';
+            }
+          });
+        };
+
+        row.addEventListener('click', triggerSpeak);
+        row.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            triggerSpeak();
+          }
+        });
+      });
     };
   }
 
