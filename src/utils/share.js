@@ -4,9 +4,7 @@ export const SHARE_APP_URL = "https://eng.rkai.app";
 
 export function buildProjectShareText() {
   return [
-    "Pareto English — тренажёр английского по правилу 80/20.",
-    "Вместо 504 форм — 18 базовых связок в Simple, доведённых до автоматизма.",
-    "Бесплатно, работает в браузере и устанавливается как приложение на телефон:",
+    "Надоело забрасывать английский на старте? Pareto English — самый эффективный тренажёр английского: упрощает начальное изучение английского языка в 28 раз и доводит базу до автоматизма. Бесплатно:",
     SHARE_APP_URL
   ].join("\n");
 }
@@ -14,8 +12,7 @@ export function buildProjectShareText() {
 export function buildLevelUpShareText(nextLevel) {
   const safeLevel = Math.max(2, Number(nextLevel) || 2);
   return [
-    `Я прошёл тест и перешёл на Уровень ${safeLevel} в тренажёре Pareto English!`,
-    "Тренируем базу английского до автоматизма по принципу Парето 80/20:",
+    `Я прошёл тест и перешёл на Уровень ${safeLevel} в Pareto English — самом эффективном тренажёре английского! Упрощает начальное изучение английского языка в 28 раз и доводит базу до автоматизма. Бесплатно:`,
     SHARE_APP_URL
   ].join("\n");
 }
@@ -50,7 +47,7 @@ async function copyTextFallback(text) {
  * а при его недоступности копирует текст со ссылкой в буфер обмена.
  */
 export async function shareProjectContent({
-  title = "Pareto English — Тренажёр английского языка",
+  title = "Pareto English — самый эффективный тренажёр английского",
   text = buildProjectShareText(),
   url = SHARE_APP_URL
 } = {}) {
@@ -65,7 +62,6 @@ export async function shareProjectContent({
       });
       return { status: "shared" };
     } catch (err) {
-      // Пользователь сам закрыл окно выбора приложения — не считаем это ошибкой
       if (err && err.name === "AbortError") {
         return { status: "cancelled" };
       }
