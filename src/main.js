@@ -638,6 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showFeedback = elementLevel >= 1;
     const showCounters = elementLevel >= 2;
+    const showShareButton = !isTestMode && showCounters;
     const showTimer = elementLevel >= 3 && !isTestMode;
     const showTestButton = elementLevel >= 4;
     const showSoundToggle = elementLevel >= 5;
@@ -653,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </span>
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-            ${!isTestMode ? `
+            ${showShareButton ? `
               <button id="share-top-btn" title="Поделиться" aria-label="Поделиться" style="background: none; border: none; cursor: pointer; font-size: 14px; color: inherit; padding: 2px; line-height: 1;">📤</button>
             ` : ''}
             ${currentUser ? `
@@ -861,7 +862,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (shareTopBtn) {
       shareTopBtn.onclick = () => {
         shareProjectContent({
-          title: "Pareto English — Тренажёр английского языка",
+          title: "Pareto English — самый эффективный тренажёр английского",
           text: buildProjectShareText(),
           url: SHARE_APP_URL
         });
