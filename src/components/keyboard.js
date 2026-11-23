@@ -1,4 +1,5 @@
 // src/components/keyboard.js
+import { getKeyboardRowsForLevel } from '../levels/registry.js';
 
 /**
  * Определяет, должен ли следующий символ по умолчанию быть заглавным
@@ -31,34 +32,10 @@ function shouldAutoCapitalize(getInputState) {
   return /[.!?]\s+$/.test(textBeforeCursor);
 }
 
-export function setupKeyboard({ level = 1, getInputState, onInput, onBackspace, onSpace, onOk }) {
-  let rowsData = [];
-
-  if (level === 1) {
-    rowsData = [
-      ['w', 'e', 'r', 't'],
-      ['y', 'u', 'i', 'o'],
-      ['s', 'd', 'h', 'k'],
-      ['shift', 'l', 'backspace'],
-      ['space', 'ok']
-    ];
-  } else if (level === 2) {
-    rowsData = [
-      ['w', 'e', 'r', 't'],
-      ['y', 'u', 'i', 'o'],
-      ['s', 'd', 'h', 'k'],
-      ['shift', 'l', 'n', 'backspace'],
-      ["'", 'space', 'ok']
-    ];
-  } else {
-    rowsData = [
-      ['w', 'e', 'r', 't'],
-      ['y', 'u', 'i', 'o'],
-      ['s', 'd', 'h', 'k'],
-      ['shift', 'l', 'n', '?', 'backspace'],
-      ["'", 'space', 'ok']
-    ];
-  }
+export function setupKeyboard({ level = 1, rows, getInputState, onInput, onBackspace, onSpace, onOk }) {
+  const rowsData = Array.isArray(rows) && rows.length > 0
+    ? rows
+    : getKeyboardRowsForLevel(level);
 
   const kbContainer = document.getElementById('keyboard');
   if (!kbContainer) {
@@ -68,11 +45,7 @@ export function setupKeyboard({ level = 1, getInputState, onInput, onBackspace, 
 
   const oldActionContainer = kbContainer.nextElementSibling;
   if (oldActionContainer && (oldActionContainer.tagName === 'DIV' || oldActionContainer.style)) {
-    if (level === 1 || level === 2 || level === 3) {
-      oldActionContainer.style.display = 'none';
-    } else {
-      oldActionContainer.style.display = 'flex';
-    }
+    oldActionContainer.style.display = 'none';
   }
 
   // Ручное переключение Shift пользователем; null — режим авто-определения по курсору

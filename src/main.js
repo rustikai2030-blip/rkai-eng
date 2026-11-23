@@ -3,7 +3,8 @@ import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
-import { level1Tasks, level2Tasks, level3Tasks, getCyclicTask, resetTaskPools } from './data/tasks.js';
+import { getCyclicTask, resetTaskPools } from './data/tasks.js';
+import { getTasksForLevel } from './levels/registry.js';
 import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
@@ -364,9 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function getCurrentTasksForLevel(lvl) {
-    if (lvl >= 3) return level3Tasks;
-    if (lvl === 2) return level2Tasks;
-    return level1Tasks;
+    return getTasksForLevel(lvl);
   }
 
   function pickNewTask() {

@@ -1,5 +1,5 @@
 // src/components/modals.js
-import { dictionaryWords } from '../data/tasks.js';
+import { getDictionaryForLevel } from '../levels/registry.js';
 import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
 import { openSimpleHint, closeSimpleHint, isSimpleHintOpen } from './simpleHint.js';
 import { speakEnglishWord, stopErrorSpeech } from '../utils/speechFeedback.js';
@@ -38,6 +38,17 @@ function renderDictionaryWordRow(wordItem) {
         ${noteHtml}
       </div>
       <span style="color: #94a3b8; font-size: 17px; font-weight: 600; text-align: right; margin-left: auto;">${wordItem.ru}</span>
+    </div>
+  `;
+}
+
+function renderDictionarySectionDivider(labelText = 'Ранее изученные слова') {
+  return `
+    <div style="margin: 8px 0 4px;">
+      <div style="border-top: 3px solid #64748b; margin-bottom: 8px;"></div>
+      <div style="font-size: 12px; font-weight: 700; color: #94a3b8; letter-spacing: 0.04em; text-transform: uppercase;">
+        ${labelText}
+      </div>
     </div>
   `;
 }
@@ -122,30 +133,32 @@ export function setupModals({ currentLevel = 1 } = {}) {
   const wordsBtn = document.getElementById('words-btn');
   if (wordsBtn) {
     wordsBtn.onclick = () => {
-      const allowedEnWords = ["I", "You", "We", "He", "She", "It", "They", "Work", "Worked"];
-      const filteredWords = dictionaryWords.filter(w => allowedEnWords.includes(w.en));
+      const { newWords, previousWords } = getDictionaryForLevel(activeLessonLevel);
+
+      const previousSectionHtml = previousWords.length > 0
+        ? `${renderDictionarySectionDivider()}${previousWords.map(w => renderDictionaryWordRow(w)).join('')}`
+        : '';
 
       const html = `
         <div style="font-size: 13px; color: #94a3b8; margin-bottom: 2px;">
           Нажмите на слово, чтобы прослушать произношение
         </div>
-        ${filteredWords.map(w => renderDictionaryWordRow(w)).join('')}
+        ${newWords.map(w => renderDictionaryWordRow(w)).join('')}
+        ${previousSectionHtml}
       `;
 
-      openModal("Словарь", html);
+      openModal(`Словарь · Ур. ${activeLessonLevel}`, html);
 
       const wordRows = modalContent.querySelectorAll('.dict-word-row');
       wordRows.forEach((row) => {
         const triggerSpeak = () => {
           const wordToSpeak = row.getAttribute('data-en');
 
-          // Сбрасываем подсветку со всех карточек
           wordRows.forEach((r) => {
             r.style.borderColor = '#334155';
             r.style.backgroundColor = '#1e293b';
           });
 
-          // Подсвечиваем текущую карточку во время озвучки
           row.style.borderColor = '#60a5fa';
           row.style.backgroundColor = '#263349';
 
