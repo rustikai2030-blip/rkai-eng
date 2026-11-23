@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentInput = "";
   let lastFeedback = "";
   let lastFeedbackColor = "";
+  let isAdvancingAfterSpeech = false;
+  let advanceTimeoutId = null;
 
   let secondsElapsed = 0;
   let lastSyncedSeconds = 0;
@@ -71,6 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  function clearPendingAdvance() {
+    if (advanceTimeoutId) {
+      clearTimeout(advanceTimeoutId);
+      advanceTimeoutId = null;
+    }
+    isAdvancingAfterSpeech = false;
+  }
+
   function getAvailableCategoriesForLevel(lvl) {
     if (lvl >= 3) return ['question', 'statement', 'negative'];
     if (lvl === 2) return ['statement', 'negative'];
@@ -84,6 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleToggleCategory(cat) {
     if (isTestMode) return;
+    clearPendingAdvance();
+    stopErrorSpeech();
     const available = getAvailableCategoriesForLevel(currentLevel);
 
     if (activeCategories.includes(cat)) {
@@ -130,9 +142,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function speakCorrectEnglishAnswer(spokenText) {
-    if (!isSoundEnabled || !spokenText) return;
-    speakEnglishWord(spokenText, { rate: 0.95, pitch: 1.0 });
+  /**
+   * Озвучивает правильный английский ответ и вызывает onDone после завершения
+   * (или по безопасному таймауту, если браузер не прислал событие окончания).
+   */
+  function speakCorrectAnswerAndWait(spokenText, onDone) {
+    let finished = false;
+    const finishOnce = () => {
+      if (finished) return;
+      finished = true;
+      if (advanceTimeoutId) {
+        clearTimeout(advanceTimeoutId);
+        advanceTimeoutId = null;
+      }
+      if (typeof onDone === 'function') {
+        onDone();
+      }
+    };
+
+    if (!isSoundEnabled || !spokenText || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      advanceTimeoutId = setTimeout(finishOnce, 300);
+      return;
+    }
+
+    // Защитный таймаут на случай, если speechSynthesis не вызовет onend на мобильном устройстве
+    const estimatedMs = Math.min(3500, Math.max(1400, spokenText.length * 95 + 600));
+    advanceTimeoutId = setTimeout(finishOnce, estimatedMs);
+
+    speakEnglishWord(spokenText, {
+      rate: 0.92,
+      pitch: 1.0,
+      onEnd: () => {
+        // Небольшая пауза в 180 мс, чтобы глазу было комфортно завершить считывание
+        setTimeout(finishOnce, 180);
+      }
+    });
   }
 
   if ('serviceWorker' in navigator) {
@@ -165,12 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('beforeunload', () => {
+    clearPendingAdvance();
     stopErrorSpeech();
     flushSessionTime();
   });
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
+      clearPendingAdvance();
       stopErrorSpeech();
       flushSessionTime();
     }
@@ -340,6 +386,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startTestMode() {
+    clearPendingAdvance();
+    stopErrorSpeech();
     isTestMode = true;
     sessionIndex = 0;
     currentInput = "";
@@ -365,6 +413,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function finishTest(passed) {
+    clearPendingAdvance();
+    stopErrorSpeech();
     if (testTimerInterval) clearInterval(testTimerInterval);
     isTestMode = false;
     sessionIndex = 0;
@@ -387,6 +437,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function handleAnswerResult(isCorrect, spokenEnglishText = "") {
+    if (isAdvancingAfterSpeech) return;
+
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
 
     if (isTestMode) {
@@ -453,17 +505,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isCorrect) {
       consecutiveErrors = 0;
 
-      if (elementLevel >= 5) {
-        if (!isEnglishToRussian && spokenEnglishText) {
-          speakCorrectEnglishAnswer(spokenEnglishText);
-        } else {
-          playSound('success');
-        }
-      }
-
       if (elementLevel >= 1) {
         lastFeedback = "Правильно";
         lastFeedbackColor = "#22c55e";
+      }
+
+      const shouldSpeakEnglish = elementLevel >= 5 && !isEnglishToRussian && Boolean(spokenEnglishText);
+
+      if (shouldSpeakEnglish) {
+        isAdvancingAfterSpeech = true;
+        renderTrainer();
+
+        if (elementLevel >= 6) {
+          const inputEl = document.getElementById('answer-display');
+          if (inputEl) {
+            inputEl.classList.add('success-flash');
+          }
+        }
+
+        await syncUserProgressToCloud();
+
+        speakCorrectAnswerAndWait(spokenEnglishText, () => {
+          isAdvancingAfterSpeech = false;
+          sessionIndex++;
+          currentInput = "";
+          pickNewTask();
+          renderTrainer();
+        });
+        return;
+      }
+
+      if (elementLevel >= 5) {
+        playSound('success');
       }
 
       if (elementLevel >= 6 && !isEnglishToRussian) {
@@ -647,11 +720,13 @@ document.addEventListener('DOMContentLoaded', () => {
         isSoundEnabled = !isSoundEnabled;
         localStorage.setItem('rkai_sound_enabled', isSoundEnabled);
         if (!isSoundEnabled) {
+          clearPendingAdvance();
           stopErrorSpeech();
         }
         renderTrainer();
       },
       onOpenSettings: () => {
+        clearPendingAdvance();
         stopErrorSpeech();
         openSettingsModal({
           user: currentUser,
@@ -673,13 +748,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (inputEl) {
         inputEl.setAttribute('inputmode', 'none');
 
-        inputEl.focus({ preventScroll: true });
-        inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
+        if (!isAdvancingAfterSpeech) {
+          inputEl.focus({ preventScroll: true });
+          inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
+        }
 
         inputEl.addEventListener('click', (e) => {
           e.preventDefault();
-          inputEl.focus({ preventScroll: true });
-          currentInput = inputEl.value;
+          if (!isAdvancingAfterSpeech) {
+            inputEl.focus({ preventScroll: true });
+            currentInput = inputEl.value;
+          }
         });
 
         inputEl.addEventListener('keydown', (e) => {
@@ -692,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setupKeyboard({
         level: currentLevel,
         onInput: (char) => {
-          if (!inputEl) return;
+          if (isAdvancingAfterSpeech || !inputEl) return;
           const start = inputEl.selectionStart;
           const end = inputEl.selectionEnd;
           const val = inputEl.value;
@@ -707,7 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         },
         onBackspace: () => {
-          if (!inputEl) return;
+          if (isAdvancingAfterSpeech || !inputEl) return;
           const start = inputEl.selectionStart;
           const end = inputEl.selectionEnd;
           const val = inputEl.value;
@@ -723,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
           inputEl.focus({ preventScroll: true });
         },
         onSpace: () => {
-          if (!inputEl) return;
+          if (isAdvancingAfterSpeech || !inputEl) return;
           const start = inputEl.selectionStart;
           const end = inputEl.selectionEnd;
           const val = inputEl.value;
@@ -736,6 +815,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         },
         onOk: async () => {
+          if (isAdvancingAfterSpeech) return;
           if (inputEl) currentInput = inputEl.value;
           const trimmedInput = currentInput.trim();
 
@@ -803,6 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.onclick = async () => {
+        clearPendingAdvance();
         stopErrorSpeech();
         flushSessionTime();
         if (userUnsubscribe) userUnsubscribe();
@@ -817,6 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const optionButtons = document.querySelectorAll('.option-btn');
     optionButtons.forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (isAdvancingAfterSpeech) return;
         const isCorrect = btn.textContent.trim() === currentTask.correct;
         await handleAnswerResult(isCorrect);
       });
