@@ -18,7 +18,7 @@ import {
   getLocalCounters,
   saveLocalCounters
 } from './utils/statsTracker.js';
-import { speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
+import { speakEnglishWord, speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
 import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 
@@ -34,23 +34,23 @@ document.addEventListener('DOMContentLoaded', () => {
   let totalCorrectAnswers = initialCounters.correct;
   let totalIncorrectAnswers = initialCounters.incorrect;
 
-  let sessionIndex = 0;          
-  let currentLevel = 1;          
+  let sessionIndex = 0;
+  let currentLevel = 1;
   let activeCategories = ['statement'];
-  let consecutiveErrors = 0;     
-  let currentTask = null;        
-  let isEnglishToRussian = false; 
+  let consecutiveErrors = 0;
+  let currentTask = null;
+  let isEnglishToRussian = false;
   let currentInput = "";
-  let lastFeedback = "";        
-  let lastFeedbackColor = "";   
-  
-  let secondsElapsed = 0;       
-  let lastSyncedSeconds = 0;    
+  let lastFeedback = "";
+  let lastFeedbackColor = "";
+
+  let secondsElapsed = 0;
+  let lastSyncedSeconds = 0;
   let timerInterval = null;
   let currentUser = null;
   let isAdminUser = false;
-  let userUnsubscribe = null; 
-  let deferredPrompt = null; 
+  let userUnsubscribe = null;
+  let deferredPrompt = null;
   let hasShownStartupPresentation = false;
 
   let isTestMode = false;
@@ -128,6 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
       osc.start();
       osc.stop(audioCtx.currentTime + 0.2);
     }
+  }
+
+  function speakCorrectEnglishAnswer(spokenText) {
+    if (!isSoundEnabled || !spokenText) return;
+    speakEnglishWord(spokenText, { rate: 0.95, pitch: 1.0 });
   }
 
   if ('serviceWorker' in navigator) {
@@ -241,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
           currentLessonLevel: 1,
           totalCorrect: totalCorrectAnswers,
           totalIncorrect: totalIncorrectAnswers,
-          visitCount: 1, 
+          visitCount: 1,
           totalTimeSpent: 0,
           lastLogin: serverTimestamp()
         });
@@ -257,13 +262,13 @@ document.addEventListener('DOMContentLoaded', () => {
         currentLevel = data.currentLessonLevel || 1;
         syncCategoriesWithLevel(currentLevel);
         pickNewTask();
-        
+
         updateStyleLevel();
-        await setDoc(userRef, { 
-          lastLogin: serverTimestamp(), 
+        await setDoc(userRef, {
+          lastLogin: serverTimestamp(),
           visitCount: increment(1),
-          totalCorrect: totalCorrectAnswers, 
-          totalIncorrect: totalIncorrectAnswers 
+          totalCorrect: totalCorrectAnswers,
+          totalIncorrect: totalIncorrectAnswers
         }, { merge: true });
       }
     } catch (error) {
@@ -336,8 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startTestMode() {
     isTestMode = true;
-    sessionIndex = 0; 
-    currentInput = ""; 
+    sessionIndex = 0;
+    currentInput = "";
     testQuestionsAnswered = 0;
     testCorrectCount = 0;
     testSecondsLeft = gameConfig.testTimeSeconds;
@@ -354,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (testSecondsLeft <= 0) {
-        finishTest(false); 
+        finishTest(false);
       }
     }, 1000);
   }
@@ -381,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   }
 
-  async function handleAnswerResult(isCorrect) {
+  async function handleAnswerResult(isCorrect, spokenEnglishText = "") {
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
 
     if (isTestMode) {
@@ -446,10 +451,14 @@ document.addEventListener('DOMContentLoaded', () => {
     totalIncorrectAnswers = updatedCounters.incorrect;
 
     if (isCorrect) {
-      consecutiveErrors = 0; 
-      
+      consecutiveErrors = 0;
+
       if (elementLevel >= 5) {
-        playSound('success');
+        if (!isEnglishToRussian && spokenEnglishText) {
+          speakCorrectEnglishAnswer(spokenEnglishText);
+        } else {
+          playSound('success');
+        }
       }
 
       if (elementLevel >= 1) {
@@ -462,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inputEl) {
           inputEl.classList.add('success-flash');
         }
-        
+
         sessionIndex++;
         currentInput = "";
 
@@ -470,19 +479,19 @@ document.addEventListener('DOMContentLoaded', () => {
           pickNewTask();
           renderTrainer();
         }, 300);
-        
+
         await syncUserProgressToCloud();
         return;
       }
 
-      sessionIndex++; 
-      currentInput = ""; 
+      sessionIndex++;
+      currentInput = "";
       pickNewTask();
       await syncUserProgressToCloud();
       renderTrainer();
     } else {
-      consecutiveErrors++; 
-      
+      consecutiveErrors++;
+
       if (elementLevel >= 5) {
         playSound('error');
       }
@@ -663,7 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const inputEl = document.getElementById('answer-display');
       if (inputEl) {
         inputEl.setAttribute('inputmode', 'none');
-        
+
         inputEl.focus({ preventScroll: true });
         inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
 
@@ -728,16 +737,17 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         onOk: async () => {
           if (inputEl) currentInput = inputEl.value;
+          const trimmedInput = currentInput.trim();
 
-          if (!currentInput.trim()) {
+          if (!trimmedInput) {
             lastFeedback = "Сначала введите перевод";
             lastFeedbackColor = "#eab308";
             renderTrainer();
             return;
           }
 
-          const isCorrect = currentInput.trim().toLowerCase() === currentTask.en.toLowerCase();
-          await handleAnswerResult(isCorrect);
+          const isCorrect = trimmedInput.toLowerCase() === currentTask.en.toLowerCase();
+          await handleAnswerResult(isCorrect, isCorrect ? trimmedInput : "");
         }
       });
     } else {

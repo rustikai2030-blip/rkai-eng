@@ -30,8 +30,8 @@ function ensureSettingsStyles() {
       inset: 0;
       width: 100%;
       height: 100dvh;
-      background: #16171d;
-      color: #f3f4f6;
+      background: #f8fafc;
+      color: #0f172a;
       z-index: 2200;
       overflow-y: auto;
       padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom)) 16px;
@@ -55,7 +55,7 @@ function ensureSettingsStyles() {
       align-items: center;
       padding-bottom: 14px;
       margin-bottom: 16px;
-      border-bottom: 1px solid #2e303a;
+      border-bottom: 1px solid #cbd5e1;
       gap: 10px;
     }
 
@@ -63,18 +63,19 @@ function ensureSettingsStyles() {
       margin: 0;
       font-size: 22px;
       font-weight: 700;
-      color: #ffffff;
+      color: #0f172a;
     }
 
     .st-btn-icon {
       padding: 8px 14px;
-      background: #272935;
-      color: #f3f4f6;
-      border: 1px solid #3f4254;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
     }
 
     .st-menu-item {
@@ -83,29 +84,30 @@ function ensureSettingsStyles() {
       justify-content: space-between;
       align-items: center;
       padding: 16px 18px;
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 14px;
-      color: #ffffff;
+      color: #0f172a;
       font-size: 17px;
       font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
       transition: border-color 0.2s ease, background 0.2s ease;
     }
 
     .st-menu-item:active {
-      background: #272935;
-      border-color: #38bdf8;
+      background: #f1f5f9;
+      border-color: #0284c7;
     }
 
     .st-tabs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
-      background: #1f2028;
+      background: #e2e8f0;
       padding: 5px;
       border-radius: 12px;
-      border: 1px solid #2e303a;
+      border: 1px solid #cbd5e1;
       margin-bottom: 14px;
     }
 
@@ -114,7 +116,7 @@ function ensureSettingsStyles() {
       border: none;
       border-radius: 9px;
       background: transparent;
-      color: #9ca3af;
+      color: #475569;
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
@@ -122,25 +124,26 @@ function ensureSettingsStyles() {
     }
 
     .st-tab-btn.active {
-      background: #38bdf8;
-      color: #081018;
+      background: #0284c7;
+      color: #ffffff;
     }
 
     .st-nav-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 12px;
       padding: 8px 12px;
       margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     }
 
     .st-nav-arrow {
-      background: #272935;
-      border: 1px solid #3f4254;
-      color: #ffffff;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
       width: 34px;
       height: 34px;
       border-radius: 8px;
@@ -155,7 +158,7 @@ function ensureSettingsStyles() {
     .st-nav-label {
       font-size: 16px;
       font-weight: 700;
-      color: #ffffff;
+      color: #0f172a;
     }
 
     .st-summary-card {
@@ -166,23 +169,24 @@ function ensureSettingsStyles() {
     }
 
     .st-summary-box {
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 12px;
       padding: 12px;
       text-align: center;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     }
 
     .st-summary-val {
       font-size: 22px;
       font-weight: 800;
-      color: #38bdf8;
+      color: #0284c7;
       line-height: 1.2;
     }
 
     .st-summary-lbl {
       font-size: 12px;
-      color: #9ca3af;
+      color: #475569;
       margin-top: 4px;
     }
 
@@ -194,7 +198,7 @@ function ensureSettingsStyles() {
       text-align: center;
       font-size: 12px;
       font-weight: 700;
-      color: #9ca3af;
+      color: #475569;
     }
 
     .st-days-grid {
@@ -204,8 +208,8 @@ function ensureSettingsStyles() {
     }
 
     .st-day-cell {
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
       padding: 5px 2px;
       min-height: 62px;
@@ -222,17 +226,17 @@ function ensureSettingsStyles() {
     }
 
     .st-day-cell.has-activity {
-      border-color: rgba(56, 189, 248, 0.55);
-      background: rgba(56, 189, 248, 0.08);
+      border-color: #38bdf8;
+      background: #f0f9ff;
     }
 
     .st-day-cell.today {
-      border: 2px solid #22c55e;
+      border: 2px solid #16a34a;
     }
 
     .st-day-num {
       font-size: 10px;
-      color: #9ca3af;
+      color: #64748b;
       align-self: flex-end;
       padding-right: 4px;
       line-height: 1;
@@ -241,18 +245,18 @@ function ensureSettingsStyles() {
     .st-day-tasks {
       font-size: 17px;
       font-weight: 800;
-      color: #ffffff;
+      color: #0f172a;
       line-height: 1.1;
     }
 
     .st-day-cell.no-activity .st-day-tasks {
-      color: #4b5563;
+      color: #94a3b8;
       font-weight: 600;
     }
 
     .st-day-time {
       font-size: 10px;
-      color: #38bdf8;
+      color: #0284c7;
       line-height: 1.1;
       text-align: center;
       white-space: nowrap;
@@ -262,7 +266,7 @@ function ensureSettingsStyles() {
     }
 
     .st-day-cell.no-activity .st-day-time {
-      color: #4b5563;
+      color: #94a3b8;
     }
 
     .st-list {
@@ -272,24 +276,26 @@ function ensureSettingsStyles() {
     }
 
     .st-list-card {
-      background: #1f2028;
-      border: 1px solid #2e303a;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 12px;
       padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
 
     .st-list-card.has-activity {
-      border-color: rgba(56, 189, 248, 0.45);
+      border-color: #38bdf8;
+      background: #f0f9ff;
     }
 
     .st-list-title {
       font-size: 16px;
       font-weight: 700;
-      color: #f3f4f6;
+      color: #0f172a;
     }
 
     .st-list-metrics {
@@ -299,13 +305,13 @@ function ensureSettingsStyles() {
     .st-list-tasks {
       font-size: 20px;
       font-weight: 800;
-      color: #ffffff;
+      color: #0f172a;
       line-height: 1.15;
     }
 
     .st-list-time {
       font-size: 12px;
-      color: #38bdf8;
+      color: #0284c7;
       margin-top: 2px;
     }
   `;
@@ -375,7 +381,7 @@ function renderSettingsMenu(user) {
             <span style="font-size: 20px;">ℹ️</span>
             <span>О проекте</span>
           </span>
-          <span style="color: #9ca3af; font-size: 18px;">→</span>
+          <span style="color: #64748b; font-size: 18px;">→</span>
         </button>
 
         <button type="button" id="st-open-stats-btn" class="st-menu-item">
@@ -383,7 +389,7 @@ function renderSettingsMenu(user) {
             <span style="font-size: 20px;">📊</span>
             <span>Статистика</span>
           </span>
-          <span style="color: #9ca3af; font-size: 18px;">→</span>
+          <span style="color: #64748b; font-size: 18px;">→</span>
         </button>
       </div>
     </div>
@@ -409,7 +415,7 @@ function renderSettingsMenu(user) {
           <h2 class="st-title">Статистика</h2>
           <button type="button" id="st-close-btn" class="st-btn-icon">✕</button>
         </div>
-        <p style="text-align: center; color: #9ca3af; margin-top: 30px;">Загрузка статистики...</p>
+        <p style="text-align: center; color: #475569; margin-top: 30px;">Загрузка статистики...</p>
       </div>
     `;
     modal.querySelector('#st-back-menu-btn').onclick = () => renderSettingsMenu(user);
