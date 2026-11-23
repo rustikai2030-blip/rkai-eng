@@ -1,5 +1,6 @@
 // src/components/settingsModal.js
 import { loadFullUserStats, formatStatsDuration, getLocalDateKey } from '../utils/statsTracker.js';
+import { showProjectPresentation } from './onboarding.js';
 
 const SETTINGS_MODAL_ID = 'settings-modal';
 const SETTINGS_STYLE_ID = 'settings-modal-styles';
@@ -369,6 +370,14 @@ function renderSettingsMenu(user) {
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button type="button" id="st-open-about-btn" class="st-menu-item">
+          <span style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">ℹ️</span>
+            <span>О проекте</span>
+          </span>
+          <span style="color: #9ca3af; font-size: 18px;">→</span>
+        </button>
+
         <button type="button" id="st-open-stats-btn" class="st-menu-item">
           <span style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 20px;">📊</span>
@@ -381,6 +390,12 @@ function renderSettingsMenu(user) {
   `;
 
   modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+
+  modal.querySelector('#st-open-about-btn').onclick = () => {
+    closeSettingsModal(false);
+    showProjectPresentation();
+  };
+
   modal.querySelector('#st-open-stats-btn').onclick = async () => {
     const now = new Date();
     selectedYear = now.getFullYear();

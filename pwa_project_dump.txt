@@ -5237,6 +5237,123 @@ export function renderCategoryFilters({
 const HINT_MODAL_ID = 'simple-hint-modal';
 const HINT_STYLE_ID = 'simple-hint-styles';
 
+const COLUMNS_DATA = {
+  question: {
+    id: 'question',
+    label: 'Вопрос',
+    html: `
+      <div class="sh-tense">Будущее время</div>
+      <div class="sh-row">
+        <span class="sh-aux">Will</span><span class="sh-brace sh-brace-l"></span>
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work?</div><div class="sh-ru">буду работать?</div></div>
+      </div>
+      <div class="sh-tense">Настоящее время</div>
+      <div class="sh-row">
+        <span class="sh-aux">Do</span><span class="sh-brace sh-brace-l"></span>
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work?</div><div class="sh-ru">работаю? / работают?</div></div>
+      </div>
+      <div class="sh-row">
+        <span class="sh-aux">Does</span><span class="sh-brace sh-brace-l"></span>
+        <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work?</div><div class="sh-ru">работает?</div></div>
+      </div>
+      <div class="sh-tense">Прошедшее время</div>
+      <div class="sh-row">
+        <span class="sh-aux">Did</span><span class="sh-brace sh-brace-l"></span>
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work?</div><div class="sh-ru">работал(а/и)?</div></div>
+      </div>
+    `
+  },
+  statement: {
+    id: 'statement',
+    label: 'Утверждение',
+    html: `
+      <div class="sh-tense">Будущее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>will</b> work</div><div class="sh-ru">буду работать</div></div>
+      </div>
+      <div class="sh-tense">Настоящее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work</div><div class="sh-ru">работаю / работают</div></div>
+      </div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work<b>s</b></div><div class="sh-ru">работает</div></div>
+      </div>
+      <div class="sh-tense">Прошедшее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work<b>ed</b></div><div class="sh-ru">работал / работала / работали</div></div>
+      </div>
+    `
+  },
+  negative: {
+    id: 'negative',
+    label: 'Отрицание',
+    html: `
+      <div class="sh-tense">Будущее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>won't</b> work</div><div class="sh-ru">не буду работать</div></div>
+      </div>
+      <div class="sh-tense">Настоящее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>don't</b> work</div><div class="sh-ru">не работаю / не работают</div></div>
+      </div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>doesn't</b> work</div><div class="sh-ru">не работает</div></div>
+      </div>
+      <div class="sh-tense">Прошедшее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>didn't</b> work</div><div class="sh-ru">не работал(а/и)</div></div>
+      </div>
+    `
+  }
+};
+
+function getHintConfigForLevel(level = 1) {
+  const safeLevel = Math.max(1, Number(level) || 1);
+
+  if (safeLevel === 1) {
+    return {
+      columns: [COLUMNS_DATA.statement],
+      defaultIndex: 0
+    };
+  }
+
+  if (safeLevel === 2) {
+    return {
+      columns: [COLUMNS_DATA.statement, COLUMNS_DATA.negative],
+      defaultIndex: 1 // Открываем "Отрицание", свайп влево -> "Утверждение"
+    };
+  }
+
+  return {
+    columns: [COLUMNS_DATA.question, COLUMNS_DATA.statement, COLUMNS_DATA.negative],
+    defaultIndex: 0 // Открываем "Вопрос", свайп вправо -> "Утверждение" и "Отрицание"
+  };
+}
+
 function ensureHintStyles() {
   if (document.getElementById(HINT_STYLE_ID)) return;
 
@@ -5299,7 +5416,6 @@ function ensureHintStyles() {
 
     .sh-tabs {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
       gap: 6px;
       padding: 8px 50px 8px 10px;
       background: #111827;
@@ -5434,108 +5550,34 @@ function getSimpleHintModalElement() {
   ensureHintStyles();
 
   let modal = document.getElementById(HINT_MODAL_ID);
-  if (modal) return modal;
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = HINT_MODAL_ID;
+    document.body.appendChild(modal);
+  }
+  return modal;
+}
 
-  modal = document.createElement('div');
-  modal.id = HINT_MODAL_ID;
+function renderHintContent(modal, { columns, defaultIndex }) {
   modal.innerHTML = `
     <button type="button" class="sh-floating-close" id="sh-close-btn" aria-label="Закрыть подсказку">✕</button>
 
-    <div class="sh-tabs" id="sh-tabs">
-      <button type="button" data-col="0">Вопрос</button>
-      <button type="button" data-col="1" class="active">Утверждение</button>
-      <button type="button" data-col="2">Отрицание</button>
+    <div class="sh-tabs" id="sh-tabs" style="grid-template-columns: repeat(${columns.length}, 1fr);">
+      ${columns.map((col, idx) => `
+        <button type="button" data-col="${idx}" class="${idx === defaultIndex ? 'active' : ''}">
+          ${col.label}
+        </button>
+      `).join('')}
     </div>
 
     <div class="sh-scroll-area" id="sh-scroll">
-      <!-- 0: Вопрос -->
-      <div class="sh-col">
-        <div class="sh-tense">Будущее время</div>
-        <div class="sh-row">
-          <span class="sh-aux">Will</span><span class="sh-brace sh-brace-l"></span>
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work?</div><div class="sh-ru">буду работать?</div></div>
+      ${columns.map(col => `
+        <div class="sh-col" data-col-id="${col.id}">
+          ${col.html}
         </div>
-        <div class="sh-tense">Настоящее время</div>
-        <div class="sh-row">
-          <span class="sh-aux">Do</span><span class="sh-brace sh-brace-l"></span>
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work?</div><div class="sh-ru">работаю? / работают?</div></div>
-        </div>
-        <div class="sh-row">
-          <span class="sh-aux">Does</span><span class="sh-brace sh-brace-l"></span>
-          <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work?</div><div class="sh-ru">работает?</div></div>
-        </div>
-        <div class="sh-tense">Прошедшее время</div>
-        <div class="sh-row">
-          <span class="sh-aux">Did</span><span class="sh-brace sh-brace-l"></span>
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work?</div><div class="sh-ru">работал(а/и)?</div></div>
-        </div>
-      </div>
-
-      <!-- 1: Утверждение -->
-      <div class="sh-col">
-        <div class="sh-tense">Будущее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>will</b> work</div><div class="sh-ru">буду работать</div></div>
-        </div>
-        <div class="sh-tense">Настоящее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work</div><div class="sh-ru">работаю / работают</div></div>
-        </div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work<b>s</b></div><div class="sh-ru">работает</div></div>
-        </div>
-        <div class="sh-tense">Прошедшее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work<b>ed</b></div><div class="sh-ru">работал / работала / работали</div></div>
-        </div>
-      </div>
-
-      <!-- 2: Отрицание (сокращённая форма) -->
-      <div class="sh-col">
-        <div class="sh-tense">Будущее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>won't</b> work</div><div class="sh-ru">не буду работать</div></div>
-        </div>
-        <div class="sh-tense">Настоящее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>don't</b> work</div><div class="sh-ru">не работаю / не работают</div></div>
-        </div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>doesn't</b> work</div><div class="sh-ru">не работает</div></div>
-        </div>
-        <div class="sh-tense">Прошедшее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>didn't</b> work</div><div class="sh-ru">не работал(а/и)</div></div>
-        </div>
-      </div>
+      `).join('')}
     </div>
   `;
-
-  document.body.appendChild(modal);
 
   const closeBtn = modal.querySelector('#sh-close-btn');
   const scrollArea = modal.querySelector('#sh-scroll');
@@ -5568,22 +5610,19 @@ function getSimpleHintModalElement() {
     setActiveTab(index);
   });
 
-  return modal;
+  return { scrollArea, tabButtons, setActiveTab };
 }
 
-export function openSimpleHint(initialCol = 1) {
+export function openSimpleHint(level = 1) {
   const modal = getSimpleHintModalElement();
-  const scrollArea = modal.querySelector('#sh-scroll');
-  const tabButtons = modal.querySelectorAll('#sh-tabs button');
+  const { columns, defaultIndex } = getHintConfigForLevel(level);
+  const { scrollArea, setActiveTab } = renderHintContent(modal, { columns, defaultIndex });
 
   modal.classList.add('open');
 
   requestAnimationFrame(() => {
-    const clampedCol = Math.max(0, Math.min(2, initialCol));
-    scrollArea.scrollLeft = clampedCol * scrollArea.clientWidth;
-    tabButtons.forEach((btn, idx) => {
-      btn.classList.toggle('active', idx === clampedCol);
-    });
+    scrollArea.scrollLeft = defaultIndex * scrollArea.clientWidth;
+    setActiveTab(defaultIndex);
   });
 }
 
@@ -5872,21 +5911,60 @@ export function showProjectPresentation({ onClose } = {}) {
 import { dictionaryWords } from '../data/tasks.js';
 import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
 import { openSimpleHint, closeSimpleHint, isSimpleHintOpen } from './simpleHint.js';
+import { speakEnglishWord, stopErrorSpeech } from '../utils/speechFeedback.js';
 
 let isPopstateBound = false;
+let activeLessonLevel = 1;
 
-export function setupModals() {
+export function setupModals({ currentLevel = 1 } = {}) {
+  activeLessonLevel = Math.max(1, Number(currentLevel) || 1);
+
   if (!document.getElementById('modal')) {
     const modalDiv = document.createElement('div');
     modalDiv.id = 'modal';
-    modalDiv.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #16171d; color: #f3f4f6; padding: 20px; box-sizing: border-box; overflow-y: auto; text-align: left; z-index: 1000;';
+    modalDiv.style.cssText = [
+      'display: none;',
+      'position: fixed;',
+      'inset: 0;',
+      'width: 100%;',
+      'height: 100dvh;',
+      'background: #0f172a;',
+      'color: #f1f5f9;',
+      'padding: calc(env(safe-area-inset-top, 0px) + 12px) 14px calc(env(safe-area-inset-bottom, 0px) + 16px);',
+      'box-sizing: border-box;',
+      'overflow-y: auto;',
+      'text-align: left;',
+      'z-index: 1000;',
+      'font-family: system-ui, -apple-system, sans-serif;'
+    ].join(' ');
+
     modalDiv.innerHTML = `
       <div style="max-width: 680px; margin: 0 auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px;">
-          <h2 id="modal-title" style="margin: 0; font-size: 26px;">Словарь</h2>
-          <button id="close-modal" style="padding: 10px 18px; background: var(--accent, #38bdf8); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">✕ Закрыть</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid #1e293b; gap: 12px;">
+          <h2 id="modal-title" style="margin: 0; font-size: 22px; font-weight: 800; color: #f8fafc;">Словарь</h2>
+          <button
+            id="close-modal"
+            aria-label="Закрыть"
+            style="
+              width: 34px;
+              height: 34px;
+              border-radius: 999px;
+              border: 1px solid #475569;
+              background: rgba(15, 23, 42, 0.88);
+              color: #f8fafc;
+              font-size: 16px;
+              font-weight: 700;
+              line-height: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              flex-shrink: 0;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+            "
+          >✕</button>
         </div>
-        <div id="modal-content" style="display: flex; flex-direction: column; gap: 16px; line-height: 1.5;"></div>
+        <div id="modal-content" style="display: flex; flex-direction: column; gap: 10px; line-height: 1.4;"></div>
       </div>
     `;
     document.body.appendChild(modalDiv);
@@ -5906,6 +5984,7 @@ export function setupModals() {
   }
 
   function closeModalWindow(isBackAction = false) {
+    stopErrorSpeech();
     if (modal.style.display === 'block') {
       modal.style.display = 'none';
       if (!isBackAction && history.state && history.state.modalOpen) {
@@ -5920,14 +5999,71 @@ export function setupModals() {
       const allowedEnWords = ["I", "You", "We", "He", "She", "It", "They", "Work", "Worked"];
       const filteredWords = dictionaryWords.filter(w => allowedEnWords.includes(w.en));
 
-      const html = filteredWords.map(w => `
-        <div style="background: var(--code-bg, #1f2028); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border, #2e303a); font-size: 24px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: var(--text-h, #f3f4f6);">${w.en}</span>
-          <span style="color: var(--text, #9ca3af); font-size: 20px;">${w.ru}</span>
+      const html = `
+        <div style="font-size: 13px; color: #94a3b8; margin-bottom: 2px;">
+          Нажмите на слово, чтобы прослушать произношение
         </div>
-      `).join('');
+        ${filteredWords.map(w => `
+          <div
+            class="dict-word-row"
+            data-en="${w.en}"
+            role="button"
+            tabindex="0"
+            style="
+              background: #1e293b;
+              padding: 13px 16px;
+              border-radius: 8px;
+              border: 1px solid #334155;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 12px;
+              cursor: pointer;
+              transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
+            "
+          >
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 16px; opacity: 0.85;">🔊</span>
+              <span style="color: #60a5fa; font-size: 20px; font-weight: 800;">${w.en}</span>
+            </div>
+            <span style="color: #94a3b8; font-size: 17px; font-weight: 600; text-align: right;">${w.ru}</span>
+          </div>
+        `).join('')}
+      `;
 
       openModal("Словарь", html);
+
+      const wordRows = modalContent.querySelectorAll('.dict-word-row');
+      wordRows.forEach((row) => {
+        const triggerSpeak = () => {
+          const wordToSpeak = row.getAttribute('data-en');
+
+          // Сбрасываем подсветку со всех карточек
+          wordRows.forEach((r) => {
+            r.style.borderColor = '#334155';
+            r.style.backgroundColor = '#1e293b';
+          });
+
+          // Подсвечиваем текущую карточку во время озвучки
+          row.style.borderColor = '#60a5fa';
+          row.style.backgroundColor = '#263349';
+
+          speakEnglishWord(wordToSpeak, {
+            onEnd: () => {
+              row.style.borderColor = '#334155';
+              row.style.backgroundColor = '#1e293b';
+            }
+          });
+        };
+
+        row.addEventListener('click', triggerSpeak);
+        row.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            triggerSpeak();
+          }
+        });
+      });
     };
   }
 
@@ -5935,7 +6071,7 @@ export function setupModals() {
   if (rulesBtn) {
     rulesBtn.textContent = "Помощь";
     rulesBtn.onclick = () => {
-      openSimpleHint(1);
+      openSimpleHint(activeLessonLevel);
     };
   }
 
@@ -5961,7 +6097,7 @@ export function setupModals() {
 }
 
 export function openHelpGuideModal() {
-  setupModals();
+  setupModals({ currentLevel: activeLessonLevel });
   const modal = document.getElementById('modal');
   const modalTitle = document.getElementById('modal-title');
   const modalContent = document.getElementById('modal-content');
@@ -6832,7 +6968,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setupOptions();
     }
 
-    setupModals();
+    setupModals({ currentLevel });
     if (!isTestMode) startTimer();
 
     const startTestBtn = document.getElementById('start-test-btn');
@@ -6905,7 +7041,7 @@ document.addEventListener('DOMContentLoaded', () => {
 === FILE: ./src/utils/speechFeedback.js ===
 // src/utils/speechFeedback.js
 
-function pickRussianVoice() {
+function pickVoiceByLang(langPrefix, preferredKeywords = []) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     return null;
   }
@@ -6913,16 +7049,24 @@ function pickRussianVoice() {
   const voices = window.speechSynthesis.getVoices() || [];
   if (!voices.length) return null;
 
-  // Ищем любой русский голос (ru-RU, ru-KZ, ru и т.д.)
-  const ruVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('ru'));
-  if (!ruVoices.length) return null;
+  const matchingVoices = voices.filter(
+    (v) => v.lang && v.lang.toLowerCase().startsWith(langPrefix.toLowerCase())
+  );
+  if (!matchingVoices.length) return null;
 
-  // Предпочитаем локальный/системный голос, если доступен
-  return ruVoices.find(v => v.localService) || ruVoices[0];
+  // Ищем наиболее естественные голоса по ключевым словам (Google, Natural, Samantha и т.д.)
+  for (const keyword of preferredKeywords) {
+    const found = matchingVoices.find((v) =>
+      v.name.toLowerCase().includes(keyword.toLowerCase())
+    );
+    if (found) return found;
+  }
+
+  return matchingVoices.find((v) => v.localService) || matchingVoices[0];
 }
 
 /**
- * Озвучивает шуточное сообщение при повторных ошибках через Web Speech API
+ * Озвучивает шуточное сообщение при повторных ошибках (RU)
  */
 export function speakErrorMessage(text, { enabled = true, rate = 1.02, pitch = 1.05 } = {}) {
   if (!enabled || !text) return;
@@ -6930,7 +7074,9 @@ export function speakErrorMessage(text, { enabled = true, rate = 1.02, pitch = 1
 
   try {
     const synth = window.speechSynthesis;
-    synth.cancel();
+    if (synth.speaking || synth.pending) {
+      synth.cancel();
+    }
 
     const utterance = new SpeechSynthesisUtterance(String(text).trim());
     utterance.lang = 'ru-RU';
@@ -6938,14 +7084,58 @@ export function speakErrorMessage(text, { enabled = true, rate = 1.02, pitch = 1
     utterance.pitch = pitch;
     utterance.volume = 1;
 
-    const voice = pickRussianVoice();
+    const voice = pickVoiceByLang('ru', ['google', 'milena', 'yuri', 'irina']);
     if (voice) {
       utterance.voice = voice;
     }
 
     synth.speak(utterance);
   } catch (err) {
-    console.warn('Ошибка синтеза речи:', err);
+    console.warn('Ошибка синтеза русской речи:', err);
+  }
+}
+
+/**
+ * Озвучивает английское слово или фразу из словаря (EN)
+ */
+export function speakEnglishWord(text, { rate = 0.92, pitch = 1.0, onStart, onEnd } = {}) {
+  if (!text) return;
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+  try {
+    const synth = window.speechSynthesis;
+    if (synth.speaking || synth.pending) {
+      synth.cancel();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(String(text).trim());
+    utterance.lang = 'en-US';
+    utterance.rate = rate;
+    utterance.pitch = pitch;
+    utterance.volume = 1;
+
+    // Приоритет естественным американским/британским голосам
+    const voice =
+      pickVoiceByLang('en-us', ['google us english', 'natural', 'samantha', 'aria', 'jenny']) ||
+      pickVoiceByLang('en-gb', ['google uk english', 'daniel', 'serena']) ||
+      pickVoiceByLang('en', ['google', 'natural']);
+
+    if (voice) {
+      utterance.voice = voice;
+    }
+
+    if (typeof onStart === 'function') {
+      utterance.onstart = onStart;
+    }
+    if (typeof onEnd === 'function') {
+      utterance.onend = onEnd;
+      utterance.onerror = onEnd;
+    }
+
+    synth.speak(utterance);
+  } catch (err) {
+    console.warn('Ошибка синтеза английской речи:', err);
+    if (typeof onEnd === 'function') onEnd();
   }
 }
 
