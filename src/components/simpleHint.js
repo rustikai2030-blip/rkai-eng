@@ -3,6 +3,123 @@
 const HINT_MODAL_ID = 'simple-hint-modal';
 const HINT_STYLE_ID = 'simple-hint-styles';
 
+const COLUMNS_DATA = {
+  question: {
+    id: 'question',
+    label: 'Вопрос',
+    html: `
+      <div class="sh-tense">Будущее время</div>
+      <div class="sh-row">
+        <span class="sh-aux">Will</span><span class="sh-brace sh-brace-l"></span>
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work?</div><div class="sh-ru">буду работать?</div></div>
+      </div>
+      <div class="sh-tense">Настоящее время</div>
+      <div class="sh-row">
+        <span class="sh-aux">Do</span><span class="sh-brace sh-brace-l"></span>
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work?</div><div class="sh-ru">работаю? / работают?</div></div>
+      </div>
+      <div class="sh-row">
+        <span class="sh-aux">Does</span><span class="sh-brace sh-brace-l"></span>
+        <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work?</div><div class="sh-ru">работает?</div></div>
+      </div>
+      <div class="sh-tense">Прошедшее время</div>
+      <div class="sh-row">
+        <span class="sh-aux">Did</span><span class="sh-brace sh-brace-l"></span>
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work?</div><div class="sh-ru">работал(а/и)?</div></div>
+      </div>
+    `
+  },
+  statement: {
+    id: 'statement',
+    label: 'Утверждение',
+    html: `
+      <div class="sh-tense">Будущее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>will</b> work</div><div class="sh-ru">буду работать</div></div>
+      </div>
+      <div class="sh-tense">Настоящее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work</div><div class="sh-ru">работаю / работают</div></div>
+      </div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work<b>s</b></div><div class="sh-ru">работает</div></div>
+      </div>
+      <div class="sh-tense">Прошедшее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en">work<b>ed</b></div><div class="sh-ru">работал / работала / работали</div></div>
+      </div>
+    `
+  },
+  negative: {
+    id: 'negative',
+    label: 'Отрицание',
+    html: `
+      <div class="sh-tense">Будущее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>won't</b> work</div><div class="sh-ru">не буду работать</div></div>
+      </div>
+      <div class="sh-tense">Настоящее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>don't</b> work</div><div class="sh-ru">не работаю / не работают</div></div>
+      </div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>doesn't</b> work</div><div class="sh-ru">не работает</div></div>
+      </div>
+      <div class="sh-tense">Прошедшее время</div>
+      <div class="sh-row">
+        <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
+        <span class="sh-brace"></span>
+        <div><div class="sh-en"><b>didn't</b> work</div><div class="sh-ru">не работал(а/и)</div></div>
+      </div>
+    `
+  }
+};
+
+function getHintConfigForLevel(level = 1) {
+  const safeLevel = Math.max(1, Number(level) || 1);
+
+  if (safeLevel === 1) {
+    return {
+      columns: [COLUMNS_DATA.statement],
+      defaultIndex: 0
+    };
+  }
+
+  if (safeLevel === 2) {
+    return {
+      columns: [COLUMNS_DATA.statement, COLUMNS_DATA.negative],
+      defaultIndex: 1 // Открываем "Отрицание", свайп влево -> "Утверждение"
+    };
+  }
+
+  return {
+    columns: [COLUMNS_DATA.question, COLUMNS_DATA.statement, COLUMNS_DATA.negative],
+    defaultIndex: 0 // Открываем "Вопрос", свайп вправо -> "Утверждение" и "Отрицание"
+  };
+}
+
 function ensureHintStyles() {
   if (document.getElementById(HINT_STYLE_ID)) return;
 
@@ -65,7 +182,6 @@ function ensureHintStyles() {
 
     .sh-tabs {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
       gap: 6px;
       padding: 8px 50px 8px 10px;
       background: #111827;
@@ -200,108 +316,34 @@ function getSimpleHintModalElement() {
   ensureHintStyles();
 
   let modal = document.getElementById(HINT_MODAL_ID);
-  if (modal) return modal;
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = HINT_MODAL_ID;
+    document.body.appendChild(modal);
+  }
+  return modal;
+}
 
-  modal = document.createElement('div');
-  modal.id = HINT_MODAL_ID;
+function renderHintContent(modal, { columns, defaultIndex }) {
   modal.innerHTML = `
     <button type="button" class="sh-floating-close" id="sh-close-btn" aria-label="Закрыть подсказку">✕</button>
 
-    <div class="sh-tabs" id="sh-tabs">
-      <button type="button" data-col="0">Вопрос</button>
-      <button type="button" data-col="1" class="active">Утверждение</button>
-      <button type="button" data-col="2">Отрицание</button>
+    <div class="sh-tabs" id="sh-tabs" style="grid-template-columns: repeat(${columns.length}, 1fr);">
+      ${columns.map((col, idx) => `
+        <button type="button" data-col="${idx}" class="${idx === defaultIndex ? 'active' : ''}">
+          ${col.label}
+        </button>
+      `).join('')}
     </div>
 
     <div class="sh-scroll-area" id="sh-scroll">
-      <!-- 0: Вопрос -->
-      <div class="sh-col">
-        <div class="sh-tense">Будущее время</div>
-        <div class="sh-row">
-          <span class="sh-aux">Will</span><span class="sh-brace sh-brace-l"></span>
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work?</div><div class="sh-ru">буду работать?</div></div>
+      ${columns.map(col => `
+        <div class="sh-col" data-col-id="${col.id}">
+          ${col.html}
         </div>
-        <div class="sh-tense">Настоящее время</div>
-        <div class="sh-row">
-          <span class="sh-aux">Do</span><span class="sh-brace sh-brace-l"></span>
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work?</div><div class="sh-ru">работаю? / работают?</div></div>
-        </div>
-        <div class="sh-row">
-          <span class="sh-aux">Does</span><span class="sh-brace sh-brace-l"></span>
-          <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work?</div><div class="sh-ru">работает?</div></div>
-        </div>
-        <div class="sh-tense">Прошедшее время</div>
-        <div class="sh-row">
-          <span class="sh-aux">Did</span><span class="sh-brace sh-brace-l"></span>
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work?</div><div class="sh-ru">работал(а/и)?</div></div>
-        </div>
-      </div>
-
-      <!-- 1: Утверждение -->
-      <div class="sh-col">
-        <div class="sh-tense">Будущее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>will</b> work</div><div class="sh-ru">буду работать</div></div>
-        </div>
-        <div class="sh-tense">Настоящее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work</div><div class="sh-ru">работаю / работают</div></div>
-        </div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work<b>s</b></div><div class="sh-ru">работает</div></div>
-        </div>
-        <div class="sh-tense">Прошедшее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en">work<b>ed</b></div><div class="sh-ru">работал / работала / работали</div></div>
-        </div>
-      </div>
-
-      <!-- 2: Отрицание (сокращённая форма) -->
-      <div class="sh-col">
-        <div class="sh-tense">Будущее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>won't</b> work</div><div class="sh-ru">не буду работать</div></div>
-        </div>
-        <div class="sh-tense">Настоящее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>don't</b> work</div><div class="sh-ru">не работаю / не работают</div></div>
-        </div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>doesn't</b> work</div><div class="sh-ru">не работает</div></div>
-        </div>
-        <div class="sh-tense">Прошедшее время</div>
-        <div class="sh-row">
-          <div class="sh-pronouns"><span>I</span><span>You</span><span>We</span><span>They</span><span>He</span><span>She</span><span>It</span></div>
-          <span class="sh-brace"></span>
-          <div><div class="sh-en"><b>didn't</b> work</div><div class="sh-ru">не работал(а/и)</div></div>
-        </div>
-      </div>
+      `).join('')}
     </div>
   `;
-
-  document.body.appendChild(modal);
 
   const closeBtn = modal.querySelector('#sh-close-btn');
   const scrollArea = modal.querySelector('#sh-scroll');
@@ -334,22 +376,19 @@ function getSimpleHintModalElement() {
     setActiveTab(index);
   });
 
-  return modal;
+  return { scrollArea, tabButtons, setActiveTab };
 }
 
-export function openSimpleHint(initialCol = 1) {
+export function openSimpleHint(level = 1) {
   const modal = getSimpleHintModalElement();
-  const scrollArea = modal.querySelector('#sh-scroll');
-  const tabButtons = modal.querySelectorAll('#sh-tabs button');
+  const { columns, defaultIndex } = getHintConfigForLevel(level);
+  const { scrollArea, setActiveTab } = renderHintContent(modal, { columns, defaultIndex });
 
   modal.classList.add('open');
 
   requestAnimationFrame(() => {
-    const clampedCol = Math.max(0, Math.min(2, initialCol));
-    scrollArea.scrollLeft = clampedCol * scrollArea.clientWidth;
-    tabButtons.forEach((btn, idx) => {
-      btn.classList.toggle('active', idx === clampedCol);
-    });
+    scrollArea.scrollLeft = defaultIndex * scrollArea.clientWidth;
+    setActiveTab(defaultIndex);
   });
 }
 

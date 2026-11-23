@@ -4,8 +4,11 @@ import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
 import { openSimpleHint, closeSimpleHint, isSimpleHintOpen } from './simpleHint.js';
 
 let isPopstateBound = false;
+let activeLessonLevel = 1;
 
-export function setupModals() {
+export function setupModals({ currentLevel = 1 } = {}) {
+  activeLessonLevel = Math.max(1, Number(currentLevel) || 1);
+
   if (!document.getElementById('modal')) {
     const modalDiv = document.createElement('div');
     modalDiv.id = 'modal';
@@ -65,7 +68,7 @@ export function setupModals() {
   if (rulesBtn) {
     rulesBtn.textContent = "Помощь";
     rulesBtn.onclick = () => {
-      openSimpleHint(1);
+      openSimpleHint(activeLessonLevel);
     };
   }
 
@@ -91,7 +94,7 @@ export function setupModals() {
 }
 
 export function openHelpGuideModal() {
-  setupModals();
+  setupModals({ currentLevel: activeLessonLevel });
   const modal = document.getElementById('modal');
   const modalTitle = document.getElementById('modal-title');
   const modalContent = document.getElementById('modal-content');

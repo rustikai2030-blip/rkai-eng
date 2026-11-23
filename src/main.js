@@ -744,7 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setupOptions();
     }
 
-    setupModals();
+    setupModals({ currentLevel });
     if (!isTestMode) startTimer();
 
     const startTestBtn = document.getElementById('start-test-btn');
