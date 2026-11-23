@@ -126,28 +126,23 @@ export function showProjectPresentation({ onClose } = {}) {
 
     introModal.innerHTML = `
       <div style="max-width: 680px; width: 100%; height: 100%; margin: 0 auto; display: flex; flex-direction: column; padding: 18px 20px; box-sizing: border-box;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #2e303a; flex-shrink: 0;">
-          <h2 id="intro-modal-title" style="margin: 0; font-size: 25px; font-weight: 700; color: #ffffff;">О проекте "Pareto English"</h2>
-          <button id="intro-close-top-btn" style="padding: 9px 15px; background: #272935; color: #f3f4f6; border: 1px solid #3f4254; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">✕</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid #2e303a; flex-shrink: 0;">
+          <h2 id="intro-modal-title" style="margin: 0; font-size: 22px; font-weight: 700; color: #ffffff; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">О проекте "Pareto English"</h2>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <button id="intro-share-btn" title="Поделиться" aria-label="Поделиться" style="background: none; border: none; cursor: pointer; font-size: 16px; color: inherit; padding: 4px 6px; line-height: 1;">📤</button>
+            <button id="intro-close-top-btn" style="padding: 9px 15px; background: #272935; color: #f3f4f6; border: 1px solid #3f4254; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">✕</button>
+          </div>
         </div>
 
         <div id="intro-modal-body" style="flex: 1 1 auto; overflow-y: auto; padding: 18px 2px; text-align: left;">
           ${projectPresentationHtml}
         </div>
 
-        <div style="flex-shrink: 0; padding-top: 14px; border-top: 1px solid #2e303a; display: flex; flex-direction: column; gap: 12px; background: #16171d;">
+        <div style="flex-shrink: 0; padding-top: 12px; border-top: 1px solid #2e303a; display: flex; flex-direction: column; gap: 10px; background: #16171d;">
           <label style="display: flex; align-items: center; gap: 10px; font-size: 17px; color: #e2e8f0; cursor: pointer; user-select: none;">
             <input type="checkbox" id="dont-show-intro-checkbox" style="width: 20px; height: 20px; accent-color: #38bdf8; cursor: pointer;" />
             <span>Не показывать при следующем входе</span>
           </label>
-
-          <button id="intro-share-btn" style="width: 100%; padding: 13px 18px; background: rgba(56, 189, 248, 0.16); color: #38bdf8; border: 2px solid #38bdf8; border-radius: 10px; font-size: 17px; font-weight: 700; cursor: pointer;">
-            📤 Поделиться тренажёром
-          </button>
-
-          <button id="intro-continue-btn" style="width: 100%; padding: 14px 18px; background: #38bdf8; color: #081018; border: none; border-radius: 10px; font-size: 18px; font-weight: 700; cursor: pointer;">
-            Перейти к тренажёру
-          </button>
         </div>
       </div>
     `;
@@ -175,7 +170,6 @@ export function showProjectPresentation({ onClose } = {}) {
 
   const closeTopBtn = document.getElementById('intro-close-top-btn');
   const shareBtn = document.getElementById('intro-share-btn');
-  const continueBtn = document.getElementById('intro-continue-btn');
 
   if (closeTopBtn) closeTopBtn.onclick = closeIntro;
   if (shareBtn) {
@@ -187,7 +181,6 @@ export function showProjectPresentation({ onClose } = {}) {
       });
     };
   }
-  if (continueBtn) continueBtn.onclick = closeIntro;
 
   introModal.style.display = 'flex';
   const bodyEl = document.getElementById('intro-modal-body');
