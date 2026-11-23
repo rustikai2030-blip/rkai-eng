@@ -3,18 +3,20 @@
 export const SHARE_APP_URL = "https://eng.rkai.app";
 
 export function buildProjectShareText() {
-  return [
-    "Надоело забрасывать английский на старте? Pareto English — самый эффективный тренажёр английского: упрощает начальное изучение английского языка в 28 раз и доводит базу до автоматизма. Бесплатно:",
-    SHARE_APP_URL
-  ].join("\n");
+  return "Надоело забрасывать английский на старте? Pareto English — самый эффективный тренажёр английского: упрощает начальное изучение английского языка в 28 раз и доводит базу до автоматизма. Бесплатно:";
 }
 
 export function buildLevelUpShareText(nextLevel) {
   const safeLevel = Math.max(2, Number(nextLevel) || 2);
-  return [
-    `Я прошёл тест и перешёл на Уровень ${safeLevel} в Pareto English — самом эффективном тренажёре английского! Упрощает начальное изучение английского языка в 28 раз и доводит базу до автоматизма. Бесплатно:`,
-    SHARE_APP_URL
-  ].join("\n");
+  return `Я прошёл тест и перешёл на Уровень ${safeLevel} в Pareto English — самом эффективном тренажёре английского! Упрощает начальное изучение английского языка в 28 раз и доводит базу до автоматизма. Бесплатно:`;
+}
+
+function formatShareMessage(text, url) {
+  const cleanText = String(text || "").trim();
+  const cleanUrl = String(url || "").trim();
+  if (!cleanUrl) return cleanText;
+  if (cleanText.includes(cleanUrl)) return cleanText;
+  return cleanText ? `${cleanText}\n${cleanUrl}` : cleanUrl;
 }
 
 async function copyTextFallback(text) {
@@ -51,7 +53,7 @@ export async function shareProjectContent({
   text = buildProjectShareText(),
   url = SHARE_APP_URL
 } = {}) {
-  const fullShareMessage = text.includes(url) ? text : `${text}\n${url}`;
+  const fullShareMessage = formatShareMessage(text, url);
 
   if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
     try {
