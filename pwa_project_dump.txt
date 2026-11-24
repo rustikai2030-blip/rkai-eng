@@ -2837,6 +2837,222 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+=== FILE: ./src/data/levels/level2.js ===
+// src/data/levels/level2.js
+import { level1RuEn, level1EnRu } from './level1.js';
+
+export const level2KeyboardRows = [
+  ['w', 'e', 'r', 't'],
+  ['y', 'u', 'i', 'o'],
+  ['s', 'd', 'h', 'k'],
+  ['shift', 'l', 'n', 'backspace'],
+  ["'", 'space', 'ok']
+];
+
+export const level2Words = [
+  { en: "Will work", ru: "Буду работать (будущ. время)" },
+  { en: "Don't / Doesn't work", ru: "Не работаю(ет) (отрицание)" },
+  { en: "Didn't work", ru: "Не работал (прошед. отрицание)" }
+];
+
+export const level2NegativesRuEn = [
+  { ru: "Я не работаю", en: "I don't work", category: "negative" },
+  { ru: "Ты не работаешь", en: "You don't work", category: "negative" },
+  { ru: "Мы не работаем", en: "We don't work", category: "negative" },
+  { ru: "Они не работают", en: "They don't work", category: "negative" },
+  { ru: "Он не работает", en: "He doesn't work", category: "negative" },
+  { ru: "Она не работает", en: "She doesn't work", category: "negative" },
+  { ru: "Оно не работает", en: "It doesn't work", category: "negative" },
+  { ru: "Я не работал", en: "I didn't work", category: "negative" },
+  { ru: "Он не работал", en: "He didn't work", category: "negative" }
+];
+
+export const level2NegativesEnRu = [
+  { en: "I don't work", options: ["Я не работаю", "Ты не работаешь", "Я работал", "Мы не работаем"], correct: "Я не работаю", category: "negative" },
+  { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работает"], correct: "Он не работает", category: "negative" },
+  { en: "I didn't work", options: ["Я не работал", "Я не работаю", "Он не работал", "Я работал"], correct: "Я не работал", category: "negative" }
+];
+
+export const level2RuEn = [...level1RuEn, ...level2NegativesRuEn];
+export const level2EnRu = [...level1EnRu, ...level2NegativesEnRu];
+
+=== FILE: ./src/data/levels/level1.js ===
+// src/data/levels/level1.js
+export const level1KeyboardRows = [
+  ['w', 'e', 'r', 't'],
+  ['y', 'u', 'i', 'o'],
+  ['s', 'd', 'h', 'k'],
+  ['shift', 'l', 'backspace'],
+  ['space', 'ok']
+];
+
+export const level1Words = [
+  { en: "I", ru: "Я", note: "всегда с большой буквы" },
+  { en: "You", ru: "Ты" },
+  { en: "We", ru: "Мы" },
+  { en: "He", ru: "Он" },
+  { en: "She", ru: "Она" },
+  { en: "It", ru: "Оно" },
+  { en: "They", ru: "Они" },
+  { en: "Work", ru: "Работать" },
+  { en: "Worked", ru: "Работал (прошед. время)" }
+];
+
+export const level1RuEn = [
+  { ru: "Я работаю", en: "I work", category: "statement" },
+  { ru: "Ты работаешь", en: "You work", category: "statement" },
+  { ru: "Мы работаем", en: "We work", category: "statement" },
+  { ru: "Они работают", en: "They work", category: "statement" },
+  { ru: "Он работает", en: "He works", category: "statement" },
+  { ru: "Она работает", en: "She works", category: "statement" },
+  { ru: "Оно работает", en: "It works", category: "statement" },
+  { ru: "Я работал", en: "I worked", category: "statement" },
+  { ru: "Ты работал", en: "You worked", category: "statement" },
+  { ru: "Мы работали", en: "We worked", category: "statement" },
+  { ru: "Он работал", en: "He worked", category: "statement" },
+  { ru: "Она работала", en: "She worked", category: "statement" },
+  { ru: "Я буду работать", en: "I will work", category: "statement" }
+];
+
+export const level1EnRu = [
+  { en: "I work", options: ["Я работаю", "Ты работаешь", "Мы работаем", "Он работает"], correct: "Я работаю", category: "statement" },
+  { en: "You work", options: ["Ты работаешь", "Они работают", "Оно работает", "Я работаю"], correct: "Ты работаешь", category: "statement" },
+  { en: "We work", options: ["Мы работаем", "Вы работаете", "Они работают", "Я работаю"], correct: "Мы работаем", category: "statement" },
+  { en: "They work", options: ["Они работают", "Мы работаем", "Он работает", "Она работает"], correct: "Они работают", category: "statement" },
+  { en: "He works", options: ["Он работает", "Она работает", "Оно работает", "Я работает"], correct: "Он работает", category: "statement" },
+  { en: "She works", options: ["Она работает", "Он работает", "Мы работаем", "Они работают"], correct: "Она работает", category: "statement" },
+  { en: "I worked", options: ["Я работал", "Ты работал", "Мы работали", "Он работал"], correct: "Я работал", category: "statement" },
+  { en: "I will work", options: ["Я буду работать", "Я работал", "Я работаю", "Он будет работать"], correct: "Я буду работать", category: "statement" }
+];
+
+=== FILE: ./src/data/levels/level3.js ===
+// src/data/levels/level3.js
+import { level2RuEn, level2EnRu } from './level2.js';
+
+export const level3KeyboardRows = [
+  ['w', 'e', 'r', 't'],
+  ['y', 'u', 'i', 'o'],
+  ['s', 'd', 'h', 'k'],
+  ['shift', 'l', 'n', '?', 'backspace'],
+  ["'", 'space', 'ok']
+];
+
+export const level3Words = [
+  { en: "Do / Does... work?", ru: "Работаешь/работает ли? (вопрос)" },
+  { en: "Did... work?", ru: "Работал ли? (прошед. вопрос)" }
+];
+
+export const level3QuestionsRuEn = [
+  { ru: "Я работаю?", en: "Do I work?", category: "question" },
+  { ru: "Ты работаешь?", en: "Do you work?", category: "question" },
+  { ru: "Мы работаем?", en: "Do we work?", category: "question" },
+  { ru: "Они работают?", en: "Do they work?", category: "question" },
+  { ru: "Он работает?", en: "Does he work?", category: "question" },
+  { ru: "Она работает?", en: "Does she work?", category: "question" },
+  { ru: "Оно работает?", en: "Does it work?", category: "question" },
+  { ru: "Я работал?", en: "Did I work?", category: "question" },
+  { ru: "Ты работал?", en: "Did you work?", category: "question" },
+  { ru: "Он работал?", en: "Did he work?", category: "question" },
+  { ru: "Я буду работать?", en: "Will I work?", category: "question" }
+];
+
+export const level3QuestionsEnRu = [
+  { en: "Do I work?", options: ["Я работаю?", "Ты работаешь?", "Я работал?", "Мы работаем?"], correct: "Я работаю?", category: "question" },
+  { en: "Does he work?", options: ["Он работает?", "Она работает?", "Он работает", "Он не работает?"], correct: "Он работает?", category: "question" },
+  { en: "Did you work?", options: ["Ты работал?", "Ты работаешь?", "Вы работаете?", "Я работал?"], correct: "Ты работал?", category: "question" },
+  { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?", category: "question" }
+];
+
+export const level3RuEn = [...level2RuEn, ...level3QuestionsRuEn];
+export const level3EnRu = [...level2EnRu, ...level3QuestionsEnRu];
+
+=== FILE: ./src/data/levels/level4.js ===
+// src/data/levels/level4.js
+import { level3RuEn, level3EnRu } from './level3.js';
+
+export const level4KeyboardRows = [
+  ['w', 'e', 'r', 't', 'p'],
+  ['a', 'y', 'u', 'i', 'o'],
+  ['s', 'c', 'd', 'h', 'k'],
+  ['shift', 'l', 'n', '?', 'backspace'],
+  ["'", 'space', 'ok']
+];
+
+export const level4Words = [
+  { en: "Call", ru: "Звонить" },
+  { en: "Called", ru: "Звонил (прошед. время)" },
+  { en: "Help", ru: "Помогать" },
+  { en: "Helped", ru: "Помогал (прошед. время)" }
+];
+
+const level4ExtraRuEn = [
+  // Утверждения — call
+  { ru: "Я звоню", en: "I call", category: "statement" },
+  { ru: "Ты звонишь", en: "You call", category: "statement" },
+  { ru: "Мы звоним", en: "We call", category: "statement" },
+  { ru: "Они звонят", en: "They call", category: "statement" },
+  { ru: "Он звонит", en: "He calls", category: "statement" },
+  { ru: "Она звонит", en: "She calls", category: "statement" },
+  { ru: "Я звонил", en: "I called", category: "statement" },
+  { ru: "Он звонил", en: "He called", category: "statement" },
+  { ru: "Я буду звонить", en: "I will call", category: "statement" },
+  { ru: "Он будет звонить", en: "He will call", category: "statement" },
+
+  // Утверждения — help
+  { ru: "Я помогаю", en: "I help", category: "statement" },
+  { ru: "Ты помогаешь", en: "You help", category: "statement" },
+  { ru: "Мы помогаем", en: "We help", category: "statement" },
+  { ru: "Они помогают", en: "They help", category: "statement" },
+  { ru: "Он помогает", en: "He helps", category: "statement" },
+  { ru: "Она помогает", en: "She helps", category: "statement" },
+  { ru: "Я помогал", en: "I helped", category: "statement" },
+  { ru: "Она помогала", en: "She helped", category: "statement" },
+  { ru: "Я буду помогать", en: "I will help", category: "statement" },
+  { ru: "Она будет помогать", en: "She will help", category: "statement" },
+
+  // Отрицания — call
+  { ru: "Я не звоню", en: "I don't call", category: "negative" },
+  { ru: "Он не звонит", en: "He doesn't call", category: "negative" },
+  { ru: "Я не звонил", en: "I didn't call", category: "negative" },
+  { ru: "Он не звонил", en: "He didn't call", category: "negative" },
+
+  // Отрицания — help
+  { ru: "Я не помогаю", en: "I don't help", category: "negative" },
+  { ru: "Она не помогает", en: "She doesn't help", category: "negative" },
+  { ru: "Я не помогал", en: "I didn't help", category: "negative" },
+  { ru: "Она не помогала", en: "She didn't help", category: "negative" },
+
+  // Вопросы — call
+  { ru: "Ты звонишь?", en: "Do you call?", category: "question" },
+  { ru: "Он звонит?", en: "Does he call?", category: "question" },
+  { ru: "Ты звонил?", en: "Did you call?", category: "question" },
+  { ru: "Он звонил?", en: "Did he call?", category: "question" },
+  { ru: "Ты будешь звонить?", en: "Will you call?", category: "question" },
+
+  // Вопросы — help
+  { ru: "Ты помогаешь?", en: "Do you help?", category: "question" },
+  { ru: "Она помогает?", en: "Does she help?", category: "question" },
+  { ru: "Ты помогал?", en: "Did you help?", category: "question" },
+  { ru: "Она помогала?", en: "Did she help?", category: "question" },
+  { ru: "Ты будешь помогать?", en: "Will you help?", category: "question" }
+];
+
+const level4ExtraEnRu = [
+  { en: "I call", options: ["Я звоню", "Я помогаю", "Я работаю", "Я звонил"], correct: "Я звоню", category: "statement" },
+  { en: "He calls", options: ["Он звонит", "Он помогает", "Он работает", "Она звонит"], correct: "Он звонит", category: "statement" },
+  { en: "I called", options: ["Я звонил", "Я помогал", "Я звоню", "Я работал"], correct: "Я звонил", category: "statement" },
+  { en: "I help", options: ["Я помогаю", "Я звоню", "Я работаю", "Я помогал"], correct: "Я помогаю", category: "statement" },
+  { en: "She helps", options: ["Она помогает", "Она звонит", "Она работает", "Он помогает"], correct: "Она помогает", category: "statement" },
+  { en: "She helped", options: ["Она помогала", "Она звонила", "Она работала", "Я помогал"], correct: "Она помогала", category: "statement" },
+  { en: "He doesn't call", options: ["Он не звонит", "Он не помогает", "Он не работает", "Он не звонил"], correct: "Он не звонит", category: "negative" },
+  { en: "She doesn't help", options: ["Она не помогает", "Она не звонит", "Она не работает", "Она не помогала"], correct: "Она не помогает", category: "negative" },
+  { en: "Did you call?", options: ["Ты звонил?", "Ты помогал?", "Ты работал?", "Ты звонишь?"], correct: "Ты звонил?", category: "question" },
+  { en: "Does she help?", options: ["Она помогает?", "Она звонит?", "Она работает?", "Она помогала?"], correct: "Она помогает?", category: "question" }
+];
+
+export const level4RuEn = [...level3RuEn, ...level4ExtraRuEn];
+export const level4EnRu = [...level3EnRu, ...level4ExtraEnRu];
+
 === FILE: ./src/data/wrongPhrases.js ===
 // src/data/wrongPhrases.js
 
@@ -3002,22 +3218,14 @@ export function saveWrongPhrases(phrasesObj) {
 
 === FILE: ./src/data/tasks.js ===
 // src/data/tasks.js
-export const dictionaryWords = [
-  { en: "I", ru: "Я" },
-  { en: "You", ru: "Ты" },
-  { en: "We", ru: "Мы" },
-  { en: "He", ru: "Он" },
-  { en: "She", ru: "Она" },
-  { en: "It", ru: "Оно" },
-  { en: "They", ru: "Они" },
-  { en: "Work", ru: "Работать" },
-  { en: "Worked", ru: "Работал (прошед. время)" },
-  { en: "Will work", ru: "Буду работать (будущ. время)" },
-  { en: "Don't / Doesn't work", ru: "Не работаю(ет) (отрицание)" },
-  { en: "Didn't work", ru: "Не работал (прошед. отрицание)" },
-  { en: "Do / Does... work?", ru: "Работаешь/работает ли? (вопрос)" },
-  { en: "Did... work?", ru: "Работал ли? (прошед. вопрос)" }
-];
+import { level1RuEn, level1EnRu } from './levels/level1.js';
+import { level2RuEn, level2EnRu } from './levels/level2.js';
+import { level3RuEn, level3EnRu } from './levels/level3.js';
+import { level4RuEn, level4EnRu } from './levels/level4.js';
+import { getDictionaryForLevel } from '../levels/registry.js';
+
+const fullDict = getDictionaryForLevel(4);
+export const dictionaryWords = [...fullDict.newWords, ...fullDict.previousWords];
 
 export const grammarRules = `
   <h2>Правила (Simple)</h2>
@@ -3036,86 +3244,24 @@ export const grammarRules = `
   <p><b>Прошедшее:</b> <b>Did</b> ... <b>work?</b></p>
 `;
 
-const statementsRuEn = [
-  { ru: "Я работаю", en: "I work", category: "statement" },
-  { ru: "Ты работаешь", en: "You work", category: "statement" },
-  { ru: "Мы работаем", en: "We work", category: "statement" },
-  { ru: "Они работают", en: "They work", category: "statement" },
-  { ru: "Он работает", en: "He works", category: "statement" },
-  { ru: "Она работает", en: "She works", category: "statement" },
-  { ru: "Оно работает", en: "It works", category: "statement" },
-  { ru: "Я работал", en: "I worked", category: "statement" },
-  { ru: "Ты работал", en: "You worked", category: "statement" },
-  { ru: "Мы работали", en: "We worked", category: "statement" },
-  { ru: "Он работал", en: "He worked", category: "statement" },
-  { ru: "Она работала", en: "She worked", category: "statement" },
-  { ru: "Я буду работать", en: "I will work", category: "statement" }
-];
-
-const negativesRuEn = [
-  { ru: "Я не работаю", en: "I don't work", category: "negative" },
-  { ru: "Ты не работаешь", en: "You don't work", category: "negative" },
-  { ru: "Мы не работаем", en: "We don't work", category: "negative" },
-  { ru: "Они не работают", en: "They don't work", category: "negative" },
-  { ru: "Он не работает", en: "He doesn't work", category: "negative" },
-  { ru: "Она не работает", en: "She doesn't work", category: "negative" },
-  { ru: "Оно не работает", en: "It doesn't work", category: "negative" },
-  { ru: "Я не работал", en: "I didn't work", category: "negative" },
-  { ru: "Он не работал", en: "He didn't work", category: "negative" }
-];
-
-const questionsRuEn = [
-  { ru: "Я работаю?", en: "Do I work?", category: "question" },
-  { ru: "Ты работаешь?", en: "Do you work?", category: "question" },
-  { ru: "Мы работаем?", en: "Do we work?", category: "question" },
-  { ru: "Они работают?", en: "Do they work?", category: "question" },
-  { ru: "Он работает?", en: "Does he work?", category: "question" },
-  { ru: "Она работает?", en: "Does she work?", category: "question" },
-  { ru: "Оно работает?", en: "Does it work?", category: "question" },
-  { ru: "Я работал?", en: "Did I work?", category: "question" },
-  { ru: "Ты работал?", en: "Did you work?", category: "question" },
-  { ru: "Он работал?", en: "Did he work?", category: "question" },
-  { ru: "Я буду работать?", en: "Will I work?", category: "question" }
-];
-
-const statementsEnRu = [
-  { en: "I work", options: ["Я работаю", "Ты работаешь", "Мы работаем", "Он работает"], correct: "Я работаю", category: "statement" },
-  { en: "You work", options: ["Ты работаешь", "Они работают", "Оно работает", "Я работаю"], correct: "Ты работаешь", category: "statement" },
-  { en: "We work", options: ["Мы работаем", "Вы работаете", "Они работают", "Я работаю"], correct: "Мы работаем", category: "statement" },
-  { en: "They work", options: ["Они работают", "Мы работаем", "Он работает", "Она работает"], correct: "Они работают", category: "statement" },
-  { en: "He works", options: ["Он работает", "Она работает", "Оно работает", "Я работает"], correct: "Он работает", category: "statement" },
-  { en: "She works", options: ["Она работает", "Он работает", "Мы работаем", "Они работают"], correct: "Она работает", category: "statement" },
-  { en: "I worked", options: ["Я работал", "Ты работал", "Мы работали", "Он работал"], correct: "Я работал", category: "statement" },
-  { en: "I will work", options: ["Я буду работать", "Я работал", "Я работаю", "Он будет работать"], correct: "Я буду работать", category: "statement" }
-];
-
-const negativesEnRu = [
-  { en: "I don't work", options: ["Я не работаю", "Ты не работаешь", "Я работал", "Мы не работаем"], correct: "Я не работаю", category: "negative" },
-  { en: "He doesn't work", options: ["Он не работает", "Она не работает", "Он работает", "Я не работает"], correct: "Он не работает", category: "negative" },
-  { en: "I didn't work", options: ["Я не работал", "Я не работаю", "Он не работал", "Я работал"], correct: "Я не работал", category: "negative" }
-];
-
-const questionsEnRu = [
-  { en: "Do I work?", options: ["Я работаю?", "Ты работаешь?", "Я работал?", "Мы работаем?"], correct: "Я работаю?", category: "question" },
-  { en: "Does he work?", options: ["Он работает?", "Она работает?", "Он работает", "Он не работает?"], correct: "Он работает?", category: "question" },
-  { en: "Did you work?", options: ["Ты работал?", "Ты работаешь?", "Вы работаете?", "Я работал?"], correct: "Ты работал?", category: "question" },
-  { en: "Will I work?", options: ["Я буду работать?", "Я работал?", "Я работаю?", "Он будет работать?"], correct: "Я буду работать?", category: "question" }
-];
-
-// Равномерное объединение без дублирования
 export const level1Tasks = {
-  ruEn: statementsRuEn,
-  enRu: statementsEnRu
+  ruEn: level1RuEn,
+  enRu: level1EnRu
 };
 
 export const level2Tasks = {
-  ruEn: [...statementsRuEn, ...negativesRuEn],
-  enRu: [...statementsEnRu, ...negativesEnRu]
+  ruEn: level2RuEn,
+  enRu: level2EnRu
 };
 
 export const level3Tasks = {
-  ruEn: [...statementsRuEn, ...negativesRuEn, ...questionsRuEn],
-  enRu: [...statementsEnRu, ...negativesEnRu, ...questionsEnRu]
+  ruEn: level3RuEn,
+  enRu: level3EnRu
+};
+
+export const level4Tasks = {
+  ruEn: level4RuEn,
+  enRu: level4EnRu
 };
 
 // Алгоритм Фишера — Йетса
@@ -3177,7 +3323,82 @@ export function getCyclicTask(sessionIndex, levelTasks, activeCategories = null)
 }
 
 === FILE: ./src/levels/registry.js ===
+// src/levels/registry.js
+import { level1KeyboardRows, level1Words, level1RuEn, level1EnRu } from '../data/levels/level1.js';
+import { level2KeyboardRows, level2Words, level2RuEn, level2EnRu } from '../data/levels/level2.js';
+import { level3KeyboardRows, level3Words, level3RuEn, level3EnRu } from '../data/levels/level3.js';
+import { level4KeyboardRows, level4Words, level4RuEn, level4EnRu } from '../data/levels/level4.js';
 
+export const LEVELS_REGISTRY = {
+  1: {
+    level: 1,
+    title: 'Уровень 1',
+    keyboardRows: level1KeyboardRows,
+    words: level1Words,
+    tasks: { ruEn: level1RuEn, enRu: level1EnRu }
+  },
+  2: {
+    level: 2,
+    title: 'Уровень 2',
+    keyboardRows: level2KeyboardRows,
+    words: level2Words,
+    tasks: { ruEn: level2RuEn, enRu: level2EnRu }
+  },
+  3: {
+    level: 3,
+    title: 'Уровень 3',
+    keyboardRows: level3KeyboardRows,
+    words: level3Words,
+    tasks: { ruEn: level3RuEn, enRu: level3EnRu }
+  },
+  4: {
+    level: 4,
+    title: 'Уровень 4',
+    keyboardRows: level4KeyboardRows,
+    words: level4Words,
+    tasks: { ruEn: level4RuEn, enRu: level4EnRu }
+  }
+};
+
+export const MAX_REGISTERED_LEVEL = Math.max(...Object.keys(LEVELS_REGISTRY).map(Number));
+
+export function getLevelConfig(level = 1) {
+  const numericLevel = Math.max(1, Number(level) || 1);
+  const clampedLevel = Math.min(numericLevel, MAX_REGISTERED_LEVEL);
+  return LEVELS_REGISTRY[clampedLevel];
+}
+
+export function getTasksForLevel(level = 1) {
+  return getLevelConfig(level).tasks;
+}
+
+export function getKeyboardRowsForLevel(level = 1) {
+  return getLevelConfig(level).keyboardRows;
+}
+
+/**
+ * Возвращает словарь для указанного уровня:
+ * - newWords: слова текущего урока
+ * - previousWords: слова всех предыдущих уроков (от более нового урока к ранним)
+ */
+export function getDictionaryForLevel(level = 1) {
+  const numericLevel = Math.max(1, Number(level) || 1);
+  const clampedLevel = Math.min(numericLevel, MAX_REGISTERED_LEVEL);
+
+  const newWords = [...(LEVELS_REGISTRY[clampedLevel]?.words || [])];
+  const previousWords = [];
+
+  for (let lvl = clampedLevel - 1; lvl >= 1; lvl--) {
+    const prevList = LEVELS_REGISTRY[lvl]?.words || [];
+    previousWords.push(...prevList);
+  }
+
+  return {
+    level: clampedLevel,
+    newWords,
+    previousWords
+  };
+}
 
 === FILE: ./src/style.css ===
 :root {
@@ -5112,54 +5333,95 @@ async function renderAnalyticsTab() {
 
 === FILE: ./src/components/keyboard.js ===
 // src/components/keyboard.js
+import { getKeyboardRowsForLevel } from '../levels/registry.js';
 
-export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }) {
-  let rowsData = [];
-
-  if (level === 1) {
-    rowsData = [
-      ['w', 'e', 'r', 't'],
-      ['y', 'u', 'i', 'o'],
-      ['s', 'd', 'h', 'k'],
-      ['shift', 'l', 'backspace'],
-      ['space', 'ok']
-    ];
-  } else if (level === 2) {
-    rowsData = [
-      ['w', 'e', 'r', 't'],
-      ['y', 'u', 'i', 'o'],
-      ['s', 'd', 'h', 'k'],
-      ['shift', 'l', 'n', 'backspace'],
-      ["'", 'space', 'ok']
-    ];
-  } else {
-    rowsData = [
-      ['w', 'e', 'r', 't'],
-      ['y', 'u', 'i', 'o'],
-      ['s', 'd', 'h', 'k'],
-      ['shift', 'l', 'n', '?', 'backspace'],
-      ["'", 'space', 'ok']
-    ];
+/**
+ * Определяет, должен ли следующий символ по умолчанию быть заглавным
+ * исходя из текста поля ввода и позиции курсора.
+ */
+function shouldAutoCapitalize(getInputState) {
+  if (typeof getInputState !== 'function') {
+    return true;
   }
 
+  const state = getInputState();
+  if (!state) return true;
+
+  const value = String(state.value ?? '');
+  const start = typeof state.selectionStart === 'number' ? state.selectionStart : value.length;
+  const end = typeof state.selectionEnd === 'number' ? state.selectionEnd : start;
+
+  // Если выделен фрагмент — не навязываем авто-капитализацию
+  if (start !== end) {
+    return false;
+  }
+
+  // Самое начало строки
+  if (start === 0) {
+    return true;
+  }
+
+  // Начало после знака завершения предложения и пробела (на случай многословных фраз)
+  const textBeforeCursor = value.slice(0, start);
+  return /[.!?]\s+$/.test(textBeforeCursor);
+}
+
+export function setupKeyboard({ level = 1, rows, getInputState, onInput, onBackspace, onSpace, onOk }) {
+  const rowsData = Array.isArray(rows) && rows.length > 0
+    ? rows
+    : getKeyboardRowsForLevel(level);
+
   const kbContainer = document.getElementById('keyboard');
-  if (!kbContainer) return;
+  if (!kbContainer) {
+    return { refreshShiftState: () => {} };
+  }
   kbContainer.innerHTML = '';
 
   const oldActionContainer = kbContainer.nextElementSibling;
   if (oldActionContainer && (oldActionContainer.tagName === 'DIV' || oldActionContainer.style)) {
-    if (level === 1 || level === 2 || level === 3) {
-      oldActionContainer.style.display = 'none';
+    oldActionContainer.style.display = 'none';
+  }
+
+  // Ручное переключение Shift пользователем; null — режим авто-определения по курсору
+  let manualShiftOverride = null;
+
+  function isUpperCaseActive() {
+    if (manualShiftOverride !== null) {
+      return manualShiftOverride;
+    }
+    return shouldAutoCapitalize(getInputState);
+  }
+
+  function syncShiftVisual(shiftBtn) {
+    if (!shiftBtn) return;
+    const upper = isUpperCaseActive();
+    if (upper) {
+      shiftBtn.style.background = 'var(--accent, #38bdf8)';
+      shiftBtn.style.color = '#fff';
     } else {
-      oldActionContainer.style.display = 'flex';
+      shiftBtn.style.background = '';
+      shiftBtn.style.color = '';
     }
   }
 
-  // По умолчанию первая буква заглавная, дальше строчные
-  let isUpperCase = true;
+  let shiftButtonRef = null;
+
+  function refreshShiftState() {
+    if (manualShiftOverride !== null && shouldAutoCapitalize(getInputState) && (!getInputState || getInputState().value === '')) {
+      manualShiftOverride = null;
+    }
+    syncShiftVisual(shiftButtonRef);
+    kbContainer.querySelectorAll('.kb-letter-btn').forEach((btn) => {
+      const baseChar = btn.getAttribute('data-key');
+      if (baseChar) {
+        btn.textContent = isUpperCaseActive() ? baseChar.toUpperCase() : baseChar;
+      }
+    });
+  }
 
   function renderRows() {
     kbContainer.innerHTML = '';
+    shiftButtonRef = null;
 
     rowsData.forEach(rowKeys => {
       if (rowKeys.length === 0) return;
@@ -5173,16 +5435,11 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
 
         if (key === 'shift') {
           btn.textContent = '⇧';
-          if (isUpperCase) {
-            btn.style.background = 'var(--accent, #38bdf8)';
-            btn.style.color = '#fff';
-          } else {
-            btn.style.background = '';
-            btn.style.color = '';
-          }
+          shiftButtonRef = btn;
+          syncShiftVisual(btn);
           btn.onclick = () => {
-            isUpperCase = !isUpperCase;
-            renderRows();
+            manualShiftOverride = !isUpperCaseActive();
+            refreshShiftState();
           };
         } else if (key === 'backspace') {
           btn.textContent = '⌫';
@@ -5190,13 +5447,19 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
           let backspaceInterval = null;
           let backspaceTimeout = null;
 
+          const runBackspace = () => {
+            onBackspace();
+            manualShiftOverride = null;
+            refreshShiftState();
+          };
+
           const startDeleting = (e) => {
             e.preventDefault();
-            onBackspace();
+            runBackspace();
 
             backspaceTimeout = setTimeout(() => {
               backspaceInterval = setInterval(() => {
-                onBackspace();
+                runBackspace();
               }, 100);
             }, 500);
           };
@@ -5209,15 +5472,18 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
           btn.addEventListener('mousedown', startDeleting);
           btn.addEventListener('mouseup', stopDeleting);
           btn.addEventListener('mouseleave', stopDeleting);
-          
+
           btn.addEventListener('touchstart', startDeleting);
           btn.addEventListener('touchend', stopDeleting);
           btn.addEventListener('touchcancel', stopDeleting);
-
         } else if (key === 'space') {
           btn.textContent = 'пробел';
           btn.style.flex = '2';
-          btn.onclick = () => onSpace();
+          btn.onclick = () => {
+            onSpace();
+            manualShiftOverride = null;
+            refreshShiftState();
+          };
         } else if (key === 'ok') {
           btn.textContent = '✓';
           btn.style.flex = '1';
@@ -5226,20 +5492,21 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
         } else if (key === "'" || key === '?') {
           btn.textContent = key;
           btn.style.flex = '1';
-          btn.addEventListener('click', () => onInput(key));
+          btn.addEventListener('click', () => {
+            onInput(key);
+            manualShiftOverride = null;
+            refreshShiftState();
+          });
         } else {
           const char = key;
-          btn.textContent = isUpperCase ? char.toUpperCase() : char;
+          btn.classList.add('kb-letter-btn');
+          btn.setAttribute('data-key', char);
+          btn.textContent = isUpperCaseActive() ? char.toUpperCase() : char;
           btn.addEventListener('click', () => {
-            const charToAdd = isUpperCase ? char.toUpperCase() : char;
-            
-            // Сбрасываем shift в строчный режим после ввода символа
-            if (isUpperCase) {
-              isUpperCase = false;
-            }
-            
-            renderRows();
+            const charToAdd = isUpperCaseActive() ? char.toUpperCase() : char;
             onInput(charToAdd);
+            manualShiftOverride = null;
+            refreshShiftState();
           });
         }
         rowDiv.appendChild(btn);
@@ -5249,6 +5516,10 @@ export function setupKeyboard({ level = 1, onInput, onBackspace, onSpace, onOk }
   }
 
   renderRows();
+
+  return {
+    refreshShiftState
+  };
 }
 
 === FILE: ./src/components/categoryFilters.js ===
@@ -6003,13 +6274,59 @@ export function showProjectPresentation({ onClose } = {}) {
 
 === FILE: ./src/components/modals.js ===
 // src/components/modals.js
-import { dictionaryWords } from '../data/tasks.js';
+import { getDictionaryForLevel } from '../levels/registry.js';
 import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
 import { openSimpleHint, closeSimpleHint, isSimpleHintOpen } from './simpleHint.js';
 import { speakEnglishWord, stopErrorSpeech } from '../utils/speechFeedback.js';
 
 let isPopstateBound = false;
 let activeLessonLevel = 1;
+
+function renderDictionaryWordRow(wordItem) {
+  const noteHtml = wordItem.note
+    ? `<span style="font-size: 12px; font-weight: 500; color: #93c5fd; background: rgba(59, 130, 246, 0.14); border: 1px solid rgba(96, 165, 250, 0.35); padding: 2px 8px; border-radius: 999px; white-space: nowrap;">${wordItem.note}</span>`
+    : '';
+
+  return `
+    <div
+      class="dict-word-row"
+      data-en="${wordItem.en}"
+      role="button"
+      tabindex="0"
+      style="
+        background: #1e293b;
+        padding: 13px 16px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px 12px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
+      "
+    >
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0;">
+        <span style="font-size: 16px; opacity: 0.85;">🔊</span>
+        <span style="color: #60a5fa; font-size: 20px; font-weight: 800;">${wordItem.en}</span>
+        ${noteHtml}
+      </div>
+      <span style="color: #94a3b8; font-size: 17px; font-weight: 600; text-align: right; margin-left: auto;">${wordItem.ru}</span>
+    </div>
+  `;
+}
+
+function renderDictionarySectionDivider(labelText = 'Ранее изученные слова') {
+  return `
+    <div style="margin: 8px 0 4px;">
+      <div style="border-top: 3px solid #64748b; margin-bottom: 8px;"></div>
+      <div style="font-size: 12px; font-weight: 700; color: #94a3b8; letter-spacing: 0.04em; text-transform: uppercase;">
+        ${labelText}
+      </div>
+    </div>
+  `;
+}
 
 export function setupModals({ currentLevel = 1 } = {}) {
   activeLessonLevel = Math.max(1, Number(currentLevel) || 1);
@@ -6091,55 +6408,32 @@ export function setupModals({ currentLevel = 1 } = {}) {
   const wordsBtn = document.getElementById('words-btn');
   if (wordsBtn) {
     wordsBtn.onclick = () => {
-      const allowedEnWords = ["I", "You", "We", "He", "She", "It", "They", "Work", "Worked"];
-      const filteredWords = dictionaryWords.filter(w => allowedEnWords.includes(w.en));
+      const { newWords, previousWords } = getDictionaryForLevel(activeLessonLevel);
+
+      const previousSectionHtml = previousWords.length > 0
+        ? `${renderDictionarySectionDivider()}${previousWords.map(w => renderDictionaryWordRow(w)).join('')}`
+        : '';
 
       const html = `
         <div style="font-size: 13px; color: #94a3b8; margin-bottom: 2px;">
           Нажмите на слово, чтобы прослушать произношение
         </div>
-        ${filteredWords.map(w => `
-          <div
-            class="dict-word-row"
-            data-en="${w.en}"
-            role="button"
-            tabindex="0"
-            style="
-              background: #1e293b;
-              padding: 13px 16px;
-              border-radius: 8px;
-              border: 1px solid #334155;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              gap: 12px;
-              cursor: pointer;
-              transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.1s ease;
-            "
-          >
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 16px; opacity: 0.85;">🔊</span>
-              <span style="color: #60a5fa; font-size: 20px; font-weight: 800;">${w.en}</span>
-            </div>
-            <span style="color: #94a3b8; font-size: 17px; font-weight: 600; text-align: right;">${w.ru}</span>
-          </div>
-        `).join('')}
+        ${newWords.map(w => renderDictionaryWordRow(w)).join('')}
+        ${previousSectionHtml}
       `;
 
-      openModal("Словарь", html);
+      openModal(`Словарь · Ур. ${activeLessonLevel}`, html);
 
       const wordRows = modalContent.querySelectorAll('.dict-word-row');
       wordRows.forEach((row) => {
         const triggerSpeak = () => {
           const wordToSpeak = row.getAttribute('data-en');
 
-          // Сбрасываем подсветку со всех карточек
           wordRows.forEach((r) => {
             r.style.borderColor = '#334155';
             r.style.backgroundColor = '#1e293b';
           });
 
-          // Подсвечиваем текущую карточку во время озвучки
           row.style.borderColor = '#60a5fa';
           row.style.backgroundColor = '#263349';
 
@@ -6322,7 +6616,8 @@ import './styles/evolution.css';
 import { auth, googleProvider, db } from './firebase.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, increment } from "firebase/firestore";
-import { level1Tasks, level2Tasks, level3Tasks, getCyclicTask, resetTaskPools } from './data/tasks.js';
+import { getCyclicTask, resetTaskPools } from './data/tasks.js';
+import { getTasksForLevel } from './levels/registry.js';
 import { getWrongPhrases } from './data/wrongPhrases.js';
 import { setupKeyboard } from './components/keyboard.js';
 import { setupModals } from './components/modals.js';
@@ -6683,9 +6978,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function getCurrentTasksForLevel(lvl) {
-    if (lvl >= 3) return level3Tasks;
-    if (lvl === 2) return level2Tasks;
-    return level1Tasks;
+    return getTasksForLevel(lvl);
   }
 
   function pickNewTask() {
@@ -7085,6 +7378,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!isEnglishToRussian) {
       const inputEl = document.getElementById('answer-display');
+      let refreshShift = () => {};
+
       if (inputEl) {
         inputEl.setAttribute('inputmode', 'none');
 
@@ -7093,12 +7388,23 @@ document.addEventListener('DOMContentLoaded', () => {
           inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
         }
 
+        const handleCursorMove = () => {
+          if (!isAdvancingAfterSpeech) {
+            currentInput = inputEl.value;
+            refreshShift();
+          }
+        };
+
         inputEl.addEventListener('click', (e) => {
           e.preventDefault();
           if (!isAdvancingAfterSpeech) {
             inputEl.focus({ preventScroll: true });
-            currentInput = inputEl.value;
+            handleCursorMove();
           }
+        });
+
+        inputEl.addEventListener('touchend', () => {
+          requestAnimationFrame(handleCursorMove);
         });
 
         inputEl.addEventListener('keydown', (e) => {
@@ -7108,8 +7414,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      setupKeyboard({
+      const kbApi = setupKeyboard({
         level: currentLevel,
+        getInputState: () => {
+          if (!inputEl) {
+            return { value: currentInput, selectionStart: currentInput.length, selectionEnd: currentInput.length };
+          }
+          return {
+            value: inputEl.value,
+            selectionStart: inputEl.selectionStart,
+            selectionEnd: inputEl.selectionEnd
+          };
+        },
         onInput: (char) => {
           if (isAdvancingAfterSpeech || !inputEl) return;
           const start = inputEl.selectionStart;
@@ -7170,6 +7486,11 @@ document.addEventListener('DOMContentLoaded', () => {
           await handleAnswerResult(isCorrect, isCorrect ? trimmedInput : "");
         }
       });
+
+      if (kbApi && typeof kbApi.refreshShiftState === 'function') {
+        refreshShift = kbApi.refreshShiftState;
+        refreshShift();
+      }
     } else {
       setupOptions();
     }

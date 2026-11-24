@@ -4,20 +4,69 @@ import { db } from "../firebase.js";
 
 const SETTINGS_DOC_PATH = ["settings", "game"];
 const LOCAL_APPLIED_VERSION_KEY = "rkai_applied_app_version";
-const RELOAD_GUARD_KEY = "rkai_force_update_reloaded_ver";
+const ATTEMPTED_VERSION_GUARD_KEY = "rkai_update_attempted_ver";
 
-let isForceUpdating = false;
+let pendingUpdateVersion = null;
+let isApplyingUpdate = false;
 let unsubscribeVersionListener = null;
+const updateListeners = new Set();
+
+function normalizeVersion(val, fallback = 1) {
+  const num = Number(val);
+  return Number.isFinite(num) && num > 0 ? Math.floor(num) : fallback;
+}
 
 export function getLocalAppliedVersion() {
   const raw = localStorage.getItem(LOCAL_APPLIED_VERSION_KEY);
-  const num = Number(raw);
-  return Number.isFinite(num) && num > 0 ? Math.floor(num) : 1;
+  return normalizeVersion(raw, 1);
 }
 
 export function setLocalAppliedVersion(version) {
-  const safeVer = Math.max(1, Math.floor(Number(version) || 1));
+  const safeVer = normalizeVersion(version, 1);
   localStorage.setItem(LOCAL_APPLIED_VERSION_KEY, String(safeVer));
+}
+
+export function getPendingUpdateVersion() {
+  return pendingUpdateVersion;
+}
+
+export function onUpdateAvailable(listener) {
+  if (typeof listener !== "function") return () => {};
+  updateListeners.add(listener);
+  listener(pendingUpdateVersion);
+  return () => updateListeners.delete(listener);
+}
+
+function notifyUpdateListeners() {
+  updateListeners.forEach((fn) => {
+    try {
+      fn(pendingUpdateVersion);
+    } catch (err) {
+      console.warn("Ошибка слушателя обновления:", err);
+    }
+  });
+}
+
+function registerAvailableVersion(remoteVersion) {
+  const safeRemote = normalizeVersion(remoteVersion, 0);
+  if (!safeRemote) return false;
+
+  const localVersion = getLocalAppliedVersion();
+  const attemptedInSession = normalizeVersion(
+    sessionStorage.getItem(ATTEMPTED_VERSION_GUARD_KEY),
+    0
+  );
+
+  // Если уже пытались обновиться до этой версии в текущей сессии — не триггерим повторно
+  if (safeRemote <= localVersion || safeRemote === attemptedInSession) {
+    return false;
+  }
+
+  if (pendingUpdateVersion !== safeRemote) {
+    pendingUpdateVersion = safeRemote;
+    notifyUpdateListeners();
+  }
+  return true;
 }
 
 export async function fetchRemoteAppVersion() {
@@ -25,10 +74,8 @@ export async function fetchRemoteAppVersion() {
     const ref = doc(db, ...SETTINGS_DOC_PATH);
     const snap = await getDoc(ref);
     if (snap.exists()) {
-      const ver = Number(snap.data().appVersion);
-      if (Number.isFinite(ver) && ver > 0) {
-        return Math.floor(ver);
-      }
+      const ver = normalizeVersion(snap.data().appVersion, 0);
+      if (ver > 0) return ver;
     }
   } catch (err) {
     console.warn("Не удалось получить версию приложения из Firestore:", err.message);
@@ -37,8 +84,7 @@ export async function fetchRemoteAppVersion() {
 }
 
 /**
- * Админ-действие: повышает версию приложения в Firestore,
- * чтобы все устройства пользователей принудительно обновили файлы и кэш.
+ * Админ-действие: повышает версию приложения в Firestore для оповещения клиентов.
  */
 export async function triggerForceAppUpdateForAllUsers() {
   const currentRemote = await fetchRemoteAppVersion();
@@ -56,19 +102,70 @@ export async function triggerForceAppUpdateForAllUsers() {
   );
 
   setLocalAppliedVersion(nextVersion);
+  pendingUpdateVersion = null;
+  notifyUpdateListeners();
   return nextVersion;
 }
 
-/**
- * Очищает все кэши Cache Storage, обновляет Service Worker
- * и перезагружает страницу для загрузки свежих файлов.
- */
-export async function performHardPwaRefresh(targetVersion) {
-  if (isForceUpdating) return;
-  isForceUpdating = true;
+async function waitForWorkerActivation(reg, timeoutMs = 1500) {
+  if (!reg) return;
+  const worker = reg.installing || reg.waiting || reg.active;
+  if (!worker) return;
+  if (worker.state === "activated" && navigator.serviceWorker.controller) return;
 
-  const safeVer = Math.max(1, Math.floor(Number(targetVersion) || getLocalAppliedVersion()));
-  setLocalAppliedVersion(safeVer);
+  await new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      worker.removeEventListener("statechange", onStateChange);
+      resolve();
+    };
+    const onStateChange = () => {
+      if (worker.state === "activated") finish();
+    };
+    const timer = setTimeout(finish, timeoutMs);
+    worker.addEventListener("statechange", onStateChange);
+  });
+}
+
+/**
+ * Мягко активирует новый Service Worker, очищает кэши файлов PWA и перезагружает страницу один раз.
+ * Данные прогресса (localStorage / Firestore) не удаляются.
+ */
+export async function applyPendingAppUpdate(explicitVersion = null) {
+  if (isApplyingUpdate) return;
+  isApplyingUpdate = true;
+
+  const targetVer = normalizeVersion(
+    explicitVersion || pendingUpdateVersion || getLocalAppliedVersion(),
+    1
+  );
+
+  // Фиксируем версию и одноразовую метку попытки до перезагрузки, чтобы избежать цикла
+  setLocalAppliedVersion(targetVer);
+  try {
+    sessionStorage.setItem(ATTEMPTED_VERSION_GUARD_KEY, String(targetVer));
+  } catch (_) {}
+
+  pendingUpdateVersion = null;
+  notifyUpdateListeners();
+
+  try {
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        await reg.update();
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+        await waitForWorkerActivation(reg);
+      }
+    }
+  } catch (err) {
+    console.warn("Ошибка обновления Service Worker:", err);
+  }
 
   try {
     if ("caches" in window) {
@@ -79,51 +176,34 @@ export async function performHardPwaRefresh(targetVersion) {
     console.warn("Ошибка очистки Cache Storage:", err);
   }
 
-  try {
-    if ("serviceWorker" in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (const reg of registrations) {
-        await reg.update();
-        if (reg.waiting) {
-          reg.waiting.postMessage({ type: "SKIP_WAITING" });
-        }
-      }
-    }
-  } catch (err) {
-    console.warn("Ошибка обновления Service Worker:", err);
-  }
-
-  // Защита от зацикливания перезагрузки на одной и той же версии
-  if (sessionStorage.getItem(RELOAD_GUARD_KEY) !== String(safeVer)) {
-    sessionStorage.setItem(RELOAD_GUARD_KEY, String(safeVer));
-    const url = new URL(window.location.href);
-    url.searchParams.set("_v", String(safeVer));
-    window.location.replace(url.toString());
-  } else {
-    isForceUpdating = false;
-  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("_v", String(targetVer));
+  window.location.replace(url.toString());
 }
 
 /**
- * Проверяет, не вышла ли новая версия приложения в Firestore.
+ * Совместимость со старым именем вызова: мягко фиксирует версию без принудительного срыва.
+ */
+export async function performHardPwaRefresh(targetVersion) {
+  const safeVer = normalizeVersion(targetVersion, getLocalAppliedVersion());
+  setLocalAppliedVersion(safeVer);
+  pendingUpdateVersion = null;
+  notifyUpdateListeners();
+}
+
+/**
+ * Проверяет, появилась ли новая версия в Firestore (без принудительной перезагрузки).
  */
 export async function checkAndApplyRemoteVersion(forceCheck = false) {
-  if (isForceUpdating) return false;
+  if (isApplyingUpdate) return false;
   if (!forceCheck && document.visibilityState === "hidden") return false;
 
   const remoteVersion = await fetchRemoteAppVersion();
-  const localVersion = getLocalAppliedVersion();
-
-  if (remoteVersion > localVersion) {
-    await performHardPwaRefresh(remoteVersion);
-    return true;
-  }
-  return false;
+  return registerAvailableVersion(remoteVersion);
 }
 
 /**
- * Подписывается на изменения версии в реальном времени,
- * пока вкладка открыта.
+ * Подписывается на изменения версии в реальном времени и показывает мягкое уведомление.
  */
 export function startRemoteVersionWatcher() {
   if (unsubscribeVersionListener) return;
@@ -131,13 +211,10 @@ export function startRemoteVersionWatcher() {
   try {
     const ref = doc(db, ...SETTINGS_DOC_PATH);
     unsubscribeVersionListener = onSnapshot(ref, (snap) => {
-      if (!snap.exists() || isForceUpdating) return;
-      const remoteVersion = Number(snap.data().appVersion);
-      if (!Number.isFinite(remoteVersion) || remoteVersion <= 0) return;
-
-      const localVersion = getLocalAppliedVersion();
-      if (remoteVersion > localVersion) {
-        performHardPwaRefresh(remoteVersion);
+      if (!snap.exists() || isApplyingUpdate) return;
+      const remoteVersion = normalizeVersion(snap.data().appVersion, 0);
+      if (remoteVersion > 0) {
+        registerAvailableVersion(remoteVersion);
       }
     });
   } catch (err) {

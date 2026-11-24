@@ -24,7 +24,9 @@ import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 import {
   checkAndApplyRemoteVersion,
-  startRemoteVersionWatcher
+  startRemoteVersionWatcher,
+  onUpdateAvailable,
+  applyPendingAppUpdate
 } from './utils/appUpdate.js';
 import {
   shareProjectContent,
@@ -65,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let userUnsubscribe = null;
   let deferredPrompt = null;
   let hasShownStartupPresentation = false;
+  let availableUpdateVersion = null;
 
   let isTestMode = false;
   let testQuestionsAnswered = 0;
@@ -82,6 +85,37 @@ document.addEventListener('DOMContentLoaded', () => {
     window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.getVoices();
     };
+  }
+
+  function resetViewportPosition() {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    } catch (_) {
+      window.scrollTo(0, 0);
+    }
+    if (document.scrollingElement) {
+      document.scrollingElement.scrollTop = 0;
+      document.scrollingElement.scrollLeft = 0;
+    }
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    if (app) {
+      app.scrollTop = 0;
+      app.scrollLeft = 0;
+    }
+  }
+
+  function preserveInputFocusAndCaret(inputEl, fallbackCaret = null) {
+    if (!inputEl || isEnglishToRussian || isAdvancingAfterSpeech) return;
+    const caretPos = typeof fallbackCaret === 'number'
+      ? Math.max(0, Math.min(fallbackCaret, inputEl.value.length))
+      : inputEl.value.length;
+
+    inputEl.focus({ preventScroll: true });
+    try {
+      inputEl.selectionStart = inputEl.selectionEnd = caretPos;
+    } catch (_) {}
+    resetViewportPosition();
   }
 
   function clearPendingAdvance() {
@@ -190,7 +224,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Проверка принудительного обновления PWA при старте и при возврате в приложение
+  // Подписка на мягкое уведомление о новой версии без сдвига экрана и потери фокуса
+  onUpdateAvailable((ver) => {
+    const nextVer = ver || null;
+    if (availableUpdateVersion === nextVer) return;
+    const wasBannerShown = Boolean(availableUpdateVersion);
+    availableUpdateVersion = nextVer;
+
+    const prevInput = document.getElementById('answer-display');
+    const savedCaret = prevInput ? prevInput.selectionStart : null;
+
+    renderTrainer();
+
+    if (wasBannerShown && !nextVer) {
+      resetViewportPosition();
+      requestAnimationFrame(() => {
+        resetViewportPosition();
+        const nextInput = document.getElementById('answer-display');
+        preserveInputFocusAndCaret(nextInput, savedCaret);
+      });
+      return;
+    }
+
+    const nextInput = document.getElementById('answer-display');
+    preserveInputFocusAndCaret(nextInput, savedCaret);
+  });
+
+  // Проверка доступной версии при старте и при возврате в приложение
   checkAndApplyRemoteVersion(true);
   startRemoteVersionWatcher();
 
@@ -229,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
       stopErrorSpeech();
       flushSessionTime();
     } else if (document.visibilityState === 'visible') {
+      resetViewportPosition();
       checkAndApplyRemoteVersion(true);
     }
   });
@@ -619,9 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showProjectPresentation({
         onClose: () => {
           const inputEl = document.getElementById('answer-display');
-          if (inputEl && !isEnglishToRussian) {
-            inputEl.focus({ preventScroll: true });
-          }
+          preserveInputFocusAndCaret(inputEl);
         }
       });
     }
@@ -642,9 +701,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const showTestButton = elementLevel >= 4;
     const showSoundToggle = elementLevel >= 5;
     const showSettingsButton = Boolean(currentUser) && elementLevel >= 7;
+    const showSoftUpdateBanner = Boolean(availableUpdateVersion) && !isTestMode;
 
     app.innerHTML = `
       <div class="app-header">
+        ${showSoftUpdateBanner ? `
+          <div id="soft-update-banner" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px; margin-bottom: var(--ui-gap); border-radius: 8px; background: var(--accent-bg); border: 1px solid var(--accent); font-size: 12px;">
+            <span style="font-weight: 600; text-align: left; line-height: 1.25;">Доступна версия v${availableUpdateVersion}</span>
+            <button type="button" id="apply-soft-update-btn" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: var(--accent); color: #fff; border: none; flex-shrink: 0;">Обновить</button>
+          </div>
+        ` : ''}
+
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: var(--ui-gap); gap: 6px;">
           <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
             <span style="font-weight: 800; color: var(--accent); background: var(--accent-bg); padding: 2px 7px; border-radius: 6px; border: 1px solid var(--accent); white-space: nowrap; font-size: 12px;">Pareto English</span>
@@ -771,8 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
         inputEl.setAttribute('inputmode', 'none');
 
         if (!isAdvancingAfterSpeech) {
-          inputEl.focus({ preventScroll: true });
-          inputEl.selectionStart = inputEl.selectionEnd = currentInput.length;
+          preserveInputFocusAndCaret(inputEl, currentInput.length);
         }
 
         const handleCursorMove = () => {
@@ -785,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
         inputEl.addEventListener('click', (e) => {
           e.preventDefault();
           if (!isAdvancingAfterSpeech) {
-            inputEl.focus({ preventScroll: true });
+            preserveInputFocusAndCaret(inputEl, inputEl.selectionStart);
             handleCursorMove();
           }
         });
@@ -825,7 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.value = val.substring(0, start) + charToAdd + val.substring(end);
             inputEl.selectionStart = inputEl.selectionEnd = start + 1;
             currentInput = inputEl.value;
-            inputEl.focus({ preventScroll: true });
+            preserveInputFocusAndCaret(inputEl, start + 1);
           }
         },
         onBackspace: () => {
@@ -837,12 +903,17 @@ document.addEventListener('DOMContentLoaded', () => {
           if (start !== end) {
             inputEl.value = val.substring(0, start) + val.substring(end);
             inputEl.selectionStart = inputEl.selectionEnd = start;
+            currentInput = inputEl.value;
+            preserveInputFocusAndCaret(inputEl, start);
           } else if (start > 0) {
             inputEl.value = val.substring(0, start - 1) + val.substring(start);
             inputEl.selectionStart = inputEl.selectionEnd = start - 1;
+            currentInput = inputEl.value;
+            preserveInputFocusAndCaret(inputEl, start - 1);
+          } else {
+            currentInput = inputEl.value;
+            preserveInputFocusAndCaret(inputEl, 0);
           }
-          currentInput = inputEl.value;
-          inputEl.focus({ preventScroll: true });
         },
         onSpace: () => {
           if (isAdvancingAfterSpeech || !inputEl) return;
@@ -854,7 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.value = val.substring(0, start) + " " + val.substring(end);
             inputEl.selectionStart = inputEl.selectionEnd = start + 1;
             currentInput = inputEl.value;
-            inputEl.focus({ preventScroll: true });
+            preserveInputFocusAndCaret(inputEl, start + 1);
           }
         },
         onOk: async () => {
@@ -884,6 +955,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupModals({ currentLevel });
     if (!isTestMode) startTimer();
+
+    const applySoftUpdateBtn = document.getElementById('apply-soft-update-btn');
+    if (applySoftUpdateBtn) {
+      applySoftUpdateBtn.onclick = async () => {
+        const versionToApply = availableUpdateVersion;
+        availableUpdateVersion = null;
+        clearPendingAdvance();
+        stopErrorSpeech();
+        renderTrainer();
+        resetViewportPosition();
+        flushSessionTime();
+        await syncUserProgressToCloud();
+        await applyPendingAppUpdate(versionToApply);
+      };
+    }
 
     const shareTopBtn = document.getElementById('share-top-btn');
     if (shareTopBtn) {
