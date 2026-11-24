@@ -817,6 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stopErrorSpeech();
         openSettingsModal({
           user: currentUser,
+          currentLevel,
           onBeforeOpen: () => flushSessionTime()
         });
       }
