@@ -46,6 +46,7 @@ import {
   buildLevelUpShareText,
   SHARE_APP_URL
 } from './utils/share.js';
+import { buildGuestResetState } from './utils/sessionReset.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -145,6 +146,13 @@ document.addEventListener('DOMContentLoaded', () => {
     isAdvancingAfterSpeech = false;
   }
 
+  function stopTestTimerIfRunning() {
+    if (testTimerInterval) {
+      clearInterval(testTimerInterval);
+      testTimerInterval = null;
+    }
+  }
+
   function getAvailableCategoriesForLevel(lvl) {
     if (lvl >= 3) return ['question', 'statement', 'negative'];
     if (lvl === 2) return ['statement', 'negative'];
@@ -154,6 +162,40 @@ document.addEventListener('DOMContentLoaded', () => {
   function syncCategoriesWithLevel(lvl) {
     activeCategories = getAvailableCategoriesForLevel(lvl);
     resetTaskPools();
+  }
+
+  function resetAllLevelsAndCountersForLogout() {
+    clearPendingAdvance();
+    stopErrorSpeech();
+    stopTestTimerIfRunning();
+
+    const resetState = buildGuestResetState({
+      defaultTestSeconds: gameConfig.testTimeSeconds,
+      resetGuestStorage: true
+    });
+
+    currentUser = resetState.currentUser;
+    isAdminUser = resetState.isAdminUser;
+    currentLevel = resetState.currentLevel;
+    sessionCorrectAnswers = resetState.sessionCorrectAnswers;
+    sessionIncorrectAnswers = resetState.sessionIncorrectAnswers;
+    totalCorrectAnswers = resetState.totalCorrectAnswers;
+    totalIncorrectAnswers = resetState.totalIncorrectAnswers;
+    sessionIndex = resetState.sessionIndex;
+    consecutiveErrors = resetState.consecutiveErrors;
+    currentInput = resetState.currentInput;
+    lastFeedback = resetState.lastFeedback;
+    lastFeedbackColor = resetState.lastFeedbackColor;
+    secondsElapsed = resetState.secondsElapsed;
+    lastSyncedSeconds = resetState.lastSyncedSeconds;
+    isTestMode = resetState.isTestMode;
+    testQuestionsAnswered = resetState.testQuestionsAnswered;
+    testCorrectCount = resetState.testCorrectCount;
+    testSecondsLeft = resetState.testSecondsLeft;
+    activeCategories = resetState.activeCategories;
+
+    updateStyleLevel();
+    pickNewTask();
   }
 
   function handleToggleCategory(cat) {
@@ -419,8 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
       userUnsubscribe = null;
     }
 
-    currentUser = user;
     if (user) {
+      currentUser = user;
       await initUserProfile(user);
 
       const userRef = doc(db, "users", user.uid);
@@ -435,11 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     } else {
-      isAdminUser = false;
-      const guestCounters = getLocalCounters(null);
-      totalCorrectAnswers = guestCounters.correct;
-      totalIncorrectAnswers = guestCounters.incorrect;
-      syncCategoriesWithLevel(currentLevel);
+      resetAllLevelsAndCountersForLogout();
     }
     renderTrainer();
   });
@@ -477,6 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function startTestMode() {
     clearPendingAdvance();
     stopErrorSpeech();
+    stopTestTimerIfRunning();
     isTestMode = true;
     sessionIndex = 0;
     currentInput = "";
@@ -487,7 +526,6 @@ document.addEventListener('DOMContentLoaded', () => {
     pickNewTask();
     renderTrainer();
 
-    if (testTimerInterval) clearInterval(testTimerInterval);
     testTimerInterval = setInterval(() => {
       testSecondsLeft--;
       const testTimerEl = document.getElementById('test-timer-display');
@@ -504,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function finishTest(passed) {
     clearPendingAdvance();
     stopErrorSpeech();
-    if (testTimerInterval) clearInterval(testTimerInterval);
+    stopTestTimerIfRunning();
     isTestMode = false;
     sessionIndex = 0;
     currentInput = "";
@@ -1062,11 +1100,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.onclick = async () => {
-        clearPendingAdvance();
-        stopErrorSpeech();
         flushSessionTime();
-        if (userUnsubscribe) userUnsubscribe();
-        signOut(auth);
+        if (userUnsubscribe) {
+          userUnsubscribe();
+          userUnsubscribe = null;
+        }
+        resetAllLevelsAndCountersForLogout();
+        renderTrainer();
+        try {
+          await signOut(auth);
+        } catch (error) {
+          alert("Ошибка выхода: " + error.message);
+        }
       };
     }
 

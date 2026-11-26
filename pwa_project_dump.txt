@@ -4123,9 +4123,15 @@ import {
   isEnglishPhraseSpeechEnabled,
   setEnglishPhraseSpeechEnabled
 } from '../utils/speechFeedback.js';
+import {
+  registerOverlayOpen,
+  closeOverlayByUi,
+  isOverlayOpen
+} from '../utils/overlayStack.js';
 
 const SETTINGS_MODAL_ID = 'settings-modal';
 const SETTINGS_STYLE_ID = 'settings-modal-styles';
+const SETTINGS_OVERLAY_KEY = 'settings-modal';
 
 const MONTH_NAMES = [
   'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -4138,7 +4144,6 @@ let currentStatsPeriod = 'days'; // 'days' | 'months' | 'years'
 let selectedYear = new Date().getFullYear();
 let selectedMonth = new Date().getMonth(); // 0..11
 let cachedStatsMap = {};
-let isSettingsPopstateBound = false;
 let currentModalCallbacks = {};
 
 function getGoogleAccountName(user) {
@@ -4573,19 +4578,20 @@ function getSettingsModalElement() {
   return modal;
 }
 
-export function isSettingsModalOpen() {
+function hideSettingsModalDom() {
   const modal = document.getElementById(SETTINGS_MODAL_ID);
-  return Boolean(modal && modal.classList.contains('open'));
+  if (modal) {
+    modal.classList.remove('open');
+  }
 }
 
-export function closeSettingsModal(isBackAction = false) {
+export function isSettingsModalOpen() {
   const modal = document.getElementById(SETTINGS_MODAL_ID);
-  if (modal && modal.classList.contains('open')) {
-    modal.classList.remove('open');
-    if (!isBackAction && history.state && history.state.settingsModalOpen) {
-      history.back();
-    }
-  }
+  return Boolean(modal && modal.classList.contains('open')) || isOverlayOpen(SETTINGS_OVERLAY_KEY);
+}
+
+export function closeSettingsModal() {
+  closeOverlayByUi(SETTINGS_OVERLAY_KEY, hideSettingsModalDom);
 }
 
 export function openSettingsModal({ user, onBeforeOpen, onToggleEnglishSpeech } = {}) {
@@ -4595,20 +4601,15 @@ export function openSettingsModal({ user, onBeforeOpen, onToggleEnglishSpeech } 
     onBeforeOpen();
   }
 
+  const wasAlreadyOpen = isSettingsModalOpen();
   const modal = getSettingsModalElement();
   modal.classList.add('open');
   modal.scrollTop = 0;
 
-  if (!isSettingsPopstateBound) {
-    isSettingsPopstateBound = true;
-    window.addEventListener('popstate', () => {
-      if (isSettingsModalOpen()) {
-        closeSettingsModal(true);
-      }
-    });
+  if (!wasAlreadyOpen) {
+    registerOverlayOpen(SETTINGS_OVERLAY_KEY, hideSettingsModalDom);
   }
 
-  history.pushState({ settingsModalOpen: true }, '');
   renderSettingsMenu(user);
 }
 
@@ -4657,7 +4658,7 @@ function renderSettingsMenu(user) {
     </div>
   `;
 
-  modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+  modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal();
 
   const speechToggle = modal.querySelector('#st-en-speech-toggle');
   if (speechToggle) {
@@ -4670,8 +4671,10 @@ function renderSettingsMenu(user) {
   }
 
   modal.querySelector('#st-open-about-btn').onclick = () => {
-    closeSettingsModal(false);
-    showProjectPresentation();
+    closeSettingsModal();
+    setTimeout(() => {
+      showProjectPresentation();
+    }, 60);
   };
 
   modal.querySelector('#st-open-stats-btn').onclick = async () => {
@@ -4691,7 +4694,7 @@ function renderSettingsMenu(user) {
       </div>
     `;
     modal.querySelector('#st-back-menu-btn').onclick = () => renderSettingsMenu(user);
-    modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+    modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal();
 
     cachedStatsMap = await loadFullUserStats(user);
     renderStatsView(user);
@@ -4741,7 +4744,7 @@ function renderStatsView(user) {
   `;
 
   modal.querySelector('#st-back-menu-btn').onclick = () => renderSettingsMenu(user);
-  modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+  modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal();
 
   modal.querySelectorAll('.st-tab-btn').forEach((btn) => {
     btn.onclick = () => {
@@ -6323,8 +6326,16 @@ export function renderTimerStatusBar({
 // src/components/onboarding.js
 import { openSimpleHint } from './simpleHint.js';
 import { shareProjectContent, buildProjectShareText, SHARE_APP_URL } from '../utils/share.js';
+import {
+  registerOverlayOpen,
+  closeOverlayByUi,
+  isOverlayOpen
+} from '../utils/overlayStack.js';
 
 const HIDE_INTRO_STORAGE_KEY = 'rkai_hide_intro';
+const INTRO_OVERLAY_KEY = 'intro-presentation';
+
+let activeIntroOnClose = null;
 
 export const projectPresentationHtml = `
   <div style="font-size: 20px; color: #e5e7eb; display: flex; flex-direction: column; gap: 18px; line-height: 1.65;">
@@ -6426,8 +6437,27 @@ export function setIntroHidden(hidden) {
   localStorage.setItem(HIDE_INTRO_STORAGE_KEY, hidden ? 'true' : 'false');
 }
 
+function hideIntroModalDom() {
+  const introModal = document.getElementById('intro-presentation-modal');
+  const checkbox = document.getElementById('dont-show-intro-checkbox');
+  if (checkbox) {
+    setIntroHidden(checkbox.checked);
+  }
+  if (introModal) {
+    introModal.style.display = 'none';
+  }
+  const onCloseCallback = activeIntroOnClose;
+  activeIntroOnClose = null;
+  if (typeof onCloseCallback === 'function') {
+    onCloseCallback();
+  }
+}
+
 export function showProjectPresentation({ onClose } = {}) {
   let introModal = document.getElementById('intro-presentation-modal');
+  const wasAlreadyOpen =
+    Boolean(introModal && introModal.style.display === 'flex') ||
+    isOverlayOpen(INTRO_OVERLAY_KEY);
 
   if (!introModal) {
     introModal = document.createElement('div');
@@ -6441,7 +6471,7 @@ export function showProjectPresentation({ onClose } = {}) {
       'background: #16171d;',
       'color: #f3f4f6;',
       'box-sizing: border-box;',
-      'z-index: 1500;',
+      'z-index: 2500;',
       'flex-direction: column;',
       'font-family: system-ui, -apple-system, sans-serif;'
     ].join(' ');
@@ -6472,6 +6502,8 @@ export function showProjectPresentation({ onClose } = {}) {
     document.body.appendChild(introModal);
   }
 
+  activeIntroOnClose = typeof onClose === 'function' ? onClose : null;
+
   const checkbox = document.getElementById('dont-show-intro-checkbox');
   if (checkbox) {
     checkbox.checked = isIntroHidden();
@@ -6480,20 +6512,14 @@ export function showProjectPresentation({ onClose } = {}) {
     };
   }
 
-  const closeIntro = () => {
-    if (checkbox) {
-      setIntroHidden(checkbox.checked);
-    }
-    introModal.style.display = 'none';
-    if (typeof onClose === 'function') {
-      onClose();
-    }
+  const closeIntroByButton = () => {
+    closeOverlayByUi(INTRO_OVERLAY_KEY, hideIntroModalDom);
   };
 
   const closeTopBtn = document.getElementById('intro-close-top-btn');
   const shareBtn = document.getElementById('intro-share-btn');
 
-  if (closeTopBtn) closeTopBtn.onclick = closeIntro;
+  if (closeTopBtn) closeTopBtn.onclick = closeIntroByButton;
   if (shareBtn) {
     shareBtn.onclick = () => {
       shareProjectContent({
@@ -6507,6 +6533,10 @@ export function showProjectPresentation({ onClose } = {}) {
   introModal.style.display = 'flex';
   const bodyEl = document.getElementById('intro-modal-body');
   if (bodyEl) bodyEl.scrollTop = 0;
+
+  if (!wasAlreadyOpen) {
+    registerOverlayOpen(INTRO_OVERLAY_KEY, hideIntroModalDom);
+  }
 }
 
 === FILE: ./src/components/modals.js ===
@@ -8497,12 +8527,18 @@ export async function applyDynamicSplashScreen() {
 const overlayStack = [];
 let isPopstateListening = false;
 let isHandlingPopstate = false;
+let pendingHistoryBackCount = 0;
 
 function ensurePopstateListener() {
   if (isPopstateListening || typeof window === 'undefined') return;
   isPopstateListening = true;
 
   window.addEventListener('popstate', () => {
+    if (pendingHistoryBackCount > 0) {
+      pendingHistoryBackCount--;
+      return;
+    }
+
     const topOverlay = overlayStack[overlayStack.length - 1];
     if (!topOverlay) return;
 
@@ -8520,7 +8556,7 @@ function ensurePopstateListener() {
 
 /**
  * Регистрирует открытое окно поверх стека и добавляет запись в историю браузера.
- * @param {string} id - Уникальный идентификатор окна (например, 'simple-hint' или 'main-modal').
+ * @param {string} id - Уникальный идентификатор окна (например, 'simple-hint' или 'intro-presentation').
  * @param {Function} onClose - Функция визуального закрытия окна без повторного вызова history.back().
  */
 export function registerOverlayOpen(id, onClose) {
@@ -8534,7 +8570,10 @@ export function registerOverlayOpen(id, onClose) {
   overlayStack.push({ id, onClose });
 
   if (typeof history !== 'undefined' && typeof history.pushState === 'function') {
-    history.pushState({ overlayId: id, stackDepth: overlayStack.length }, '');
+    history.pushState(
+      { overlayId: id, stackDepth: overlayStack.length, ts: Date.now() },
+      ''
+    );
   }
 }
 
@@ -8575,6 +8614,7 @@ export function closeOverlayByUi(id, fallbackVisualClose) {
     typeof history !== 'undefined' &&
     typeof history.back === 'function'
   ) {
+    pendingHistoryBackCount++;
     history.back();
   }
 }
