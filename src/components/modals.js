@@ -1,7 +1,7 @@
 // src/components/modals.js
 import { getDictionaryForLevel } from '../levels/registry.js';
 import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
-import { openSimpleHint, closeSimpleHint, isSimpleHintOpen } from './simpleHint.js';
+import { openSimpleHint, isSimpleHintOpen } from './simpleHint.js';
 import { speakEnglishWord, stopErrorSpeech } from '../utils/speechFeedback.js';
 
 let isPopstateBound = false;
@@ -117,14 +117,22 @@ export function setupModals({ currentLevel = 1 } = {}) {
     modal.style.display = 'block';
     modal.scrollTop = 0;
 
-    history.pushState({ modalOpen: true }, '');
+    if (typeof history !== 'undefined' && typeof history.pushState === 'function') {
+      history.pushState({ modalOpen: true }, '');
+    }
   }
 
   function closeModalWindow(isBackAction = false) {
     stopErrorSpeech();
     if (modal.style.display === 'block') {
       modal.style.display = 'none';
-      if (!isBackAction && history.state && history.state.modalOpen) {
+      if (
+        !isBackAction &&
+        typeof history !== 'undefined' &&
+        history.state &&
+        history.state.modalOpen &&
+        typeof history.back === 'function'
+      ) {
         history.back();
       }
     }
@@ -199,8 +207,8 @@ export function setupModals({ currentLevel = 1 } = {}) {
   if (!isPopstateBound) {
     isPopstateBound = true;
     window.addEventListener('popstate', () => {
+      // Если поверх открыто окно подсказки/помощи — оно закрывается своим слушателем popstate
       if (isSimpleHintOpen()) {
-        closeSimpleHint();
         return;
       }
       if (modal && modal.style.display === 'block') {
@@ -220,6 +228,10 @@ export function openHelpGuideModal() {
   modalContent.innerHTML = helpGuideHtml;
   modal.style.display = 'block';
   modal.scrollTop = 0;
+
+  if (typeof history !== 'undefined' && typeof history.pushState === 'function') {
+    history.pushState({ modalOpen: true }, '');
+  }
 
   const reopenIntroBtn = document.getElementById('reopen-intro-btn');
   if (reopenIntroBtn) {

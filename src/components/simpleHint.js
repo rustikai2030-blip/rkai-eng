@@ -97,6 +97,8 @@ const COLUMNS_DATA = {
   }
 };
 
+let isHintPopstateBound = false;
+
 function getHintConfigForLevel(level = 1) {
   const safeLevel = Math.max(1, Number(level) || 1);
 
@@ -324,6 +326,17 @@ function getSimpleHintModalElement() {
   return modal;
 }
 
+function ensureHintHistoryListener() {
+  if (isHintPopstateBound || typeof window === 'undefined') return;
+  isHintPopstateBound = true;
+
+  window.addEventListener('popstate', () => {
+    if (isSimpleHintOpen()) {
+      closeSimpleHint(true);
+    }
+  });
+}
+
 function renderHintContent(modal, { columns, defaultIndex }) {
   modal.innerHTML = `
     <button type="button" class="sh-floating-close" id="sh-close-btn" aria-label="Закрыть подсказку">✕</button>
@@ -356,7 +369,7 @@ function renderHintContent(modal, { columns, defaultIndex }) {
   }
 
   closeBtn.addEventListener('click', () => {
-    closeSimpleHint();
+    closeSimpleHint(false);
   });
 
   tabButtons.forEach((btn) => {
@@ -380,11 +393,18 @@ function renderHintContent(modal, { columns, defaultIndex }) {
 }
 
 export function openSimpleHint(level = 1) {
+  ensureHintHistoryListener();
+
   const modal = getSimpleHintModalElement();
+  const alreadyOpen = isSimpleHintOpen();
   const { columns, defaultIndex } = getHintConfigForLevel(level);
   const { scrollArea, setActiveTab } = renderHintContent(modal, { columns, defaultIndex });
 
   modal.classList.add('open');
+
+  if (!alreadyOpen && typeof history !== 'undefined' && typeof history.pushState === 'function') {
+    history.pushState({ simpleHintOpen: true }, '');
+  }
 
   requestAnimationFrame(() => {
     scrollArea.scrollLeft = defaultIndex * scrollArea.clientWidth;
@@ -392,10 +412,19 @@ export function openSimpleHint(level = 1) {
   });
 }
 
-export function closeSimpleHint() {
+export function closeSimpleHint(isBackAction = false) {
   const modal = document.getElementById(HINT_MODAL_ID);
-  if (modal) {
+  if (modal && modal.classList.contains('open')) {
     modal.classList.remove('open');
+    if (
+      !isBackAction &&
+      typeof history !== 'undefined' &&
+      history.state &&
+      history.state.simpleHintOpen &&
+      typeof history.back === 'function'
+    ) {
+      history.back();
+    }
   }
 }
 

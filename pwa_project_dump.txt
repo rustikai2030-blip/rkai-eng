@@ -4119,6 +4119,10 @@ export const db = getFirestore(app);
 // src/components/settingsModal.js
 import { loadFullUserStats, formatStatsDuration, getLocalDateKey } from '../utils/statsTracker.js';
 import { showProjectPresentation } from './onboarding.js';
+import {
+  isEnglishPhraseSpeechEnabled,
+  setEnglishPhraseSpeechEnabled
+} from '../utils/speechFeedback.js';
 
 const SETTINGS_MODAL_ID = 'settings-modal';
 const SETTINGS_STYLE_ID = 'settings-modal-styles';
@@ -4135,6 +4139,7 @@ let selectedYear = new Date().getFullYear();
 let selectedMonth = new Date().getMonth(); // 0..11
 let cachedStatsMap = {};
 let isSettingsPopstateBound = false;
+let currentModalCallbacks = {};
 
 function getGoogleAccountName(user) {
   if (!user) return 'Гость';
@@ -4235,6 +4240,79 @@ function ensureSettingsStyles() {
     .st-menu-item:active {
       background: #f1f5f9;
       border-color: #0284c7;
+    }
+
+    .st-toggle-card {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      color: #0f172a;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+      box-sizing: border-box;
+    }
+
+    .st-toggle-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.25;
+    }
+
+    .st-toggle-desc {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    .st-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    .st-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .st-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #cbd5e1;
+      transition: 0.2s ease;
+      border-radius: 999px;
+    }
+
+    .st-slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #ffffff;
+      transition: 0.2s ease;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+    }
+
+    .st-switch input:checked + .st-slider {
+      background-color: #0284c7;
+    }
+
+    .st-switch input:checked + .st-slider:before {
+      transform: translateX(22px);
     }
 
     /* Поле с именем аккаунта Google */
@@ -4510,7 +4588,9 @@ export function closeSettingsModal(isBackAction = false) {
   }
 }
 
-export function openSettingsModal({ user, onBeforeOpen } = {}) {
+export function openSettingsModal({ user, onBeforeOpen, onToggleEnglishSpeech } = {}) {
+  currentModalCallbacks = { onToggleEnglishSpeech };
+
   if (typeof onBeforeOpen === 'function') {
     onBeforeOpen();
   }
@@ -4534,6 +4614,8 @@ export function openSettingsModal({ user, onBeforeOpen } = {}) {
 
 function renderSettingsMenu(user) {
   const modal = getSettingsModalElement();
+  const enSpeechEnabled = isEnglishPhraseSpeechEnabled();
+
   modal.innerHTML = `
     <div class="st-wrapper">
       <div class="st-header">
@@ -4542,6 +4624,20 @@ function renderSettingsMenu(user) {
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="st-toggle-card">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            <span style="font-size: 20px; flex-shrink: 0;">🗣️</span>
+            <div>
+              <div class="st-toggle-title">Озвучка английских фраз</div>
+              <div class="st-toggle-desc">По умолчанию выключена для быстрого переключения заданий</div>
+            </div>
+          </div>
+          <label class="st-switch" aria-label="Озвучка английских фраз">
+            <input type="checkbox" id="st-en-speech-toggle" ${enSpeechEnabled ? 'checked' : ''} />
+            <span class="st-slider"></span>
+          </label>
+        </div>
+
         <button type="button" id="st-open-about-btn" class="st-menu-item">
           <span style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 20px;">ℹ️</span>
@@ -4562,6 +4658,16 @@ function renderSettingsMenu(user) {
   `;
 
   modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+
+  const speechToggle = modal.querySelector('#st-en-speech-toggle');
+  if (speechToggle) {
+    speechToggle.onchange = (e) => {
+      const nextEnabled = setEnglishPhraseSpeechEnabled(e.target.checked);
+      if (typeof currentModalCallbacks.onToggleEnglishSpeech === 'function') {
+        currentModalCallbacks.onToggleEnglishSpeech(nextEnabled);
+      }
+    };
+  }
 
   modal.querySelector('#st-open-about-btn').onclick = () => {
     closeSettingsModal(false);
@@ -6747,7 +6853,12 @@ import {
   getLocalCounters,
   saveLocalCounters
 } from './utils/statsTracker.js';
-import { speakEnglishWord, speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
+import {
+  speakEnglishWord,
+  speakErrorMessage,
+  stopErrorSpeech,
+  isEnglishPhraseSpeechEnabled
+} from './utils/speechFeedback.js';
 import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 import { applyDynamicSplashScreen } from './utils/pwaBranding.js';
@@ -6813,6 +6924,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let testTimerInterval = null;
 
   let isSoundEnabled = localStorage.getItem('rkai_sound_enabled') !== 'false';
+  let isEnglishPhraseSpeechActive = isEnglishPhraseSpeechEnabled();
 
   const MAX_INPUT_LENGTH = 35;
 
@@ -6942,8 +7054,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
-    if (!isSoundEnabled || !spokenText || typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      advanceTimeoutId = setTimeout(finishOnce, 300);
+    if (!isEnglishPhraseSpeechActive || !spokenText || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      finishOnce();
       return;
     }
 
@@ -7329,7 +7441,11 @@ document.addEventListener('DOMContentLoaded', () => {
         lastFeedbackColor = "#22c55e";
       }
 
-      const shouldSpeakEnglish = elementLevel >= 5 && !isEnglishToRussian && Boolean(spokenEnglishText);
+      const shouldSpeakEnglish =
+        isEnglishPhraseSpeechActive &&
+        elementLevel >= 5 &&
+        !isEnglishToRussian &&
+        Boolean(spokenEnglishText);
 
       if (shouldSpeakEnglish) {
         isAdvancingAfterSpeech = true;
@@ -7549,7 +7665,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isSoundEnabled = !isSoundEnabled;
         localStorage.setItem('rkai_sound_enabled', isSoundEnabled);
         if (!isSoundEnabled) {
-          clearPendingAdvance();
           stopErrorSpeech();
         }
         renderTrainer();
@@ -7560,7 +7675,10 @@ document.addEventListener('DOMContentLoaded', () => {
         openSettingsModal({
           user: currentUser,
           currentLevel,
-          onBeforeOpen: () => flushSessionTime()
+          onBeforeOpen: () => flushSessionTime(),
+          onToggleEnglishSpeech: (enabled) => {
+            isEnglishPhraseSpeechActive = Boolean(enabled);
+          }
         });
       }
     });
@@ -7804,6 +7922,32 @@ document.addEventListener('DOMContentLoaded', () => {
 === FILE: ./src/utils/speechFeedback.js ===
 // src/utils/speechFeedback.js
 
+const EN_PHRASE_SPEECH_STORAGE_KEY = 'rkai_en_phrase_speech_enabled';
+
+/**
+ * Возвращает состояние озвучки английских фраз (по умолчанию выключена).
+ */
+export function isEnglishPhraseSpeechEnabled() {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return false;
+  }
+  return localStorage.getItem(EN_PHRASE_SPEECH_STORAGE_KEY) === 'true';
+}
+
+/**
+ * Сохраняет состояние озвучки английских фраз.
+ */
+export function setEnglishPhraseSpeechEnabled(enabled) {
+  const nextValue = Boolean(enabled);
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.setItem(EN_PHRASE_SPEECH_STORAGE_KEY, nextValue ? 'true' : 'false');
+  }
+  if (!nextValue) {
+    stopErrorSpeech();
+  }
+  return nextValue;
+}
+
 function pickVoiceByLang(langPrefix, preferredKeywords = []) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     return null;
@@ -7859,7 +8003,7 @@ export function speakErrorMessage(text, { enabled = true, rate = 1.02, pitch = 1
 }
 
 /**
- * Озвучивает английское слово или фразу из словаря (EN)
+ * Озвучивает английское слово или фразу (EN)
  */
 export function speakEnglishWord(text, { rate = 0.92, pitch = 1.0, onStart, onEnd } = {}) {
   if (!text) return;
