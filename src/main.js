@@ -22,6 +22,7 @@ import {
 import { speakEnglishWord, speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
 import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
+import { applyDynamicSplashScreen } from './utils/pwaBranding.js';
 import {
   checkAndApplyRemoteVersion,
   startRemoteVersionWatcher,
@@ -37,6 +38,7 @@ import {
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
+  applyDynamicSplashScreen().catch(() => {});
 
   // Счётчики ТОЛЬКО для текущей сессии (начинаются с 0 при открытии приложения)
   let sessionCorrectAnswers = 0;

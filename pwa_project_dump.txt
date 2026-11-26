@@ -4082,6 +4082,25 @@ let selectedMonth = new Date().getMonth(); // 0..11
 let cachedStatsMap = {};
 let isSettingsPopstateBound = false;
 
+function getGoogleAccountName(user) {
+  if (!user) return 'Гость';
+  if (typeof user.displayName === 'string' && user.displayName.trim()) {
+    return user.displayName.trim();
+  }
+  if (typeof user.email === 'string' && user.email.trim()) {
+    return user.email.trim();
+  }
+  return 'Пользователь Google';
+}
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function ensureSettingsStyles() {
   if (document.getElementById(SETTINGS_STYLE_ID)) return;
 
@@ -4162,6 +4181,35 @@ function ensureSettingsStyles() {
     .st-menu-item:active {
       background: #f1f5f9;
       border-color: #0284c7;
+    }
+
+    /* Поле с именем аккаунта Google */
+    .st-google-user-box {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    }
+
+    .st-google-user-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    .st-google-user-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .st-tabs {
@@ -4490,6 +4538,16 @@ function renderSettingsMenu(user) {
   };
 }
 
+function buildGoogleUserFieldHtml(user) {
+  const accountName = escapeHtml(getGoogleAccountName(user));
+  return `
+    <div class="st-google-user-box">
+      <span class="st-google-user-label">Google:</span>
+      <span class="st-google-user-name">${accountName}</span>
+    </div>
+  `;
+}
+
 function renderStatsView(user) {
   const modal = getSettingsModalElement();
 
@@ -4509,6 +4567,8 @@ function renderStatsView(user) {
         <h2 class="st-title">Статистика</h2>
         <button type="button" id="st-close-btn" class="st-btn-icon">✕</button>
       </div>
+
+      ${buildGoogleUserFieldHtml(user)}
 
       <div class="st-tabs">
         <button type="button" class="st-tab-btn ${currentStatsPeriod === 'days' ? 'active' : ''}" data-period="days">Дни</button>
@@ -7431,6 +7491,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stopErrorSpeech();
         openSettingsModal({
           user: currentUser,
+          currentLevel,
           onBeforeOpen: () => flushSessionTime()
         });
       }
