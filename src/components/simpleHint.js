@@ -1,7 +1,14 @@
 // src/components/simpleHint.js
 
+import {
+  registerOverlayOpen,
+  closeOverlayByUi,
+  isOverlayOpen
+} from '../utils/overlayStack.js';
+
 const HINT_MODAL_ID = 'simple-hint-modal';
 const HINT_STYLE_ID = 'simple-hint-styles';
+const OVERLAY_KEY = 'simple-hint';
 
 const COLUMNS_DATA = {
   question: {
@@ -97,8 +104,6 @@ const COLUMNS_DATA = {
   }
 };
 
-let isHintPopstateBound = false;
-
 function getHintConfigForLevel(level = 1) {
   const safeLevel = Math.max(1, Number(level) || 1);
 
@@ -112,13 +117,13 @@ function getHintConfigForLevel(level = 1) {
   if (safeLevel === 2) {
     return {
       columns: [COLUMNS_DATA.statement, COLUMNS_DATA.negative],
-      defaultIndex: 1 // Открываем "Отрицание", свайп влево -> "Утверждение"
+      defaultIndex: 1
     };
   }
 
   return {
     columns: [COLUMNS_DATA.question, COLUMNS_DATA.statement, COLUMNS_DATA.negative],
-    defaultIndex: 0 // Открываем "Вопрос", свайп вправо -> "Утверждение" и "Отрицание"
+    defaultIndex: 0
   };
 }
 
@@ -326,15 +331,11 @@ function getSimpleHintModalElement() {
   return modal;
 }
 
-function ensureHintHistoryListener() {
-  if (isHintPopstateBound || typeof window === 'undefined') return;
-  isHintPopstateBound = true;
-
-  window.addEventListener('popstate', () => {
-    if (isSimpleHintOpen()) {
-      closeSimpleHint(true);
-    }
-  });
+function hideSimpleHintDom() {
+  const modal = document.getElementById(HINT_MODAL_ID);
+  if (modal) {
+    modal.classList.remove('open');
+  }
 }
 
 function renderHintContent(modal, { columns, defaultIndex }) {
@@ -369,7 +370,7 @@ function renderHintContent(modal, { columns, defaultIndex }) {
   }
 
   closeBtn.addEventListener('click', () => {
-    closeSimpleHint(false);
+    closeSimpleHint();
   });
 
   tabButtons.forEach((btn) => {
@@ -393,8 +394,6 @@ function renderHintContent(modal, { columns, defaultIndex }) {
 }
 
 export function openSimpleHint(level = 1) {
-  ensureHintHistoryListener();
-
   const modal = getSimpleHintModalElement();
   const alreadyOpen = isSimpleHintOpen();
   const { columns, defaultIndex } = getHintConfigForLevel(level);
@@ -402,8 +401,8 @@ export function openSimpleHint(level = 1) {
 
   modal.classList.add('open');
 
-  if (!alreadyOpen && typeof history !== 'undefined' && typeof history.pushState === 'function') {
-    history.pushState({ simpleHintOpen: true }, '');
+  if (!alreadyOpen) {
+    registerOverlayOpen(OVERLAY_KEY, hideSimpleHintDom);
   }
 
   requestAnimationFrame(() => {
@@ -412,23 +411,11 @@ export function openSimpleHint(level = 1) {
   });
 }
 
-export function closeSimpleHint(isBackAction = false) {
-  const modal = document.getElementById(HINT_MODAL_ID);
-  if (modal && modal.classList.contains('open')) {
-    modal.classList.remove('open');
-    if (
-      !isBackAction &&
-      typeof history !== 'undefined' &&
-      history.state &&
-      history.state.simpleHintOpen &&
-      typeof history.back === 'function'
-    ) {
-      history.back();
-    }
-  }
+export function closeSimpleHint() {
+  closeOverlayByUi(OVERLAY_KEY, hideSimpleHintDom);
 }
 
 export function isSimpleHintOpen() {
   const modal = document.getElementById(HINT_MODAL_ID);
-  return Boolean(modal && modal.classList.contains('open'));
+  return Boolean(modal && modal.classList.contains('open')) || isOverlayOpen(OVERLAY_KEY);
 }

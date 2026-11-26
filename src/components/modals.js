@@ -1,10 +1,15 @@
 // src/components/modals.js
 import { getDictionaryForLevel } from '../levels/registry.js';
 import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
-import { openSimpleHint, isSimpleHintOpen } from './simpleHint.js';
+import { openSimpleHint } from './simpleHint.js';
 import { speakEnglishWord, stopErrorSpeech } from '../utils/speechFeedback.js';
+import {
+  registerOverlayOpen,
+  closeOverlayByUi,
+  isOverlayOpen
+} from '../utils/overlayStack.js';
 
-let isPopstateBound = false;
+const MAIN_MODAL_OVERLAY_KEY = 'main-modal';
 let activeLessonLevel = 1;
 
 function renderDictionaryWordRow(wordItem) {
@@ -51,6 +56,14 @@ function renderDictionarySectionDivider(labelText = 'Ранее изученны
       </div>
     </div>
   `;
+}
+
+function hideMainModalDom() {
+  stopErrorSpeech();
+  const modal = document.getElementById('modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
 }
 
 export function setupModals({ currentLevel = 1 } = {}) {
@@ -112,29 +125,14 @@ export function setupModals({ currentLevel = 1 } = {}) {
   const modalContent = document.getElementById('modal-content');
 
   function openModal(titleText, contentHtml) {
+    const wasAlreadyOpen = modal.style.display === 'block' || isOverlayOpen(MAIN_MODAL_OVERLAY_KEY);
     modalTitle.textContent = titleText;
     modalContent.innerHTML = contentHtml;
     modal.style.display = 'block';
     modal.scrollTop = 0;
 
-    if (typeof history !== 'undefined' && typeof history.pushState === 'function') {
-      history.pushState({ modalOpen: true }, '');
-    }
-  }
-
-  function closeModalWindow(isBackAction = false) {
-    stopErrorSpeech();
-    if (modal.style.display === 'block') {
-      modal.style.display = 'none';
-      if (
-        !isBackAction &&
-        typeof history !== 'undefined' &&
-        history.state &&
-        history.state.modalOpen &&
-        typeof history.back === 'function'
-      ) {
-        history.back();
-      }
+    if (!wasAlreadyOpen) {
+      registerOverlayOpen(MAIN_MODAL_OVERLAY_KEY, hideMainModalDom);
     }
   }
 
@@ -200,21 +198,8 @@ export function setupModals({ currentLevel = 1 } = {}) {
   const closeModal = document.getElementById('close-modal');
   if (closeModal) {
     closeModal.onclick = () => {
-      closeModalWindow(false);
+      closeOverlayByUi(MAIN_MODAL_OVERLAY_KEY, hideMainModalDom);
     };
-  }
-
-  if (!isPopstateBound) {
-    isPopstateBound = true;
-    window.addEventListener('popstate', () => {
-      // Если поверх открыто окно подсказки/помощи — оно закрывается своим слушателем popstate
-      if (isSimpleHintOpen()) {
-        return;
-      }
-      if (modal && modal.style.display === 'block') {
-        closeModalWindow(true);
-      }
-    });
   }
 }
 
@@ -223,20 +208,21 @@ export function openHelpGuideModal() {
   const modal = document.getElementById('modal');
   const modalTitle = document.getElementById('modal-title');
   const modalContent = document.getElementById('modal-content');
+  const wasAlreadyOpen = modal.style.display === 'block' || isOverlayOpen(MAIN_MODAL_OVERLAY_KEY);
 
   modalTitle.textContent = "Помощь";
   modalContent.innerHTML = helpGuideHtml;
   modal.style.display = 'block';
   modal.scrollTop = 0;
 
-  if (typeof history !== 'undefined' && typeof history.pushState === 'function') {
-    history.pushState({ modalOpen: true }, '');
+  if (!wasAlreadyOpen) {
+    registerOverlayOpen(MAIN_MODAL_OVERLAY_KEY, hideMainModalDom);
   }
 
   const reopenIntroBtn = document.getElementById('reopen-intro-btn');
   if (reopenIntroBtn) {
     reopenIntroBtn.onclick = () => {
-      modal.style.display = 'none';
+      closeOverlayByUi(MAIN_MODAL_OVERLAY_KEY, hideMainModalDom);
       showProjectPresentation();
     };
   }
