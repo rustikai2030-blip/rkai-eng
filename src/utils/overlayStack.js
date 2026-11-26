@@ -3,12 +3,18 @@
 const overlayStack = [];
 let isPopstateListening = false;
 let isHandlingPopstate = false;
+let pendingHistoryBackCount = 0;
 
 function ensurePopstateListener() {
   if (isPopstateListening || typeof window === 'undefined') return;
   isPopstateListening = true;
 
   window.addEventListener('popstate', () => {
+    if (pendingHistoryBackCount > 0) {
+      pendingHistoryBackCount--;
+      return;
+    }
+
     const topOverlay = overlayStack[overlayStack.length - 1];
     if (!topOverlay) return;
 
@@ -26,7 +32,7 @@ function ensurePopstateListener() {
 
 /**
  * Регистрирует открытое окно поверх стека и добавляет запись в историю браузера.
- * @param {string} id - Уникальный идентификатор окна (например, 'simple-hint' или 'main-modal').
+ * @param {string} id - Уникальный идентификатор окна (например, 'simple-hint' или 'intro-presentation').
  * @param {Function} onClose - Функция визуального закрытия окна без повторного вызова history.back().
  */
 export function registerOverlayOpen(id, onClose) {
@@ -40,7 +46,10 @@ export function registerOverlayOpen(id, onClose) {
   overlayStack.push({ id, onClose });
 
   if (typeof history !== 'undefined' && typeof history.pushState === 'function') {
-    history.pushState({ overlayId: id, stackDepth: overlayStack.length }, '');
+    history.pushState(
+      { overlayId: id, stackDepth: overlayStack.length, ts: Date.now() },
+      ''
+    );
   }
 }
 
@@ -81,6 +90,7 @@ export function closeOverlayByUi(id, fallbackVisualClose) {
     typeof history !== 'undefined' &&
     typeof history.back === 'function'
   ) {
+    pendingHistoryBackCount++;
     history.back();
   }
 }

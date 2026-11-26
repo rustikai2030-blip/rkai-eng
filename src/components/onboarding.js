@@ -1,8 +1,16 @@
 // src/components/onboarding.js
 import { openSimpleHint } from './simpleHint.js';
 import { shareProjectContent, buildProjectShareText, SHARE_APP_URL } from '../utils/share.js';
+import {
+  registerOverlayOpen,
+  closeOverlayByUi,
+  isOverlayOpen
+} from '../utils/overlayStack.js';
 
 const HIDE_INTRO_STORAGE_KEY = 'rkai_hide_intro';
+const INTRO_OVERLAY_KEY = 'intro-presentation';
+
+let activeIntroOnClose = null;
 
 export const projectPresentationHtml = `
   <div style="font-size: 20px; color: #e5e7eb; display: flex; flex-direction: column; gap: 18px; line-height: 1.65;">
@@ -104,8 +112,27 @@ export function setIntroHidden(hidden) {
   localStorage.setItem(HIDE_INTRO_STORAGE_KEY, hidden ? 'true' : 'false');
 }
 
+function hideIntroModalDom() {
+  const introModal = document.getElementById('intro-presentation-modal');
+  const checkbox = document.getElementById('dont-show-intro-checkbox');
+  if (checkbox) {
+    setIntroHidden(checkbox.checked);
+  }
+  if (introModal) {
+    introModal.style.display = 'none';
+  }
+  const onCloseCallback = activeIntroOnClose;
+  activeIntroOnClose = null;
+  if (typeof onCloseCallback === 'function') {
+    onCloseCallback();
+  }
+}
+
 export function showProjectPresentation({ onClose } = {}) {
   let introModal = document.getElementById('intro-presentation-modal');
+  const wasAlreadyOpen =
+    Boolean(introModal && introModal.style.display === 'flex') ||
+    isOverlayOpen(INTRO_OVERLAY_KEY);
 
   if (!introModal) {
     introModal = document.createElement('div');
@@ -119,7 +146,7 @@ export function showProjectPresentation({ onClose } = {}) {
       'background: #16171d;',
       'color: #f3f4f6;',
       'box-sizing: border-box;',
-      'z-index: 1500;',
+      'z-index: 2500;',
       'flex-direction: column;',
       'font-family: system-ui, -apple-system, sans-serif;'
     ].join(' ');
@@ -150,6 +177,8 @@ export function showProjectPresentation({ onClose } = {}) {
     document.body.appendChild(introModal);
   }
 
+  activeIntroOnClose = typeof onClose === 'function' ? onClose : null;
+
   const checkbox = document.getElementById('dont-show-intro-checkbox');
   if (checkbox) {
     checkbox.checked = isIntroHidden();
@@ -158,20 +187,14 @@ export function showProjectPresentation({ onClose } = {}) {
     };
   }
 
-  const closeIntro = () => {
-    if (checkbox) {
-      setIntroHidden(checkbox.checked);
-    }
-    introModal.style.display = 'none';
-    if (typeof onClose === 'function') {
-      onClose();
-    }
+  const closeIntroByButton = () => {
+    closeOverlayByUi(INTRO_OVERLAY_KEY, hideIntroModalDom);
   };
 
   const closeTopBtn = document.getElementById('intro-close-top-btn');
   const shareBtn = document.getElementById('intro-share-btn');
 
-  if (closeTopBtn) closeTopBtn.onclick = closeIntro;
+  if (closeTopBtn) closeTopBtn.onclick = closeIntroByButton;
   if (shareBtn) {
     shareBtn.onclick = () => {
       shareProjectContent({
@@ -185,4 +208,8 @@ export function showProjectPresentation({ onClose } = {}) {
   introModal.style.display = 'flex';
   const bodyEl = document.getElementById('intro-modal-body');
   if (bodyEl) bodyEl.scrollTop = 0;
+
+  if (!wasAlreadyOpen) {
+    registerOverlayOpen(INTRO_OVERLAY_KEY, hideIntroModalDom);
+  }
 }

@@ -5813,8 +5813,15 @@ export function renderCategoryFilters({
 === FILE: ./src/components/simpleHint.js ===
 // src/components/simpleHint.js
 
+import {
+  registerOverlayOpen,
+  closeOverlayByUi,
+  isOverlayOpen
+} from '../utils/overlayStack.js';
+
 const HINT_MODAL_ID = 'simple-hint-modal';
 const HINT_STYLE_ID = 'simple-hint-styles';
+const OVERLAY_KEY = 'simple-hint';
 
 const COLUMNS_DATA = {
   question: {
@@ -5923,13 +5930,13 @@ function getHintConfigForLevel(level = 1) {
   if (safeLevel === 2) {
     return {
       columns: [COLUMNS_DATA.statement, COLUMNS_DATA.negative],
-      defaultIndex: 1 // Открываем "Отрицание", свайп влево -> "Утверждение"
+      defaultIndex: 1
     };
   }
 
   return {
     columns: [COLUMNS_DATA.question, COLUMNS_DATA.statement, COLUMNS_DATA.negative],
-    defaultIndex: 0 // Открываем "Вопрос", свайп вправо -> "Утверждение" и "Отрицание"
+    defaultIndex: 0
   };
 }
 
@@ -6137,6 +6144,13 @@ function getSimpleHintModalElement() {
   return modal;
 }
 
+function hideSimpleHintDom() {
+  const modal = document.getElementById(HINT_MODAL_ID);
+  if (modal) {
+    modal.classList.remove('open');
+  }
+}
+
 function renderHintContent(modal, { columns, defaultIndex }) {
   modal.innerHTML = `
     <button type="button" class="sh-floating-close" id="sh-close-btn" aria-label="Закрыть подсказку">✕</button>
@@ -6194,10 +6208,15 @@ function renderHintContent(modal, { columns, defaultIndex }) {
 
 export function openSimpleHint(level = 1) {
   const modal = getSimpleHintModalElement();
+  const alreadyOpen = isSimpleHintOpen();
   const { columns, defaultIndex } = getHintConfigForLevel(level);
   const { scrollArea, setActiveTab } = renderHintContent(modal, { columns, defaultIndex });
 
   modal.classList.add('open');
+
+  if (!alreadyOpen) {
+    registerOverlayOpen(OVERLAY_KEY, hideSimpleHintDom);
+  }
 
   requestAnimationFrame(() => {
     scrollArea.scrollLeft = defaultIndex * scrollArea.clientWidth;
@@ -6206,15 +6225,12 @@ export function openSimpleHint(level = 1) {
 }
 
 export function closeSimpleHint() {
-  const modal = document.getElementById(HINT_MODAL_ID);
-  if (modal) {
-    modal.classList.remove('open');
-  }
+  closeOverlayByUi(OVERLAY_KEY, hideSimpleHintDom);
 }
 
 export function isSimpleHintOpen() {
   const modal = document.getElementById(HINT_MODAL_ID);
-  return Boolean(modal && modal.classList.contains('open'));
+  return Boolean(modal && modal.classList.contains('open')) || isOverlayOpen(OVERLAY_KEY);
 }
 
 === FILE: ./src/components/timerStatusBar.js ===
@@ -6497,10 +6513,15 @@ export function showProjectPresentation({ onClose } = {}) {
 // src/components/modals.js
 import { getDictionaryForLevel } from '../levels/registry.js';
 import { helpGuideHtml, showProjectPresentation } from './onboarding.js';
-import { openSimpleHint, closeSimpleHint, isSimpleHintOpen } from './simpleHint.js';
+import { openSimpleHint } from './simpleHint.js';
 import { speakEnglishWord, stopErrorSpeech } from '../utils/speechFeedback.js';
+import {
+  registerOverlayOpen,
+  closeOverlayByUi,
+  isOverlayOpen
+} from '../utils/overlayStack.js';
 
-let isPopstateBound = false;
+const MAIN_MODAL_OVERLAY_KEY = 'main-modal';
 let activeLessonLevel = 1;
 
 function renderDictionaryWordRow(wordItem) {
@@ -6547,6 +6568,14 @@ function renderDictionarySectionDivider(labelText = 'Ранее изученны
       </div>
     </div>
   `;
+}
+
+function hideMainModalDom() {
+  stopErrorSpeech();
+  const modal = document.getElementById('modal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
 }
 
 export function setupModals({ currentLevel = 1 } = {}) {
@@ -6608,21 +6637,14 @@ export function setupModals({ currentLevel = 1 } = {}) {
   const modalContent = document.getElementById('modal-content');
 
   function openModal(titleText, contentHtml) {
+    const wasAlreadyOpen = modal.style.display === 'block' || isOverlayOpen(MAIN_MODAL_OVERLAY_KEY);
     modalTitle.textContent = titleText;
     modalContent.innerHTML = contentHtml;
     modal.style.display = 'block';
     modal.scrollTop = 0;
 
-    history.pushState({ modalOpen: true }, '');
-  }
-
-  function closeModalWindow(isBackAction = false) {
-    stopErrorSpeech();
-    if (modal.style.display === 'block') {
-      modal.style.display = 'none';
-      if (!isBackAction && history.state && history.state.modalOpen) {
-        history.back();
-      }
+    if (!wasAlreadyOpen) {
+      registerOverlayOpen(MAIN_MODAL_OVERLAY_KEY, hideMainModalDom);
     }
   }
 
@@ -6688,21 +6710,8 @@ export function setupModals({ currentLevel = 1 } = {}) {
   const closeModal = document.getElementById('close-modal');
   if (closeModal) {
     closeModal.onclick = () => {
-      closeModalWindow(false);
+      closeOverlayByUi(MAIN_MODAL_OVERLAY_KEY, hideMainModalDom);
     };
-  }
-
-  if (!isPopstateBound) {
-    isPopstateBound = true;
-    window.addEventListener('popstate', () => {
-      if (isSimpleHintOpen()) {
-        closeSimpleHint();
-        return;
-      }
-      if (modal && modal.style.display === 'block') {
-        closeModalWindow(true);
-      }
-    });
   }
 }
 
@@ -6711,16 +6720,21 @@ export function openHelpGuideModal() {
   const modal = document.getElementById('modal');
   const modalTitle = document.getElementById('modal-title');
   const modalContent = document.getElementById('modal-content');
+  const wasAlreadyOpen = modal.style.display === 'block' || isOverlayOpen(MAIN_MODAL_OVERLAY_KEY);
 
   modalTitle.textContent = "Помощь";
   modalContent.innerHTML = helpGuideHtml;
   modal.style.display = 'block';
   modal.scrollTop = 0;
 
+  if (!wasAlreadyOpen) {
+    registerOverlayOpen(MAIN_MODAL_OVERLAY_KEY, hideMainModalDom);
+  }
+
   const reopenIntroBtn = document.getElementById('reopen-intro-btn');
   if (reopenIntroBtn) {
     reopenIntroBtn.onclick = () => {
-      modal.style.display = 'none';
+      closeOverlayByUi(MAIN_MODAL_OVERLAY_KEY, hideMainModalDom);
       showProjectPresentation();
     };
   }
@@ -8475,6 +8489,102 @@ export async function applyDynamicSplashScreen() {
     document.head.appendChild(linkEl);
   }
   linkEl.setAttribute('href', splashUrl);
+}
+
+=== FILE: ./src/utils/overlayStack.js ===
+// src/utils/overlayStack.js
+
+const overlayStack = [];
+let isPopstateListening = false;
+let isHandlingPopstate = false;
+
+function ensurePopstateListener() {
+  if (isPopstateListening || typeof window === 'undefined') return;
+  isPopstateListening = true;
+
+  window.addEventListener('popstate', () => {
+    const topOverlay = overlayStack[overlayStack.length - 1];
+    if (!topOverlay) return;
+
+    isHandlingPopstate = true;
+    try {
+      overlayStack.pop();
+      if (typeof topOverlay.onClose === 'function') {
+        topOverlay.onClose();
+      }
+    } finally {
+      isHandlingPopstate = false;
+    }
+  });
+}
+
+/**
+ * Регистрирует открытое окно поверх стека и добавляет запись в историю браузера.
+ * @param {string} id - Уникальный идентификатор окна (например, 'simple-hint' или 'main-modal').
+ * @param {Function} onClose - Функция визуального закрытия окна без повторного вызова history.back().
+ */
+export function registerOverlayOpen(id, onClose) {
+  ensurePopstateListener();
+
+  const existingIndex = overlayStack.findIndex(item => item.id === id);
+  if (existingIndex !== -1) {
+    overlayStack.splice(existingIndex, 1);
+  }
+
+  overlayStack.push({ id, onClose });
+
+  if (typeof history !== 'undefined' && typeof history.pushState === 'function') {
+    history.pushState({ overlayId: id, stackDepth: overlayStack.length }, '');
+  }
+}
+
+/**
+ * Закрывает окно по id (по умолчанию — верхнее).
+ * Если закрытие вызвано не событием popstate, делает шаг назад в истории браузера.
+ * @param {string} [id] - Идентификатор закрываемого окна. Если не передан, берётся верхнее.
+ * @param {Function} [fallbackVisualClose] - Запасной колбэк, если окна нет в стеке.
+ */
+export function closeOverlayByUi(id, fallbackVisualClose) {
+  if (isHandlingPopstate) return;
+
+  let targetIndex = -1;
+  if (id) {
+    for (let i = overlayStack.length - 1; i >= 0; i--) {
+      if (overlayStack[i].id === id) {
+        targetIndex = i;
+        break;
+      }
+    }
+  } else if (overlayStack.length > 0) {
+    targetIndex = overlayStack.length - 1;
+  }
+
+  let removedEntry = null;
+  if (targetIndex !== -1) {
+    [removedEntry] = overlayStack.splice(targetIndex, 1);
+  }
+
+  if (removedEntry && typeof removedEntry.onClose === 'function') {
+    removedEntry.onClose();
+  } else if (typeof fallbackVisualClose === 'function') {
+    fallbackVisualClose();
+  }
+
+  if (
+    removedEntry &&
+    typeof history !== 'undefined' &&
+    typeof history.back === 'function'
+  ) {
+    history.back();
+  }
+}
+
+/**
+ * Проверяет, открыто ли сейчас конкретное окно (или любое окно, если id не передан).
+ */
+export function isOverlayOpen(id) {
+  if (!id) return overlayStack.length > 0;
+  return overlayStack.some(item => item.id === id);
 }
 
 === FILE: ./src/utils/styleTheme.js ===

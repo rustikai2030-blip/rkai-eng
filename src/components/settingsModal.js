@@ -5,9 +5,15 @@ import {
   isEnglishPhraseSpeechEnabled,
   setEnglishPhraseSpeechEnabled
 } from '../utils/speechFeedback.js';
+import {
+  registerOverlayOpen,
+  closeOverlayByUi,
+  isOverlayOpen
+} from '../utils/overlayStack.js';
 
 const SETTINGS_MODAL_ID = 'settings-modal';
 const SETTINGS_STYLE_ID = 'settings-modal-styles';
+const SETTINGS_OVERLAY_KEY = 'settings-modal';
 
 const MONTH_NAMES = [
   'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -20,7 +26,6 @@ let currentStatsPeriod = 'days'; // 'days' | 'months' | 'years'
 let selectedYear = new Date().getFullYear();
 let selectedMonth = new Date().getMonth(); // 0..11
 let cachedStatsMap = {};
-let isSettingsPopstateBound = false;
 let currentModalCallbacks = {};
 
 function getGoogleAccountName(user) {
@@ -455,19 +460,20 @@ function getSettingsModalElement() {
   return modal;
 }
 
-export function isSettingsModalOpen() {
+function hideSettingsModalDom() {
   const modal = document.getElementById(SETTINGS_MODAL_ID);
-  return Boolean(modal && modal.classList.contains('open'));
+  if (modal) {
+    modal.classList.remove('open');
+  }
 }
 
-export function closeSettingsModal(isBackAction = false) {
+export function isSettingsModalOpen() {
   const modal = document.getElementById(SETTINGS_MODAL_ID);
-  if (modal && modal.classList.contains('open')) {
-    modal.classList.remove('open');
-    if (!isBackAction && history.state && history.state.settingsModalOpen) {
-      history.back();
-    }
-  }
+  return Boolean(modal && modal.classList.contains('open')) || isOverlayOpen(SETTINGS_OVERLAY_KEY);
+}
+
+export function closeSettingsModal() {
+  closeOverlayByUi(SETTINGS_OVERLAY_KEY, hideSettingsModalDom);
 }
 
 export function openSettingsModal({ user, onBeforeOpen, onToggleEnglishSpeech } = {}) {
@@ -477,20 +483,15 @@ export function openSettingsModal({ user, onBeforeOpen, onToggleEnglishSpeech } 
     onBeforeOpen();
   }
 
+  const wasAlreadyOpen = isSettingsModalOpen();
   const modal = getSettingsModalElement();
   modal.classList.add('open');
   modal.scrollTop = 0;
 
-  if (!isSettingsPopstateBound) {
-    isSettingsPopstateBound = true;
-    window.addEventListener('popstate', () => {
-      if (isSettingsModalOpen()) {
-        closeSettingsModal(true);
-      }
-    });
+  if (!wasAlreadyOpen) {
+    registerOverlayOpen(SETTINGS_OVERLAY_KEY, hideSettingsModalDom);
   }
 
-  history.pushState({ settingsModalOpen: true }, '');
   renderSettingsMenu(user);
 }
 
@@ -539,7 +540,7 @@ function renderSettingsMenu(user) {
     </div>
   `;
 
-  modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+  modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal();
 
   const speechToggle = modal.querySelector('#st-en-speech-toggle');
   if (speechToggle) {
@@ -552,8 +553,10 @@ function renderSettingsMenu(user) {
   }
 
   modal.querySelector('#st-open-about-btn').onclick = () => {
-    closeSettingsModal(false);
-    showProjectPresentation();
+    closeSettingsModal();
+    setTimeout(() => {
+      showProjectPresentation();
+    }, 60);
   };
 
   modal.querySelector('#st-open-stats-btn').onclick = async () => {
@@ -573,7 +576,7 @@ function renderSettingsMenu(user) {
       </div>
     `;
     modal.querySelector('#st-back-menu-btn').onclick = () => renderSettingsMenu(user);
-    modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+    modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal();
 
     cachedStatsMap = await loadFullUserStats(user);
     renderStatsView(user);
@@ -623,7 +626,7 @@ function renderStatsView(user) {
   `;
 
   modal.querySelector('#st-back-menu-btn').onclick = () => renderSettingsMenu(user);
-  modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+  modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal();
 
   modal.querySelectorAll('.st-tab-btn').forEach((btn) => {
     btn.onclick = () => {
