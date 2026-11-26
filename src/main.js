@@ -24,6 +24,12 @@ import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 import { applyDynamicSplashScreen } from './utils/pwaBranding.js';
 import {
+  initViewportAdaptation,
+  syncViewportMetrics,
+  applyCustomKeyboardInputGuards,
+  setCustomInputValueWithCaret
+} from './utils/platformCompat.js';
+import {
   checkAndApplyRemoteVersion,
   startRemoteVersionWatcher,
   onUpdateAvailable,
@@ -38,6 +44,7 @@ import {
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
+  initViewportAdaptation();
   applyDynamicSplashScreen().catch(() => {});
 
   // Счётчики ТОЛЬКО для текущей сессии (начинаются с 0 при открытии приложения)
@@ -90,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function resetViewportPosition() {
+    syncViewportMetrics();
     try {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     } catch (_) {
@@ -109,11 +117,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function preserveInputFocusAndCaret(inputEl, fallbackCaret = null) {
     if (!inputEl || isEnglishToRussian || isAdvancingAfterSpeech) return;
+    applyCustomKeyboardInputGuards(inputEl);
     const caretPos = typeof fallbackCaret === 'number'
       ? Math.max(0, Math.min(fallbackCaret, inputEl.value.length))
       : inputEl.value.length;
 
-    inputEl.focus({ preventScroll: true });
+    if (!inputEl.readOnly) {
+      inputEl.focus({ preventScroll: true });
+    }
     try {
       inputEl.selectionStart = inputEl.selectionEnd = caretPos;
     } catch (_) {}
@@ -693,6 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
       pickNewTask();
     }
 
+    syncViewportMetrics();
     updateStyleLevel();
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
 
@@ -838,9 +850,10 @@ document.addEventListener('DOMContentLoaded', () => {
       let refreshShift = () => {};
 
       if (inputEl) {
-        inputEl.setAttribute('inputmode', 'none');
+        applyCustomKeyboardInputGuards(inputEl);
 
         if (!isAdvancingAfterSpeech) {
+          setCustomInputValueWithCaret(inputEl, currentInput, currentInput.length);
           preserveInputFocusAndCaret(inputEl, currentInput.length);
         }
 
@@ -854,7 +867,9 @@ document.addEventListener('DOMContentLoaded', () => {
         inputEl.addEventListener('click', (e) => {
           e.preventDefault();
           if (!isAdvancingAfterSpeech) {
-            preserveInputFocusAndCaret(inputEl, inputEl.selectionStart);
+            const caret = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+            setCustomInputValueWithCaret(inputEl, inputEl.value, caret);
+            preserveInputFocusAndCaret(inputEl, caret);
             handleCursorMove();
           }
         });
@@ -876,59 +891,63 @@ document.addEventListener('DOMContentLoaded', () => {
           if (!inputEl) {
             return { value: currentInput, selectionStart: currentInput.length, selectionEnd: currentInput.length };
           }
+          const start = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+          const end = typeof inputEl.selectionEnd === 'number' ? inputEl.selectionEnd : start;
           return {
             value: inputEl.value,
-            selectionStart: inputEl.selectionStart,
-            selectionEnd: inputEl.selectionEnd
+            selectionStart: start,
+            selectionEnd: end
           };
         },
         onInput: (char) => {
           if (isAdvancingAfterSpeech || !inputEl) return;
-          const start = inputEl.selectionStart;
-          const end = inputEl.selectionEnd;
+          const start = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+          const end = typeof inputEl.selectionEnd === 'number' ? inputEl.selectionEnd : start;
           const val = inputEl.value;
 
           if (val.length < MAX_INPUT_LENGTH) {
-            let charToAdd = char;
-
-            inputEl.value = val.substring(0, start) + charToAdd + val.substring(end);
-            inputEl.selectionStart = inputEl.selectionEnd = start + 1;
-            currentInput = inputEl.value;
-            preserveInputFocusAndCaret(inputEl, start + 1);
+            const nextVal = val.substring(0, start) + char + val.substring(end);
+            const nextCaret = start + 1;
+            currentInput = nextVal;
+            setCustomInputValueWithCaret(inputEl, nextVal, nextCaret);
+            preserveInputFocusAndCaret(inputEl, nextCaret);
           }
         },
         onBackspace: () => {
           if (isAdvancingAfterSpeech || !inputEl) return;
-          const start = inputEl.selectionStart;
-          const end = inputEl.selectionEnd;
+          const start = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+          const end = typeof inputEl.selectionEnd === 'number' ? inputEl.selectionEnd : start;
           const val = inputEl.value;
 
           if (start !== end) {
-            inputEl.value = val.substring(0, start) + val.substring(end);
-            inputEl.selectionStart = inputEl.selectionEnd = start;
-            currentInput = inputEl.value;
+            const nextVal = val.substring(0, start) + val.substring(end);
+            currentInput = nextVal;
+            setCustomInputValueWithCaret(inputEl, nextVal, start);
             preserveInputFocusAndCaret(inputEl, start);
           } else if (start > 0) {
-            inputEl.value = val.substring(0, start - 1) + val.substring(start);
-            inputEl.selectionStart = inputEl.selectionEnd = start - 1;
-            currentInput = inputEl.value;
-            preserveInputFocusAndCaret(inputEl, start - 1);
+            const nextVal = val.substring(0, start - 1) + val.substring(start);
+            const nextCaret = start - 1;
+            currentInput = nextVal;
+            setCustomInputValueWithCaret(inputEl, nextVal, nextCaret);
+            preserveInputFocusAndCaret(inputEl, nextCaret);
           } else {
-            currentInput = inputEl.value;
+            currentInput = val;
+            setCustomInputValueWithCaret(inputEl, val, 0);
             preserveInputFocusAndCaret(inputEl, 0);
           }
         },
         onSpace: () => {
           if (isAdvancingAfterSpeech || !inputEl) return;
-          const start = inputEl.selectionStart;
-          const end = inputEl.selectionEnd;
+          const start = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+          const end = typeof inputEl.selectionEnd === 'number' ? inputEl.selectionEnd : start;
           const val = inputEl.value;
 
           if (val.length < MAX_INPUT_LENGTH) {
-            inputEl.value = val.substring(0, start) + " " + val.substring(end);
-            inputEl.selectionStart = inputEl.selectionEnd = start + 1;
-            currentInput = inputEl.value;
-            preserveInputFocusAndCaret(inputEl, start + 1);
+            const nextVal = val.substring(0, start) + " " + val.substring(end);
+            const nextCaret = start + 1;
+            currentInput = nextVal;
+            setCustomInputValueWithCaret(inputEl, nextVal, nextCaret);
+            preserveInputFocusAndCaret(inputEl, nextCaret);
           }
         },
         onOk: async () => {

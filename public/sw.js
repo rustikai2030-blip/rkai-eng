@@ -1,11 +1,20 @@
 // public/sw.js
-const CACHE_VERSION = 3;
+const CACHE_VERSION = 5;
 const CACHE_NAME = `eng-rkai-cache-v${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
   "/",
   "/index.html",
-  "/manifest.json"
+  "/manifest.json",
+  "/favicon.svg",
+  "/icons.svg",
+  "/icon-48.png",
+  "/icon-72.png",
+  "/icon-96.png",
+  "/icon-144.png",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/splash-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -42,7 +51,6 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Для навигации и HTML — сначала сеть, чтобы не получить старую разметку после деплоя
   if (request.mode === "navigate" || url.pathname === "/" || url.pathname.endsWith(".html")) {
     event.respondWith(
       fetch(request)
@@ -58,7 +66,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Для остальных статических файлов — кэш с обновлением в фоне
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       const networkFetch = fetch(request)

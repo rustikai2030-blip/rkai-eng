@@ -1,11 +1,16 @@
 /* src/styles/evolution.css */
 
+:root {
+  --app-vh: 1dvh;
+  --full-app-height: calc(var(--app-vh, 1dvh) * 100);
+}
+
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100dvh;
-  max-height: 100dvh;
+  height: var(--full-app-height);
+  max-height: var(--full-app-height);
   overflow: hidden;
   overscroll-behavior: none;
   display: flex;
@@ -21,8 +26,8 @@ html, body {
 #app {
   width: 100%;
   max-width: 480px;
-  height: 100dvh;
-  max-height: 100dvh;
+  height: var(--full-app-height);
+  max-height: var(--full-app-height);
   overflow: hidden;
   padding-top: max(12px, env(safe-area-inset-top));
   padding-bottom: max(14px, env(safe-area-inset-bottom));
