@@ -2737,13 +2737,43 @@
 
 === FILE: ./public/manifest.json ===
 {
-  "name": "Pareto",
+  "id": "/",
+  "name": "Pareto English",
   "short_name": "Pareto",
+  "description": "Тренажёр английского языка по принципу Парето",
+  "lang": "ru",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#0284c7",
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "/icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
@@ -2751,23 +2781,44 @@
       "purpose": "any"
     },
     {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
 
 === FILE: ./public/sw.js ===
 // public/sw.js
-const CACHE_VERSION = 3;
+const CACHE_VERSION = 5;
 const CACHE_NAME = `eng-rkai-cache-v${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
   "/",
   "/index.html",
-  "/manifest.json"
+  "/manifest.json",
+  "/favicon.svg",
+  "/icons.svg",
+  "/icon-48.png",
+  "/icon-72.png",
+  "/icon-96.png",
+  "/icon-144.png",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/splash-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -2804,7 +2855,6 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Для навигации и HTML — сначала сеть, чтобы не получить старую разметку после деплоя
   if (request.mode === "navigate" || url.pathname === "/" || url.pathname.endsWith(".html")) {
     event.respondWith(
       fetch(request)
@@ -2820,7 +2870,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Для остальных статических файлов — кэш с обновлением в фоне
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       const networkFetch = fetch(request)
@@ -3703,12 +3752,17 @@ code {
 === FILE: ./src/styles/evolution.css ===
 /* src/styles/evolution.css */
 
+:root {
+  --app-vh: 1dvh;
+  --full-app-height: calc(var(--app-vh, 1dvh) * 100);
+}
+
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100dvh;
-  max-height: 100dvh;
+  height: var(--full-app-height);
+  max-height: var(--full-app-height);
   overflow: hidden;
   overscroll-behavior: none;
   display: flex;
@@ -3724,8 +3778,8 @@ html, body {
 #app {
   width: 100%;
   max-width: 480px;
-  height: 100dvh;
-  max-height: 100dvh;
+  height: var(--full-app-height);
+  max-height: var(--full-app-height);
   overflow: hidden;
   padding-top: max(12px, env(safe-area-inset-top));
   padding-bottom: max(14px, env(safe-area-inset-bottom));
@@ -6698,6 +6752,12 @@ import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 import { applyDynamicSplashScreen } from './utils/pwaBranding.js';
 import {
+  initViewportAdaptation,
+  syncViewportMetrics,
+  applyCustomKeyboardInputGuards,
+  setCustomInputValueWithCaret
+} from './utils/platformCompat.js';
+import {
   checkAndApplyRemoteVersion,
   startRemoteVersionWatcher,
   onUpdateAvailable,
@@ -6712,6 +6772,7 @@ import {
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
+  initViewportAdaptation();
   applyDynamicSplashScreen().catch(() => {});
 
   // Счётчики ТОЛЬКО для текущей сессии (начинаются с 0 при открытии приложения)
@@ -6764,6 +6825,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function resetViewportPosition() {
+    syncViewportMetrics();
     try {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     } catch (_) {
@@ -6783,11 +6845,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function preserveInputFocusAndCaret(inputEl, fallbackCaret = null) {
     if (!inputEl || isEnglishToRussian || isAdvancingAfterSpeech) return;
+    applyCustomKeyboardInputGuards(inputEl);
     const caretPos = typeof fallbackCaret === 'number'
       ? Math.max(0, Math.min(fallbackCaret, inputEl.value.length))
       : inputEl.value.length;
 
-    inputEl.focus({ preventScroll: true });
+    if (!inputEl.readOnly) {
+      inputEl.focus({ preventScroll: true });
+    }
     try {
       inputEl.selectionStart = inputEl.selectionEnd = caretPos;
     } catch (_) {}
@@ -7367,6 +7432,7 @@ document.addEventListener('DOMContentLoaded', () => {
       pickNewTask();
     }
 
+    syncViewportMetrics();
     updateStyleLevel();
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
 
@@ -7512,9 +7578,10 @@ document.addEventListener('DOMContentLoaded', () => {
       let refreshShift = () => {};
 
       if (inputEl) {
-        inputEl.setAttribute('inputmode', 'none');
+        applyCustomKeyboardInputGuards(inputEl);
 
         if (!isAdvancingAfterSpeech) {
+          setCustomInputValueWithCaret(inputEl, currentInput, currentInput.length);
           preserveInputFocusAndCaret(inputEl, currentInput.length);
         }
 
@@ -7528,7 +7595,9 @@ document.addEventListener('DOMContentLoaded', () => {
         inputEl.addEventListener('click', (e) => {
           e.preventDefault();
           if (!isAdvancingAfterSpeech) {
-            preserveInputFocusAndCaret(inputEl, inputEl.selectionStart);
+            const caret = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+            setCustomInputValueWithCaret(inputEl, inputEl.value, caret);
+            preserveInputFocusAndCaret(inputEl, caret);
             handleCursorMove();
           }
         });
@@ -7550,59 +7619,63 @@ document.addEventListener('DOMContentLoaded', () => {
           if (!inputEl) {
             return { value: currentInput, selectionStart: currentInput.length, selectionEnd: currentInput.length };
           }
+          const start = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+          const end = typeof inputEl.selectionEnd === 'number' ? inputEl.selectionEnd : start;
           return {
             value: inputEl.value,
-            selectionStart: inputEl.selectionStart,
-            selectionEnd: inputEl.selectionEnd
+            selectionStart: start,
+            selectionEnd: end
           };
         },
         onInput: (char) => {
           if (isAdvancingAfterSpeech || !inputEl) return;
-          const start = inputEl.selectionStart;
-          const end = inputEl.selectionEnd;
+          const start = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+          const end = typeof inputEl.selectionEnd === 'number' ? inputEl.selectionEnd : start;
           const val = inputEl.value;
 
           if (val.length < MAX_INPUT_LENGTH) {
-            let charToAdd = char;
-
-            inputEl.value = val.substring(0, start) + charToAdd + val.substring(end);
-            inputEl.selectionStart = inputEl.selectionEnd = start + 1;
-            currentInput = inputEl.value;
-            preserveInputFocusAndCaret(inputEl, start + 1);
+            const nextVal = val.substring(0, start) + char + val.substring(end);
+            const nextCaret = start + 1;
+            currentInput = nextVal;
+            setCustomInputValueWithCaret(inputEl, nextVal, nextCaret);
+            preserveInputFocusAndCaret(inputEl, nextCaret);
           }
         },
         onBackspace: () => {
           if (isAdvancingAfterSpeech || !inputEl) return;
-          const start = inputEl.selectionStart;
-          const end = inputEl.selectionEnd;
+          const start = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+          const end = typeof inputEl.selectionEnd === 'number' ? inputEl.selectionEnd : start;
           const val = inputEl.value;
 
           if (start !== end) {
-            inputEl.value = val.substring(0, start) + val.substring(end);
-            inputEl.selectionStart = inputEl.selectionEnd = start;
-            currentInput = inputEl.value;
+            const nextVal = val.substring(0, start) + val.substring(end);
+            currentInput = nextVal;
+            setCustomInputValueWithCaret(inputEl, nextVal, start);
             preserveInputFocusAndCaret(inputEl, start);
           } else if (start > 0) {
-            inputEl.value = val.substring(0, start - 1) + val.substring(start);
-            inputEl.selectionStart = inputEl.selectionEnd = start - 1;
-            currentInput = inputEl.value;
-            preserveInputFocusAndCaret(inputEl, start - 1);
+            const nextVal = val.substring(0, start - 1) + val.substring(start);
+            const nextCaret = start - 1;
+            currentInput = nextVal;
+            setCustomInputValueWithCaret(inputEl, nextVal, nextCaret);
+            preserveInputFocusAndCaret(inputEl, nextCaret);
           } else {
-            currentInput = inputEl.value;
+            currentInput = val;
+            setCustomInputValueWithCaret(inputEl, val, 0);
             preserveInputFocusAndCaret(inputEl, 0);
           }
         },
         onSpace: () => {
           if (isAdvancingAfterSpeech || !inputEl) return;
-          const start = inputEl.selectionStart;
-          const end = inputEl.selectionEnd;
+          const start = typeof inputEl.selectionStart === 'number' ? inputEl.selectionStart : inputEl.value.length;
+          const end = typeof inputEl.selectionEnd === 'number' ? inputEl.selectionEnd : start;
           const val = inputEl.value;
 
           if (val.length < MAX_INPUT_LENGTH) {
-            inputEl.value = val.substring(0, start) + " " + val.substring(end);
-            inputEl.selectionStart = inputEl.selectionEnd = start + 1;
-            currentInput = inputEl.value;
-            preserveInputFocusAndCaret(inputEl, start + 1);
+            const nextVal = val.substring(0, start) + " " + val.substring(end);
+            const nextCaret = start + 1;
+            currentInput = nextVal;
+            setCustomInputValueWithCaret(inputEl, nextVal, nextCaret);
+            preserveInputFocusAndCaret(inputEl, nextCaret);
           }
         },
         onOk: async () => {
@@ -8046,6 +8119,55 @@ export async function resetUserStatsAndCounters(uid) {
   } catch (err) {
     console.warn("Не удалось очистить dailyStats в Firestore:", err.message);
   }
+}
+
+=== FILE: ./src/utils/pwaManifestCompat.js ===
+// src/utils/pwaManifestCompat.js
+import { generateBrandedIconDataUrl } from './pwaBranding.js';
+
+function checkImageExists(src) {
+  return new Promise((resolve) => {
+    if (!src || typeof Image === 'undefined') {
+      resolve(false);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth > 0);
+    img.onerror = () => resolve(false);
+    img.src = src;
+  });
+}
+
+/**
+ * Обеспечивает корректную иконку для iOS (apple-touch-icon):
+ * если /icon-180.png или /icon-192.png отсутствует, подставляет сгенерированную PNG-иконку.
+ */
+export async function syncPlatformIcons() {
+  if (typeof document === 'undefined') return;
+
+  const has180 = await checkImageExists('/icon-180.png');
+  const has192 = await checkImageExists('/icon-192.png');
+
+  let fallbackIconUrl = null;
+  if (!has180 && !has192) {
+    fallbackIconUrl = await generateBrandedIconDataUrl(192, '/icon-512.png');
+  }
+
+  const targetHref = has180
+    ? '/icon-180.png'
+    : has192
+      ? '/icon-192.png'
+      : fallbackIconUrl;
+
+  if (!targetHref) return;
+
+  let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+  if (!appleIcon) {
+    appleIcon = document.createElement('link');
+    appleIcon.setAttribute('rel', 'apple-touch-icon');
+    document.head.appendChild(appleIcon);
+  }
+  appleIcon.setAttribute('href', targetHref);
 }
 
 === FILE: ./src/utils/pwaBranding.js ===
@@ -8512,6 +8634,129 @@ export function startRemoteVersionWatcher() {
     });
   } catch (err) {
     console.warn("Ошибка подписки на версию приложения:", err);
+  }
+}
+
+=== FILE: ./src/utils/platformCompat.js ===
+// src/utils/platformCompat.js
+
+/**
+ * Определяет окружение браузера и платформы без поломки стандартного поведения Chrome.
+ */
+export function getPlatformInfo() {
+  if (typeof navigator === 'undefined' || typeof window === 'undefined') {
+    return {
+      isYandex: false,
+      isIos: false,
+      isAndroid: false,
+      isMobile: false,
+      isStandalone: false
+    };
+  }
+
+  const ua = navigator.userAgent || '';
+  const isYandex = /YaBrowser|Yandex/i.test(ua);
+  const isIos = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(ua);
+  const isMobile = isIos || isAndroid || /Mobile|Mobi/i.test(ua);
+  const isStandalone =
+    window.matchMedia?.('(display-mode: standalone)')?.matches ||
+    window.matchMedia?.('(display-mode: fullscreen)')?.matches ||
+    Boolean(navigator.standalone);
+
+  return {
+    isYandex,
+    isIos,
+    isAndroid,
+    isMobile,
+    isStandalone
+  };
+}
+
+/**
+ * Обновляет CSS-переменную --app-vh с учётом visualViewport,
+ * чтобы нижняя панель Яндекс Браузера и других браузеров не перекрывала интерфейс.
+ */
+export function syncViewportMetrics() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  const vv = window.visualViewport;
+  const activeHeight = vv && vv.height > 0 ? vv.height : window.innerHeight;
+  const vhUnitPx = Math.max(3.2, activeHeight * 0.01);
+
+  document.documentElement.style.setProperty('--app-vh', `${vhUnitPx}px`);
+}
+
+/**
+ * Запускает отслеживание размеров окна и visualViewport для кроссплатформенной адаптации.
+ * Возвращает функцию очистки слушателей.
+ */
+export function initViewportAdaptation() {
+  if (typeof window === 'undefined') return () => {};
+
+  syncViewportMetrics();
+
+  const onResize = () => syncViewportMetrics();
+  window.addEventListener('resize', onResize, { passive: true });
+  window.addEventListener('orientationchange', onResize, { passive: true });
+
+  const vv = window.visualViewport;
+  if (vv) {
+    vv.addEventListener('resize', onResize, { passive: true });
+    vv.addEventListener('scroll', onResize, { passive: true });
+  }
+
+  return () => {
+    window.removeEventListener('resize', onResize);
+    window.removeEventListener('orientationchange', onResize);
+    if (vv) {
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onResize);
+    }
+  };
+}
+
+/**
+ * Блокирует появление системной клавиатуры при работе со встроенной клавиатурой тренажёра,
+ * сохраняя работу кастомного курсора (selectionStart / selectionEnd).
+ */
+export function applyCustomKeyboardInputGuards(inputEl) {
+  if (!inputEl) return;
+
+  const { isYandex, isMobile } = getPlatformInfo();
+
+  inputEl.setAttribute('inputmode', 'none');
+  inputEl.setAttribute('autocomplete', 'off');
+  inputEl.setAttribute('autocorrect', 'off');
+  inputEl.setAttribute('autocapitalize', 'off');
+  inputEl.setAttribute('spellcheck', 'false');
+
+  // Для мобильных устройств и особенно Яндекс Браузера readOnly надёжно подавляет системную клавиатуру,
+  // не мешая программному управлению selectionStart / selectionEnd и значением value.
+  if (isYandex || isMobile) {
+    inputEl.readOnly = true;
+  } else {
+    inputEl.readOnly = false;
+  }
+}
+
+/**
+ * Безопасно задаёт значение и позицию курсора в поле ввода для кастомной клавиатуры.
+ */
+export function setCustomInputValueWithCaret(inputEl, nextValue, caretIndex) {
+  if (!inputEl) return;
+
+  const safeValue = String(nextValue ?? '');
+  const safeCaret = Math.max(0, Math.min(Number(caretIndex) || 0, safeValue.length));
+
+  inputEl.value = safeValue;
+  try {
+    inputEl.setSelectionRange(safeCaret, safeCaret);
+  } catch (_) {
+    try {
+      inputEl.selectionStart = safeCaret;
+      inputEl.selectionEnd = safeCaret;
+    } catch (__) {}
   }
 }
 

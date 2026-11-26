@@ -19,7 +19,12 @@ import {
   getLocalCounters,
   saveLocalCounters
 } from './utils/statsTracker.js';
-import { speakEnglishWord, speakErrorMessage, stopErrorSpeech } from './utils/speechFeedback.js';
+import {
+  speakEnglishWord,
+  speakErrorMessage,
+  stopErrorSpeech,
+  isEnglishPhraseSpeechEnabled
+} from './utils/speechFeedback.js';
 import { calculateStyleLevel, calculateElementLevel, gameConfig } from './config/gameConfig.js';
 import { applyStyleLevelToBody } from './utils/styleTheme.js';
 import { applyDynamicSplashScreen } from './utils/pwaBranding.js';
@@ -85,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let testTimerInterval = null;
 
   let isSoundEnabled = localStorage.getItem('rkai_sound_enabled') !== 'false';
+  let isEnglishPhraseSpeechActive = isEnglishPhraseSpeechEnabled();
 
   const MAX_INPUT_LENGTH = 35;
 
@@ -214,8 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
-    if (!isSoundEnabled || !spokenText || typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      advanceTimeoutId = setTimeout(finishOnce, 300);
+    if (!isEnglishPhraseSpeechActive || !spokenText || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      finishOnce();
       return;
     }
 
@@ -601,7 +607,11 @@ document.addEventListener('DOMContentLoaded', () => {
         lastFeedbackColor = "#22c55e";
       }
 
-      const shouldSpeakEnglish = elementLevel >= 5 && !isEnglishToRussian && Boolean(spokenEnglishText);
+      const shouldSpeakEnglish =
+        isEnglishPhraseSpeechActive &&
+        elementLevel >= 5 &&
+        !isEnglishToRussian &&
+        Boolean(spokenEnglishText);
 
       if (shouldSpeakEnglish) {
         isAdvancingAfterSpeech = true;
@@ -821,7 +831,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isSoundEnabled = !isSoundEnabled;
         localStorage.setItem('rkai_sound_enabled', isSoundEnabled);
         if (!isSoundEnabled) {
-          clearPendingAdvance();
           stopErrorSpeech();
         }
         renderTrainer();
@@ -832,7 +841,10 @@ document.addEventListener('DOMContentLoaded', () => {
         openSettingsModal({
           user: currentUser,
           currentLevel,
-          onBeforeOpen: () => flushSessionTime()
+          onBeforeOpen: () => flushSessionTime(),
+          onToggleEnglishSpeech: (enabled) => {
+            isEnglishPhraseSpeechActive = Boolean(enabled);
+          }
         });
       }
     });

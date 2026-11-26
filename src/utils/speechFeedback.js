@@ -1,5 +1,31 @@
 // src/utils/speechFeedback.js
 
+const EN_PHRASE_SPEECH_STORAGE_KEY = 'rkai_en_phrase_speech_enabled';
+
+/**
+ * Возвращает состояние озвучки английских фраз (по умолчанию выключена).
+ */
+export function isEnglishPhraseSpeechEnabled() {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return false;
+  }
+  return localStorage.getItem(EN_PHRASE_SPEECH_STORAGE_KEY) === 'true';
+}
+
+/**
+ * Сохраняет состояние озвучки английских фраз.
+ */
+export function setEnglishPhraseSpeechEnabled(enabled) {
+  const nextValue = Boolean(enabled);
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.setItem(EN_PHRASE_SPEECH_STORAGE_KEY, nextValue ? 'true' : 'false');
+  }
+  if (!nextValue) {
+    stopErrorSpeech();
+  }
+  return nextValue;
+}
+
 function pickVoiceByLang(langPrefix, preferredKeywords = []) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     return null;
@@ -55,7 +81,7 @@ export function speakErrorMessage(text, { enabled = true, rate = 1.02, pitch = 1
 }
 
 /**
- * Озвучивает английское слово или фразу из словаря (EN)
+ * Озвучивает английское слово или фразу (EN)
  */
 export function speakEnglishWord(text, { rate = 0.92, pitch = 1.0, onStart, onEnd } = {}) {
   if (!text) return;

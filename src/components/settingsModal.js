@@ -1,6 +1,10 @@
 // src/components/settingsModal.js
 import { loadFullUserStats, formatStatsDuration, getLocalDateKey } from '../utils/statsTracker.js';
 import { showProjectPresentation } from './onboarding.js';
+import {
+  isEnglishPhraseSpeechEnabled,
+  setEnglishPhraseSpeechEnabled
+} from '../utils/speechFeedback.js';
 
 const SETTINGS_MODAL_ID = 'settings-modal';
 const SETTINGS_STYLE_ID = 'settings-modal-styles';
@@ -17,6 +21,7 @@ let selectedYear = new Date().getFullYear();
 let selectedMonth = new Date().getMonth(); // 0..11
 let cachedStatsMap = {};
 let isSettingsPopstateBound = false;
+let currentModalCallbacks = {};
 
 function getGoogleAccountName(user) {
   if (!user) return 'Гость';
@@ -117,6 +122,79 @@ function ensureSettingsStyles() {
     .st-menu-item:active {
       background: #f1f5f9;
       border-color: #0284c7;
+    }
+
+    .st-toggle-card {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      color: #0f172a;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+      box-sizing: border-box;
+    }
+
+    .st-toggle-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.25;
+    }
+
+    .st-toggle-desc {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    .st-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    .st-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .st-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #cbd5e1;
+      transition: 0.2s ease;
+      border-radius: 999px;
+    }
+
+    .st-slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #ffffff;
+      transition: 0.2s ease;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+    }
+
+    .st-switch input:checked + .st-slider {
+      background-color: #0284c7;
+    }
+
+    .st-switch input:checked + .st-slider:before {
+      transform: translateX(22px);
     }
 
     /* Поле с именем аккаунта Google */
@@ -392,7 +470,9 @@ export function closeSettingsModal(isBackAction = false) {
   }
 }
 
-export function openSettingsModal({ user, onBeforeOpen } = {}) {
+export function openSettingsModal({ user, onBeforeOpen, onToggleEnglishSpeech } = {}) {
+  currentModalCallbacks = { onToggleEnglishSpeech };
+
   if (typeof onBeforeOpen === 'function') {
     onBeforeOpen();
   }
@@ -416,6 +496,8 @@ export function openSettingsModal({ user, onBeforeOpen } = {}) {
 
 function renderSettingsMenu(user) {
   const modal = getSettingsModalElement();
+  const enSpeechEnabled = isEnglishPhraseSpeechEnabled();
+
   modal.innerHTML = `
     <div class="st-wrapper">
       <div class="st-header">
@@ -424,6 +506,20 @@ function renderSettingsMenu(user) {
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="st-toggle-card">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            <span style="font-size: 20px; flex-shrink: 0;">🗣️</span>
+            <div>
+              <div class="st-toggle-title">Озвучка английских фраз</div>
+              <div class="st-toggle-desc">По умолчанию выключена для быстрого переключения заданий</div>
+            </div>
+          </div>
+          <label class="st-switch" aria-label="Озвучка английских фраз">
+            <input type="checkbox" id="st-en-speech-toggle" ${enSpeechEnabled ? 'checked' : ''} />
+            <span class="st-slider"></span>
+          </label>
+        </div>
+
         <button type="button" id="st-open-about-btn" class="st-menu-item">
           <span style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 20px;">ℹ️</span>
@@ -444,6 +540,16 @@ function renderSettingsMenu(user) {
   `;
 
   modal.querySelector('#st-close-btn').onclick = () => closeSettingsModal(false);
+
+  const speechToggle = modal.querySelector('#st-en-speech-toggle');
+  if (speechToggle) {
+    speechToggle.onchange = (e) => {
+      const nextEnabled = setEnglishPhraseSpeechEnabled(e.target.checked);
+      if (typeof currentModalCallbacks.onToggleEnglishSpeech === 'function') {
+        currentModalCallbacks.onToggleEnglishSpeech(nextEnabled);
+      }
+    };
+  }
 
   modal.querySelector('#st-open-about-btn').onclick = () => {
     closeSettingsModal(false);
