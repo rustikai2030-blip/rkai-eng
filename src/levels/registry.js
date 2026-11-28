@@ -51,21 +51,43 @@ export function getKeyboardRowsForLevel(level = 1) {
   return getLevelConfig(level).keyboardRows;
 }
 
+function getWordKey(wordItem) {
+  const en = String(wordItem?.en || '').trim().toLowerCase();
+  const ru = String(wordItem?.ru || '').trim().toLowerCase();
+  return `${en}::${ru}`;
+}
+
 /**
  * Возвращает словарь для указанного уровня:
- * - newWords: слова текущего урока
- * - previousWords: слова всех предыдущих уроков (от более нового урока к ранним)
+ * - newWords: собственный словарь текущего уровня
+ * - previousWords: уникальные слова из предыдущих уровней, отсутствующие в текущем словаре
  */
 export function getDictionaryForLevel(level = 1) {
   const numericLevel = Math.max(1, Number(level) || 1);
   const clampedLevel = Math.min(numericLevel, MAX_REGISTERED_LEVEL);
 
-  const newWords = [...(LEVELS_REGISTRY[clampedLevel]?.words || [])];
-  const previousWords = [];
+  const rawNewWords = LEVELS_REGISTRY[clampedLevel]?.words || [];
+  const seenKeys = new Set();
+  const newWords = [];
 
+  for (const item of rawNewWords) {
+    const key = getWordKey(item);
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      newWords.push(item);
+    }
+  }
+
+  const previousWords = [];
   for (let lvl = clampedLevel - 1; lvl >= 1; lvl--) {
     const prevList = LEVELS_REGISTRY[lvl]?.words || [];
-    previousWords.push(...prevList);
+    for (const item of prevList) {
+      const key = getWordKey(item);
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        previousWords.push(item);
+      }
+    }
   }
 
   return {

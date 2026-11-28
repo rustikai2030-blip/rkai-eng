@@ -9,10 +9,11 @@ export const level4KeyboardRows = [
   ["'", 'space', 'ok']
 ];
 
+// Собственный словарь 4-го уровня: добавлены Call и Help
 export const level4Words = [
   { en: "Call", ru: "Звонить" },
-  { en: "Called", ru: "Звонил (прошед. время)" },
   { en: "Help", ru: "Помогать" },
+  { en: "Called", ru: "Звонил (прошед. время)" },
   { en: "Helped", ru: "Помогал (прошед. время)" }
 ];
 

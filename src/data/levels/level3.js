@@ -1,5 +1,5 @@
 // src/data/levels/level3.js
-import { level2RuEn, level2EnRu } from './level2.js';
+import { level2RuEn, level2EnRu, level2Words } from './level2.js';
 
 export const level3KeyboardRows = [
   ['w', 'e', 'r', 't'],
@@ -9,10 +9,8 @@ export const level3KeyboardRows = [
   ["'", 'space', 'ok']
 ];
 
-export const level3Words = [
-  { en: "Do / Does... work?", ru: "Работаешь/работает ли? (вопрос)" },
-  { en: "Did... work?", ru: "Работал ли? (прошед. вопрос)" }
-];
+// Собственный словарь 3-го уровня: на первых трёх уровнях совпадает с 1-м уровнем
+export const level3Words = level2Words.map((item) => ({ ...item }));
 
 export const level3QuestionsRuEn = [
   { ru: "Я работаю?", en: "Do I work?", category: "question" },

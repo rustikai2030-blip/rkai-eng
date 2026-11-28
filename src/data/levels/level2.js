@@ -1,5 +1,5 @@
 // src/data/levels/level2.js
-import { level1RuEn, level1EnRu } from './level1.js';
+import { level1RuEn, level1EnRu, level1Words } from './level1.js';
 
 export const level2KeyboardRows = [
   ['w', 'e', 'r', 't'],
@@ -9,11 +9,8 @@ export const level2KeyboardRows = [
   ["'", 'space', 'ok']
 ];
 
-export const level2Words = [
-  { en: "Will work", ru: "Буду работать (будущ. время)" },
-  { en: "Don't / Doesn't work", ru: "Не работаю(ет) (отрицание)" },
-  { en: "Didn't work", ru: "Не работал (прошед. отрицание)" }
-];
+// Собственный словарь 2-го уровня: на первых трёх уровнях совпадает с 1-м уровнем
+export const level2Words = level1Words.map((item) => ({ ...item }));
 
 export const level2NegativesRuEn = [
   { ru: "Я не работаю", en: "I don't work", category: "negative" },
