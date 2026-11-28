@@ -47,6 +47,10 @@ import {
   SHARE_APP_URL
 } from './utils/share.js';
 import { buildGuestResetState } from './utils/sessionReset.js';
+import {
+  normalizeTranslationInput,
+  evaluateTranslationAnswer
+} from './utils/answerChecker.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.querySelector('#app');
@@ -571,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrainer();
   }
 
-  async function handleAnswerResult(isCorrect, spokenEnglishText = "") {
+  async function handleAnswerResult(isCorrect, spokenEnglishText = "", customErrorHint = "") {
     if (isAdvancingAfterSpeech) return;
 
     const elementLevel = calculateElementLevel(totalCorrectAnswers);
@@ -708,12 +712,12 @@ document.addEventListener('DOMContentLoaded', () => {
         playSound('error');
       }
 
-      if (elementLevel >= 1) {
-        const phrase = getWrongPhrase(consecutiveErrors);
+      if (elementLevel >= 1 || customErrorHint) {
+        const phrase = customErrorHint || getWrongPhrase(consecutiveErrors);
         lastFeedback = phrase;
         lastFeedbackColor = "#ef4444";
 
-        if (consecutiveErrors > 1) {
+        if (!customErrorHint && consecutiveErrors > 1) {
           speakErrorMessage(phrase, { enabled: isSoundEnabled });
         }
       }
@@ -1003,17 +1007,21 @@ document.addEventListener('DOMContentLoaded', () => {
         onOk: async () => {
           if (isAdvancingAfterSpeech) return;
           if (inputEl) currentInput = inputEl.value;
-          const trimmedInput = currentInput.trim();
+          const normalizedInput = normalizeTranslationInput(currentInput);
 
-          if (!trimmedInput) {
+          if (!normalizedInput) {
             lastFeedback = "Сначала введите перевод";
             lastFeedbackColor = "#eab308";
             renderTrainer();
             return;
           }
 
-          const isCorrect = trimmedInput.toLowerCase() === currentTask.en.toLowerCase();
-          await handleAnswerResult(isCorrect, isCorrect ? trimmedInput : "");
+          const checkResult = evaluateTranslationAnswer(normalizedInput, currentTask.en);
+          await handleAnswerResult(
+            checkResult.isCorrect,
+            checkResult.isCorrect ? normalizedInput : "",
+            checkResult.hint
+          );
         }
       });
 

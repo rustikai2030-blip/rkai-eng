@@ -2889,7 +2889,7 @@ self.addEventListener("fetch", (event) => {
 
 === FILE: ./src/data/levels/level2.js ===
 // src/data/levels/level2.js
-import { level1RuEn, level1EnRu } from './level1.js';
+import { level1RuEn, level1EnRu, level1Words } from './level1.js';
 
 export const level2KeyboardRows = [
   ['w', 'e', 'r', 't'],
@@ -2899,11 +2899,8 @@ export const level2KeyboardRows = [
   ["'", 'space', 'ok']
 ];
 
-export const level2Words = [
-  { en: "Will work", ru: "Буду работать (будущ. время)" },
-  { en: "Don't / Doesn't work", ru: "Не работаю(ет) (отрицание)" },
-  { en: "Didn't work", ru: "Не работал (прошед. отрицание)" }
-];
+// Собственный словарь 2-го уровня: на первых трёх уровнях совпадает с 1-м уровнем
+export const level2Words = level1Words.map((item) => ({ ...item }));
 
 export const level2NegativesRuEn = [
   { ru: "Я не работаю", en: "I don't work", category: "negative" },
@@ -2977,7 +2974,7 @@ export const level1EnRu = [
 
 === FILE: ./src/data/levels/level3.js ===
 // src/data/levels/level3.js
-import { level2RuEn, level2EnRu } from './level2.js';
+import { level2RuEn, level2EnRu, level2Words } from './level2.js';
 
 export const level3KeyboardRows = [
   ['w', 'e', 'r', 't'],
@@ -2987,10 +2984,8 @@ export const level3KeyboardRows = [
   ["'", 'space', 'ok']
 ];
 
-export const level3Words = [
-  { en: "Do / Does... work?", ru: "Работаешь/работает ли? (вопрос)" },
-  { en: "Did... work?", ru: "Работал ли? (прошед. вопрос)" }
-];
+// Собственный словарь 3-го уровня: на первых трёх уровнях совпадает с 1-м уровнем
+export const level3Words = level2Words.map((item) => ({ ...item }));
 
 export const level3QuestionsRuEn = [
   { ru: "Я работаю?", en: "Do I work?", category: "question" },
@@ -3028,10 +3023,11 @@ export const level4KeyboardRows = [
   ["'", 'space', 'ok']
 ];
 
+// Собственный словарь 4-го уровня: добавлены Call и Help
 export const level4Words = [
   { en: "Call", ru: "Звонить" },
-  { en: "Called", ru: "Звонил (прошед. время)" },
   { en: "Help", ru: "Помогать" },
+  { en: "Called", ru: "Звонил (прошед. время)" },
   { en: "Helped", ru: "Помогал (прошед. время)" }
 ];
 
@@ -3426,21 +3422,43 @@ export function getKeyboardRowsForLevel(level = 1) {
   return getLevelConfig(level).keyboardRows;
 }
 
+function getWordKey(wordItem) {
+  const en = String(wordItem?.en || '').trim().toLowerCase();
+  const ru = String(wordItem?.ru || '').trim().toLowerCase();
+  return `${en}::${ru}`;
+}
+
 /**
  * Возвращает словарь для указанного уровня:
- * - newWords: слова текущего урока
- * - previousWords: слова всех предыдущих уроков (от более нового урока к ранним)
+ * - newWords: собственный словарь текущего уровня
+ * - previousWords: уникальные слова из предыдущих уровней, отсутствующие в текущем словаре
  */
 export function getDictionaryForLevel(level = 1) {
   const numericLevel = Math.max(1, Number(level) || 1);
   const clampedLevel = Math.min(numericLevel, MAX_REGISTERED_LEVEL);
 
-  const newWords = [...(LEVELS_REGISTRY[clampedLevel]?.words || [])];
-  const previousWords = [];
+  const rawNewWords = LEVELS_REGISTRY[clampedLevel]?.words || [];
+  const seenKeys = new Set();
+  const newWords = [];
 
+  for (const item of rawNewWords) {
+    const key = getWordKey(item);
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      newWords.push(item);
+    }
+  }
+
+  const previousWords = [];
   for (let lvl = clampedLevel - 1; lvl >= 1; lvl--) {
     const prevList = LEVELS_REGISTRY[lvl]?.words || [];
-    previousWords.push(...prevList);
+    for (const item of prevList) {
+      const key = getWordKey(item);
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        previousWords.push(item);
+      }
+    }
   }
 
   return {
