@@ -31,6 +31,7 @@ export function getPastelThemeForLevel(styleLevel) {
     color: '#0f172a',
     btnBg: `hsl(${hue}, ${saturation}%, ${btnLightness}%)`,
     btnBorder: `hsl(${hue}, ${Math.min(42, saturation + 10)}%, ${borderLightness}%)`,
+    btnColor: '#0f172a',
     accent: `hsl(${hue}, ${accentSat}%, ${accentLightness}%)`,
     accentBg: `hsla(${hue}, ${accentSat}%, ${accentLightness}%, 0.14)`,
     boxShadow: `0 3px 8px hsla(${hue}, 35%, 25%, 0.08)`,
@@ -56,6 +57,7 @@ export function applyStyleLevelToBody(styleLevel) {
     '--box-shadow',
     '--btn-bg',
     '--btn-border',
+    '--btn-color',
     '--accent',
     '--accent-bg'
   ];
@@ -72,6 +74,7 @@ export function applyStyleLevelToBody(styleLevel) {
   body.style.setProperty('--box-shadow', theme.boxShadow);
   body.style.setProperty('--btn-bg', theme.btnBg);
   body.style.setProperty('--btn-border', theme.btnBorder);
+  body.style.setProperty('--btn-color', theme.btnColor);
   body.style.setProperty('--accent', theme.accent);
   body.style.setProperty('--accent-bg', theme.accentBg);
 }
