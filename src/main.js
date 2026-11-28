@@ -13,6 +13,7 @@ import { renderCategoryFilters } from './components/categoryFilters.js';
 import { renderTimerStatusBar } from './components/timerStatusBar.js';
 import { isIntroHidden, showProjectPresentation } from './components/onboarding.js';
 import { openSettingsModal } from './components/settingsModal.js';
+import { promptLevelUpShare } from './components/levelUpShareModal.js';
 import {
   recordDailyProgress,
   recordAnswerAttempt,
@@ -543,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
-  function finishTest(passed) {
+  async function finishTest(passed) {
     clearPendingAdvance();
     stopErrorSpeech();
     stopTestTimerIfRunning();
@@ -553,24 +554,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const totalQ = gameConfig.testQuestionCount;
     const requiredCorrect = Math.ceil(totalQ * 0.9);
+    const earnedCorrect = testCorrectCount;
 
-    if (passed && testCorrectCount >= requiredCorrect) {
+    if (passed && earnedCorrect >= requiredCorrect) {
       const unlockedLevel = currentLevel + 1;
       currentLevel = unlockedLevel;
       syncCategoriesWithLevel(currentLevel);
-      syncUserProgressToCloud();
+      await syncUserProgressToCloud();
 
-      if (confirm(`Поздравляем! Вы успешно прошли тест (${testCorrectCount}/${totalQ}) и переходите на Уровень ${unlockedLevel}!\n\nПоделиться результатом с друзьями?`)) {
-        shareProjectContent({
+      pickNewTask();
+      renderTrainer();
+
+      const wantsShare = await promptLevelUpShare({
+        unlockedLevel,
+        correctCount: earnedCorrect,
+        totalCount: totalQ
+      });
+
+      if (wantsShare) {
+        await shareProjectContent({
           title: `Уровень ${unlockedLevel} в Pareto English`,
           text: buildLevelUpShareText(unlockedLevel),
           url: SHARE_APP_URL
         });
       }
-    } else {
-      alert(`Время вышло или недостаточно правильных ответов (${testCorrectCount}/${totalQ}, нужно >= ${requiredCorrect}). Вы остаетесь на текущем уровне, тренируйтесь дальше!`);
-      resetTaskPools();
+      return;
     }
+
+    alert(`Время вышло или недостаточно правильных ответов (${earnedCorrect}/${totalQ}, нужно >= ${requiredCorrect}). Вы остаетесь на текущем уровне, тренируйтесь дальше!`);
+    resetTaskPools();
     pickNewTask();
     renderTrainer();
   }
@@ -613,9 +625,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (testQuestionsAnswered >= totalQ) {
         if (testCorrectCount >= requiredCorrect) {
-          finishTest(true);
+          await finishTest(true);
         } else {
-          finishTest(false);
+          await finishTest(false);
         }
         return;
       }
