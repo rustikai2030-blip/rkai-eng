@@ -3,9 +3,13 @@ import { level1RuEn, level1EnRu } from './levels/level1.js';
 import { level2RuEn, level2EnRu } from './levels/level2.js';
 import { level3RuEn, level3EnRu } from './levels/level3.js';
 import { level4RuEn, level4EnRu } from './levels/level4.js';
-import { getDictionaryForLevel } from '../levels/registry.js';
+import { level5RuEn, level5EnRu } from './levels/level5.js';
+import {
+  getDictionaryForLevel,
+  MAX_REGISTERED_LEVEL
+} from '../levels/registry.js';
 
-const fullDict = getDictionaryForLevel(4);
+const fullDict = getDictionaryForLevel(MAX_REGISTERED_LEVEL);
 export const dictionaryWords = [...fullDict.newWords, ...fullDict.previousWords];
 
 export const grammarRules = `
@@ -43,6 +47,11 @@ export const level3Tasks = {
 export const level4Tasks = {
   ruEn: level4RuEn,
   enRu: level4EnRu
+};
+
+export const level5Tasks = {
+  ruEn: level5RuEn,
+  enRu: level5EnRu
 };
 
 // Алгоритм Фишера — Йетса

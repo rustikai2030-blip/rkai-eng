@@ -3832,140 +3832,140 @@ html, body {
 /* Уровень 0: Чистый лист — строгий монохромный минимализм */
 body[data-level="0"] {
   background-color: #ffffff; color: #000000; font-family: ui-monospace, Consolas, monospace;
-  --border-radius: 0px; --box-shadow: none; --btn-bg: #ffffff; --btn-border: #000000;
+  --border-radius: 0px; --box-shadow: none; --btn-bg: #ffffff; --btn-border: #000000; --btn-color: #000000;
   --accent: #000000; --accent-bg: rgba(0, 0, 0, 0.06);
 }
 
 /* Уровень 1: Первые штрихи — тонкая рамка и спокойный синий */
 body[data-level="1"] {
   background-color: #f8fafc; color: #0f172a; font-family: system-ui, sans-serif;
-  --border-radius: 2px; --box-shadow: none; --btn-bg: #ffffff; --btn-border: #94a3b8;
+  --border-radius: 2px; --box-shadow: none; --btn-bg: #ffffff; --btn-border: #94a3b8; --btn-color: #0f172a;
   --accent: #2563eb; --accent-bg: rgba(37, 99, 235, 0.1);
 }
 
 /* Уровень 2: Лёгкий рельеф — микро-тень и небесно-голубой акцент */
 body[data-level="2"] {
   background-color: #f0f9ff; color: #0c4a6e; font-family: system-ui, sans-serif;
-  --border-radius: 3px; --box-shadow: 0 1px 2px rgba(2, 132, 199, 0.12); --btn-bg: #ffffff; --btn-border: #7dd3fc;
+  --border-radius: 3px; --box-shadow: 0 1px 2px rgba(2, 132, 199, 0.12); --btn-bg: #ffffff; --btn-border: #7dd3fc; --btn-color: #0c4a6e;
   --accent: #0284c7; --accent-bg: rgba(2, 132, 199, 0.12);
 }
 
 /* Уровень 3: Тёплая бумага — кремовый фон и изумрудный акцент */
 body[data-level="3"] {
   background-color: #fefce8; color: #1c1917; font-family: system-ui, sans-serif;
-  --border-radius: 4px; --box-shadow: 0 2px 4px rgba(28, 25, 23, 0.06); --btn-bg: #fffdf5; --btn-border: #d6d3d1;
+  --border-radius: 4px; --box-shadow: 0 2px 4px rgba(28, 25, 23, 0.06); --btn-bg: #fffdf5; --btn-border: #d6d3d1; --btn-color: #1c1917;
   --accent: #0d9488; --accent-bg: rgba(13, 148, 136, 0.12);
 }
 
 /* Уровень 4: Свежий мятный — прохладный светлый фон и зелёный акцент */
 body[data-level="4"] {
   background-color: #f0fdf4; color: #14532d; font-family: system-ui, sans-serif;
-  --border-radius: 4px; --box-shadow: 0 2px 5px rgba(22, 163, 74, 0.1); --btn-bg: #ffffff; --btn-border: #86efac;
+  --border-radius: 4px; --box-shadow: 0 2px 5px rgba(22, 163, 74, 0.1); --btn-bg: #ffffff; --btn-border: #86efac; --btn-color: #14532d;
   --accent: #16a34a; --accent-bg: rgba(22, 163, 74, 0.12);
 }
 
 /* Уровень 5: Тёплый песок — выраженные рамки и янтарный акцент */
 body[data-level="5"] {
   background-color: #fffbeb; color: #292524; font-family: system-ui, sans-serif;
-  --border-radius: 5px; --box-shadow: 0 3px 6px rgba(180, 83, 9, 0.1); --btn-bg: #ffffff; --btn-border: #fcd34d;
+  --border-radius: 5px; --box-shadow: 0 3px 6px rgba(180, 83, 9, 0.1); --btn-bg: #ffffff; --btn-border: #fcd34d; --btn-color: #292524;
   --accent: #d97706; --accent-bg: rgba(217, 119, 6, 0.12);
 }
 
 /* Уровень 6: Персиковый рассвет — мягкое тепло и оранжевый акцент */
 body[data-level="6"] {
   background-color: #fff7ed; color: #431407; font-family: system-ui, sans-serif;
-  --border-radius: 5px; --box-shadow: 0 3px 7px rgba(234, 88, 12, 0.12); --btn-bg: #ffffff; --btn-border: #fdba74;
+  --border-radius: 5px; --box-shadow: 0 3px 7px rgba(234, 88, 12, 0.12); --btn-bg: #ffffff; --btn-border: #fdba74; --btn-color: #431407;
   --accent: #ea580c; --accent-bg: rgba(234, 88, 12, 0.12);
 }
 
 /* Уровень 7: Коралловый акцент — плотная обводка и чёткие тени */
 body[data-level="7"] {
   background-color: #fef2f2; color: #450a0a; font-family: system-ui, sans-serif;
-  --border-radius: 6px; --box-shadow: 0 4px 8px rgba(220, 38, 38, 0.12); --btn-bg: #ffffff; --btn-border: #fca5a5;
+  --border-radius: 6px; --box-shadow: 0 4px 8px rgba(220, 38, 38, 0.12); --btn-bg: #ffffff; --btn-border: #fca5a5; --btn-color: #450a0a;
   --accent: #dc2626; --accent-bg: rgba(220, 38, 38, 0.12);
 }
 
 /* Уровень 8: Ягодный штрих — живой розовый акцент */
 body[data-level="8"] {
   background-color: #fdf2f8; color: #500724; font-family: system-ui, sans-serif;
-  --border-radius: 6px; --box-shadow: 0 4px 9px rgba(219, 39, 119, 0.13); --btn-bg: #ffffff; --btn-border: #f9a8d4;
+  --border-radius: 6px; --box-shadow: 0 4px 9px rgba(219, 39, 119, 0.13); --btn-bg: #ffffff; --btn-border: #f9a8d4; --btn-color: #500724;
   --accent: #db2777; --accent-bg: rgba(219, 39, 119, 0.12);
 }
 
 /* Уровень 9: Лавандовый свет — мягкий сиренево-серый фон и фиолетовый акцент */
 body[data-level="9"] {
   background-color: #faf5ff; color: #3b0764; font-family: system-ui, sans-serif;
-  --border-radius: 7px; --box-shadow: 0 5px 10px rgba(147, 51, 234, 0.13); --btn-bg: #ffffff; --btn-border: #d8b4fe;
+  --border-radius: 7px; --box-shadow: 0 5px 10px rgba(147, 51, 234, 0.13); --btn-bg: #ffffff; --btn-border: #d8b4fe; --btn-color: #3b0764;
   --accent: #9333ea; --accent-bg: rgba(147, 51, 234, 0.13);
 }
 
 /* Уровень 10: Индиго-классика — глубокий сине-фиолетовый акцент */
 body[data-level="10"] {
   background-color: #eef2ff; color: #1e1b4b; font-family: system-ui, sans-serif;
-  --border-radius: 7px; --box-shadow: 0 5px 12px rgba(79, 70, 229, 0.14); --btn-bg: #ffffff; --btn-border: #a5b4fc;
+  --border-radius: 7px; --box-shadow: 0 5px 12px rgba(79, 70, 229, 0.14); --btn-bg: #ffffff; --btn-border: #a5b4fc; --btn-color: #1e1b4b;
   --accent: #4f46e5; --accent-bg: rgba(79, 70, 229, 0.14);
 }
 
-/* Уровень 11: Сумерки — переход к тёмному фону и контрастным кнопкам */
+/* Уровень 11: Сумерки — переход к тёмным кнопкам и окну ввода с высоким контрастом текста */
 body[data-level="11"] {
   background-color: #cbd5e1; color: #0f172a; font-family: system-ui, sans-serif;
-  --border-radius: 8px; --box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18); --btn-bg: #1e293b; --btn-border: #64748b;
+  --border-radius: 8px; --box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18); --btn-bg: #1e293b; --btn-border: #64748b; --btn-color: #f8fafc;
   --accent: #0284c7; --accent-bg: rgba(2, 132, 199, 0.16);
 }
 
 /* Уровень 12: Тёмная тема — старт ночного режима и голубой неон */
 body[data-level="12"] {
   background-color: #1e293b; color: #f8fafc; font-family: system-ui, sans-serif;
-  --border-radius: 8px; --box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35); --btn-bg: #0f172a; --btn-border: #475569;
+  --border-radius: 8px; --box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35); --btn-bg: #0f172a; --btn-border: #475569; --btn-color: #f8fafc;
   --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.16);
 }
 
 /* Уровень 13: Глубокий сланец — усиление контраста и лёгкое свечение */
 body[data-level="13"] {
   background-color: #172033; color: #f8fafc; font-family: system-ui, sans-serif;
-  --border-radius: 8px; --box-shadow: 0 0 12px rgba(56, 189, 248, 0.16); --btn-bg: #0d1424; --btn-border: #38bdf8;
+  --border-radius: 8px; --box-shadow: 0 0 12px rgba(56, 189, 248, 0.16); --btn-bg: #0d1424; --btn-border: #38bdf8; --btn-color: #f8fafc;
   --accent: #38bdf8; --accent-bg: rgba(56, 189, 248, 0.18);
 }
 
 /* Уровень 14: Бирюзовая ночь — свежий неоново-мятный акцент в темноте */
 body[data-level="14"] {
   background-color: #111c24; color: #f0fdfa; font-family: system-ui, sans-serif;
-  --border-radius: 9px; --box-shadow: 0 0 14px rgba(45, 212, 191, 0.18); --btn-bg: #091117; --btn-border: #2dd4bf;
+  --border-radius: 9px; --box-shadow: 0 0 14px rgba(45, 212, 191, 0.18); --btn-bg: #091117; --btn-border: #2dd4bf; --btn-color: #f0fdfa;
   --accent: #2dd4bf; --accent-bg: rgba(45, 212, 191, 0.18);
 }
 
 /* Уровень 15: Полночный графит — насыщенный тёмный фон и яркий голубой */
 body[data-level="15"] {
   background-color: #0f172a; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 9px; --box-shadow: 0 0 16px rgba(56, 189, 248, 0.22); --btn-bg: #1e293b; --btn-border: #60a5fa;
+  --border-radius: 9px; --box-shadow: 0 0 16px rgba(56, 189, 248, 0.22); --btn-bg: #1e293b; --btn-border: #60a5fa; --btn-color: #ffffff;
   --accent: #60a5fa; --accent-bg: rgba(96, 165, 250, 0.2);
 }
 
 /* Уровень 16: Неоновый индиго — глубина и выразительный ореол */
 body[data-level="16"] {
   background-color: #0c1326; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 9px; --box-shadow: 0 0 18px rgba(129, 140, 248, 0.24); --btn-bg: #151f38; --btn-border: #818cf8;
+  --border-radius: 9px; --box-shadow: 0 0 18px rgba(129, 140, 248, 0.24); --btn-bg: #151f38; --btn-border: #818cf8; --btn-color: #ffffff;
   --accent: #818cf8; --accent-bg: rgba(129, 140, 248, 0.22);
 }
 
 /* Уровень 17: Фиолетовый импульс — переход к сиренево-фиолетовому неону */
 body[data-level="17"] {
   background-color: #120d24; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 10px; --box-shadow: 0 0 18px rgba(192, 132, 252, 0.24); --btn-bg: #1b1436; --btn-border: #c084fc;
+  --border-radius: 10px; --box-shadow: 0 0 18px rgba(192, 132, 252, 0.24); --btn-bg: #1b1436; --btn-border: #c084fc; --btn-color: #ffffff;
   --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.22);
 }
 
 /* Уровень 18: Кибер-пурпур — яркий акцент и плотный ночной контраст */
 body[data-level="18"] {
   background-color: #0b0818; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 10px; --box-shadow: 0 0 20px rgba(217, 70, 239, 0.25); --btn-bg: #15102b; --btn-border: #e879f9;
+  --border-radius: 10px; --box-shadow: 0 0 20px rgba(217, 70, 239, 0.25); --btn-bg: #15102b; --btn-border: #e879f9; --btn-color: #ffffff;
   --accent: #e879f9; --accent-bg: rgba(232, 121, 249, 0.24);
 }
 
 /* Уровень 19: Максимум — глубокий тёмный стиль с умеренным неоновым свечением */
 body[data-level="19"] {
   background-color: #050811; color: #ffffff; font-family: system-ui, sans-serif;
-  --border-radius: 10px; --box-shadow: 0 0 22px rgba(192, 132, 252, 0.32); --btn-bg: #0f172a; --btn-border: #c084fc;
+  --border-radius: 10px; --box-shadow: 0 0 22px rgba(192, 132, 252, 0.32); --btn-bg: #0f172a; --btn-border: #c084fc; --btn-color: #ffffff;
   --accent: #c084fc; --accent-bg: rgba(192, 132, 252, 0.28);
 }
 
@@ -4000,7 +4000,7 @@ body[data-level="19"] {
   box-shadow: var(--box-shadow, none);
   border: 2px solid var(--btn-border, currentColor);
   background: var(--btn-bg, inherit);
-  color: inherit;
+  color: var(--btn-color, inherit);
   transition: all 0.3s ease;
   
   font-size: var(--input-font-size);
@@ -4017,7 +4017,7 @@ button {
   box-shadow: var(--box-shadow, none);
   border: 2px solid var(--btn-border, currentColor);
   background: var(--btn-bg, inherit);
-  color: inherit;
+  color: var(--btn-color, inherit);
   transition: all 0.3s ease;
 
   -webkit-touch-callout: none;
@@ -4071,7 +4071,7 @@ button {
   font-size: var(--key-font-size);
   font-weight: bold;
   background: var(--btn-bg, #fff);
-  color: inherit;
+  color: var(--btn-color, inherit);
   border: 2px solid var(--btn-border, #000);
   border-radius: var(--border-radius, 4px);
   box-shadow: var(--box-shadow, none);
@@ -8972,6 +8972,7 @@ export function getPastelThemeForLevel(styleLevel) {
     color: '#0f172a',
     btnBg: `hsl(${hue}, ${saturation}%, ${btnLightness}%)`,
     btnBorder: `hsl(${hue}, ${Math.min(42, saturation + 10)}%, ${borderLightness}%)`,
+    btnColor: '#0f172a',
     accent: `hsl(${hue}, ${accentSat}%, ${accentLightness}%)`,
     accentBg: `hsla(${hue}, ${accentSat}%, ${accentLightness}%, 0.14)`,
     boxShadow: `0 3px 8px hsla(${hue}, 35%, 25%, 0.08)`,
@@ -8997,6 +8998,7 @@ export function applyStyleLevelToBody(styleLevel) {
     '--box-shadow',
     '--btn-bg',
     '--btn-border',
+    '--btn-color',
     '--accent',
     '--accent-bg'
   ];
@@ -9013,6 +9015,7 @@ export function applyStyleLevelToBody(styleLevel) {
   body.style.setProperty('--box-shadow', theme.boxShadow);
   body.style.setProperty('--btn-bg', theme.btnBg);
   body.style.setProperty('--btn-border', theme.btnBorder);
+  body.style.setProperty('--btn-color', theme.btnColor);
   body.style.setProperty('--accent', theme.accent);
   body.style.setProperty('--accent-bg', theme.accentBg);
 }

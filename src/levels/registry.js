@@ -3,6 +3,7 @@ import { level1KeyboardRows, level1Words, level1RuEn, level1EnRu } from '../data
 import { level2KeyboardRows, level2Words, level2RuEn, level2EnRu } from '../data/levels/level2.js';
 import { level3KeyboardRows, level3Words, level3RuEn, level3EnRu } from '../data/levels/level3.js';
 import { level4KeyboardRows, level4Words, level4RuEn, level4EnRu } from '../data/levels/level4.js';
+import { level5KeyboardRows, level5Words, level5RuEn, level5EnRu } from '../data/levels/level5.js';
 
 export const LEVELS_REGISTRY = {
   1: {
@@ -32,6 +33,13 @@ export const LEVELS_REGISTRY = {
     keyboardRows: level4KeyboardRows,
     words: level4Words,
     tasks: { ruEn: level4RuEn, enRu: level4EnRu }
+  },
+  5: {
+    level: 5,
+    title: 'Уровень 5',
+    keyboardRows: level5KeyboardRows,
+    words: level5Words,
+    tasks: { ruEn: level5RuEn, enRu: level5EnRu }
   }
 };
 
